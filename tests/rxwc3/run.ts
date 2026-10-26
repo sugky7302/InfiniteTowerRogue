@@ -5,3 +5,4 @@ import "./scheduler.spec";
 import "./time.spec";
 import "./wc3-number.spec";
 import "./events.spec";
+import "./sync.spec";

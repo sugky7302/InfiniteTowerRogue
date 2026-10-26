@@ -4,7 +4,7 @@
     "rootDir": "./src/shared",
     "outDir": "./dist/rxwc3",
     "plugins": [],
-    "types": []
+    "types": ["war3-types-strict/1.33.0"]
   },
   "include": ["src/shared/rxwc3/**/*.ts"],
   "tstl": {

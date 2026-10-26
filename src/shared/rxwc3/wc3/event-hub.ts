@@ -3,7 +3,8 @@ import { Observable } from "../core/observable";
 import { Subject } from "../core/subject";
 import { Subscriber } from "../core/subscriber";
 import { TeardownLogic } from "../core/subscription";
-import { EventNatives, TriggerHandle, UnitHandle, UnitInput } from "./event-natives";
+import { EventNatives } from "@shared/wc3-def/natives";
+import { UnitInput } from "@shared/wc3-def/inputs";
 
 interface Entry<T> {
   subscriber: Subscriber<T>;
@@ -46,21 +47,21 @@ class RouteSubject<T> extends Subject<T> {
 // 純邏輯中樞。原生註冊與資料讀取由呼叫者注入。
 export class EventHub<T> extends Observable<T> {
   private readonly global = new RouteSubject<T>(this);
-  private readonly primary = new Map<UnitHandle, RouteSubject<T>>();
-  private readonly secondary = new Map<UnitHandle, RouteSubject<T>>();
+  private readonly primary = new Map<unit, RouteSubject<T>>();
+  private readonly secondary = new Map<unit, RouteSubject<T>>();
   private readonly dirty: RouteSubject<T>[] = [];
   private first: Entry<T> | undefined;
   private last: Entry<T> | undefined;
   private sequence = 0;
   private depth = 0;
-  private trigger: TriggerHandle | undefined;
+  private trigger: trigger | undefined;
 
   public constructor(
     private readonly natives: EventNatives,
-    private readonly register: (this: void, trigger: TriggerHandle) => void,
+    private readonly register: (this: void, trigger: trigger) => void,
     private readonly receive: (this: void, hub: EventHub<T>) => void,
-    private readonly primaryKey: (this: void, value: T) => UnitHandle | undefined,
-    private readonly secondaryKey?: (this: void, value: T) => UnitHandle | undefined,
+    private readonly primaryKey: (this: void, value: T) => unit | undefined,
+    private readonly secondaryKey?: (this: void, value: T) => unit | undefined,
   ) { super(); }
 
   protected subscribeActual(subscriber: Subscriber<T>): TeardownLogic { return this.global.subscribe(subscriber); }

@@ -1,12 +1,12 @@
 import { Observable } from "../core/observable";
 import { reportUnhandledError } from "../core/config";
-import { TriggerHandle, TriggerNatives } from "./event-natives";
-import { wc3EventNatives } from "./wc3-event-natives";
+import { TriggerNatives } from "@shared/wc3-def/natives";
+import { wc3EventNatives } from "@shared/wc3-def/wc3-natives";
 
 // 同步來源：僅接受同步事件的註冊函式。實際同步性取決於呼叫者所註冊的 WC3 事件。
 // 本地事件須等 M4 的本地 API；不得在本地分支訂閱此來源。
 export function fromTrigger<T>(
-  register: (this: void, trigger: TriggerHandle) => void,
+  register: (this: void, trigger: trigger) => void,
   read: (this: void) => T,
   natives: TriggerNatives = wc3EventNatives,
 ): Observable<T> {

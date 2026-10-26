@@ -1,9 +1,10 @@
-import { FlattenOperatorFunction, Observable } from "../core/observable";
+import { checkInnerSync, deriveObservable, FlattenOperatorFunction, Observable } from "../core/observable";
 import { operatorSubscriber, Subscriber } from "../core/subscriber";
 import { SyncKind } from "../sync/types";
 
-export function switchMap<T, R, I extends SyncKind>(project: (this: void, value: T, index: number) => Observable<R, I>): FlattenOperatorFunction<T, R, I> {
-  return source => new Observable(subscriber => {
+/** 內層可能是本地時，請在建立時傳入 innerSyncKind 為 local。 */
+export function switchMap<T, R, I extends SyncKind>(project: (this: void, value: T, index: number) => Observable<R, I>, innerSyncKind: I = "sync" as I): FlattenOperatorFunction<T, R, I> {
+  return source => deriveObservable(source, subscriber => {
     let innerSubscriber: Subscriber<R> | undefined;
     let outerComplete = false;
     let index = 0;
@@ -26,6 +27,7 @@ export function switchMap<T, R, I extends SyncKind>(project: (this: void, value:
         return;
       }
       const inner = project(value, index++);
+      checkInnerSync(source, inner, innerSyncKind);
       if (subscriber.closed || currentGeneration !== generation) {
         return;
       }
@@ -42,5 +44,5 @@ export function switchMap<T, R, I extends SyncKind>(project: (this: void, value:
       outerComplete = true;
       checkComplete();
     }));
-  });
+  }, innerSyncKind);
 }

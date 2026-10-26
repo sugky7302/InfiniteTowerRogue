@@ -1,9 +1,9 @@
-import { Observable, OperatorFunction } from "../core/observable";
+import { deriveObservable, Observable, OperatorFunction } from "../core/observable";
 import { operatorSubscriber, PartialObserver } from "../core/subscriber";
 
 export function tap<T>(observer: PartialObserver<T> | ((this: void, value: T) => void)): OperatorFunction<T, T> {
   const callbacks = typeof observer === "function" ? { next: observer } : observer;
-  return source => new Observable(subscriber => {
+  return source => deriveObservable(source, subscriber => {
     source.subscribe(operatorSubscriber<T>(subscriber, value => {
       if (callbacks.next !== undefined) {
         callbacks.next(value);

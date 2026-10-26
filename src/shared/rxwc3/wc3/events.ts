@@ -1,11 +1,10 @@
 import { reportUnhandledError } from "../core/config";
 import { Observable } from "../core/observable";
 import { EventHub } from "./event-hub";
-import {
-  AttackType, ChatEvent, DamageEvent, DamagingEvent, DamageType, DeathEvent,
-  EventNatives, SpellEvent, UnitEventKind, UnitInput, WeaponType,
-} from "./event-natives";
-import { wc3EventNatives } from "./wc3-event-natives";
+import { ChatEvent, DamageEvent, DamagingEvent, DeathEvent, SpellEvent, UnitEventKind } from "@shared/wc3-def/events";
+import { EventNatives } from "@shared/wc3-def/natives";
+import { UnitInput } from "@shared/wc3-def/inputs";
+import { wc3EventNatives } from "@shared/wc3-def/wc3-natives";
 
 interface DispatchContext { current: unknown; }
 
@@ -15,9 +14,9 @@ class MutableDamage implements DamagingEvent {
   public readonly isAttack;
   private active = true;
   private value: number;
-  private attack: AttackType;
-  private damage: DamageType;
-  private weapon: WeaponType;
+  private attack: attacktype;
+  private damage: damagetype;
+  private weapon: weapontype;
 
   public constructor(data: DamageEvent, private readonly natives: EventNatives,
     private readonly context: DispatchContext) {
@@ -31,9 +30,9 @@ class MutableDamage implements DamagingEvent {
   }
 
   public get amount(): number { return this.value; }
-  public get attackType(): AttackType { return this.attack; }
-  public get damageType(): DamageType { return this.damage; }
-  public get weaponType(): WeaponType { return this.weapon; }
+  public get attackType(): attacktype { return this.attack; }
+  public get damageType(): damagetype { return this.damage; }
+  public get weaponType(): weapontype { return this.weapon; }
   public expire(): void { this.active = false; }
 
   private canModify(): boolean {
@@ -51,13 +50,13 @@ class MutableDamage implements DamagingEvent {
     this.natives.setDamageAmount(value);
     this.value = value;
   }
-  public setAttackType(value: AttackType): void {
+  public setAttackType(value: attacktype): void {
     if (this.canModify() && this.natives.setDamageAttackType(value)) this.attack = value;
   }
-  public setDamageType(value: DamageType): void {
+  public setDamageType(value: damagetype): void {
     if (this.canModify() && this.natives.setDamageDamageType(value)) this.damage = value;
   }
-  public setWeaponType(value: WeaponType): void {
+  public setWeaponType(value: weapontype): void {
     if (this.canModify() && this.natives.setDamageWeaponType(value)) this.weapon = value;
   }
 }

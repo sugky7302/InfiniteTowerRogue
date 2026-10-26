@@ -1,12 +1,11 @@
-import {
-  AttackType, ChatEvent, DamageEvent, DamageType, DeathEvent, EventNatives, PlayerHandle,
-  SpellEvent, TriggerHandle, UnitEventKind, UnitHandle, UnitInput, WeaponType,
-} from "../../src/shared/rxwc3/wc3/event-natives";
+import { ChatEvent, DamageEvent, DeathEvent, SpellEvent, UnitEventKind } from "@shared/wc3-def/events";
+import { EventNatives } from "@shared/wc3-def/natives";
+import { UnitInput } from "@shared/wc3-def/inputs";
 
-export function fakeUnit(): UnitHandle { return {} as UnitHandle; }
-export const attackType = {} as AttackType;
-export const damageType = {} as DamageType;
-export const weaponType = {} as WeaponType;
+export function fakeUnit(): unit { return {} as unit; }
+export const attackType = {} as attacktype;
+export const damageType = {} as damagetype;
+export const weaponType = {} as weapontype;
 
 export function damage(source = fakeUnit(), target = fakeUnit(), amount = 100): DamageEvent {
   return { source, target, amount, attackType, damageType, weaponType, isAttack: true };
@@ -24,7 +23,7 @@ interface FakeTrigger {
 
 // Node 與 Lua 共用此假介面。所有資料都由測試明確提供。
 export class FakeEventNatives implements EventNatives {
-  public readonly triggers = new Map<TriggerHandle, FakeTrigger>();
+  public readonly triggers = new Map<trigger, FakeTrigger>();
   public creates = 0;
   public destroys = 0;
   public reads = 0;
@@ -35,27 +34,27 @@ export class FakeEventNatives implements EventNatives {
   public currentDamage = damage();
   public currentSpell = spell();
   public currentDeath: DeathEvent = { unit: fakeUnit(), killer: undefined };
-  public currentChat: ChatEvent = { player: {} as PlayerHandle, message: "" };
+  public currentChat: ChatEvent = { player: {} as player, message: "" };
 
-  public createTrigger(): TriggerHandle {
-    const trigger = {} as TriggerHandle;
+  public createTrigger(): trigger {
+    const trigger = {} as trigger;
     this.triggers.set(trigger, { destroyed: false });
     this.creates++;
     return trigger;
   }
-  public destroyTrigger(trigger: TriggerHandle): void {
+  public destroyTrigger(trigger: trigger): void {
     this.triggers.get(trigger)!.destroyed = true;
     this.destroys++;
   }
-  public addAction(trigger: TriggerHandle, callback: (this: void) => void): void {
+  public addAction(trigger: trigger, callback: (this: void) => void): void {
     this.triggers.get(trigger)!.callback = callback;
   }
-  public unwrapUnit(input: UnitInput): UnitHandle { return "handle" in input ? input.handle : input; }
-  public registerUnitEvent(trigger: TriggerHandle, kind: UnitEventKind): void {
+  public unwrapUnit(input: UnitInput): unit { return "handle" in input ? input.handle : input; }
+  public registerUnitEvent(trigger: trigger, kind: UnitEventKind): void {
     if (this.failRegister) throw new Error("預期的註冊錯誤。");
     this.triggers.get(trigger)!.kind = kind;
   }
-  public registerChat(trigger: TriggerHandle): void { this.triggers.get(trigger)!.kind = "chat"; }
+  public registerChat(trigger: trigger): void { this.triggers.get(trigger)!.kind = "chat"; }
   private read(): void {
     this.reads++;
     if (this.failRead) throw new Error("預期的原生讀取錯誤。");
@@ -68,17 +67,17 @@ export class FakeEventNatives implements EventNatives {
     this.writes++;
     this.currentDamage = { ...this.currentDamage, amount: value };
   }
-  public setDamageAttackType(value: AttackType): boolean {
+  public setDamageAttackType(value: attacktype): boolean {
     this.writes++;
     if (!this.rejectType) this.currentDamage = { ...this.currentDamage, attackType: value };
     return !this.rejectType;
   }
-  public setDamageDamageType(value: DamageType): boolean {
+  public setDamageDamageType(value: damagetype): boolean {
     this.writes++;
     if (!this.rejectType) this.currentDamage = { ...this.currentDamage, damageType: value };
     return !this.rejectType;
   }
-  public setDamageWeaponType(value: WeaponType): boolean {
+  public setDamageWeaponType(value: weapontype): boolean {
     this.writes++;
     if (!this.rejectType) this.currentDamage = { ...this.currentDamage, weaponType: value };
     return !this.rejectType;

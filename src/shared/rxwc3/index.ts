@@ -1,4 +1,4 @@
-export { Observable, LocalObservable, OperatorFunction, FlattenOperatorFunction } from "./core/observable";
+export { Observable, deriveObservable, LocalObservable, OperatorFunction, FlattenOperatorFunction } from "./core/observable";
 export { Subscriber, Observer, PartialObserver } from "./core/subscriber";
 export { Subscription, Teardown, TeardownLogic } from "./core/subscription";
 export { Subject } from "./core/subject";
@@ -6,6 +6,9 @@ export { BehaviorSubject } from "./core/behavior-subject";
 export { pipe, UnaryFunction } from "./core/pipe";
 export { config } from "./core/config";
 export { Sync, Local, SyncKind, CombinedKind } from "./sync/types";
+export { forLocalPlayer } from "./sync/for-local-player";
+export { sync, SyncOptions } from "./sync/sync";
+export { MAX_SYNC_DATA_BYTES, MAX_SYNC_PREFIX_BYTES } from "./sync/limits";
 export { of } from "./sources/of";
 export { from } from "./sources/from";
 export { empty } from "./sources/empty";
@@ -35,6 +38,9 @@ export { throttleTime, ThrottleTimeOptions } from "./operators/throttle-time";
 export { debounceTime } from "./operators/debounce-time";
 export { Wc3ClockDriver, installWc3ClockDrivers } from "./wc3/wc3-clock-driver";
 export { fromTrigger } from "./wc3/from-trigger";
-export * from "./wc3/event-natives";
+// WC3 定義放在 `@shared/wc3-def/`。此處重新匯出，保持既有 API。
+export * from "@shared/wc3-def/events";
+export * from "@shared/wc3-def/inputs";
+export * from "@shared/wc3-def/natives";
 export { createWc3Events, onDamaging, onDamaged, onSpellChannel, onSpellCast,
   onSpellEffect, onSpellFinish, onSpellEndCast, onUnitDeath, onPlayerChat } from "./wc3/events";

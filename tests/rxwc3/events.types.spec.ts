@@ -1,7 +1,7 @@
-import { DamageEvent, onDamaged, onDamaging, onSpellChannel, UnitHandle } from "../../src/shared/rxwc3";
+import { DamageEvent, onDamaged, onDamaging, onSpellChannel } from "../../src/shared/rxwc3";
 
 // 僅供型別檢查，不由 Node 載入。
-function checkEvents(unit: UnitHandle, wrapped: { readonly handle: UnitHandle }, event: DamageEvent): void {
+function checkEvents(unit: unit, wrapped: { readonly handle: unit }, event: DamageEvent): void {
   onSpellChannel.of(unit); onSpellChannel.of(wrapped);
   onDamaged.ofTarget(wrapped); onDamaging.ofSource(unit);
   // @ts-expect-error 傷害後事件沒有傷害量修改方法。

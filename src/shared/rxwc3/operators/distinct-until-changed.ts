@@ -1,8 +1,8 @@
-import { Observable, OperatorFunction } from "../core/observable";
+import { deriveObservable, Observable, OperatorFunction } from "../core/observable";
 import { operatorSubscriber } from "../core/subscriber";
 
 export function distinctUntilChanged<T>(equals: (this: void, previous: T, current: T) => boolean = (previous, current) => previous === current): OperatorFunction<T, T> {
-  return source => new Observable(subscriber => {
+  return source => deriveObservable(source, subscriber => {
     let hasPrevious = false;
     let previous: T;
     source.subscribe(operatorSubscriber<T>(subscriber, value => {

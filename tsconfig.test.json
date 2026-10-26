@@ -2,13 +2,14 @@
   "compilerOptions": {
     "strict": true,
     "target": "ES2022",
+    "lib": ["ES2022"],
     "module": "CommonJS",
     "moduleResolution": "node",
     "baseUrl": "./",
     "paths": {
       "@shared/*": ["./src/shared/*"]
     },
-    "types": ["node"],
+    "types": ["node", "war3-types-strict/1.33.0"],
     "noEmit": true,
     "forceConsistentCasingInFileNames": true
   },

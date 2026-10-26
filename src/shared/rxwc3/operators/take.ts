@@ -1,8 +1,8 @@
-import { Observable, OperatorFunction } from "../core/observable";
+import { deriveObservable, Observable, OperatorFunction } from "../core/observable";
 import { operatorSubscriber } from "../core/subscriber";
 
 export function take<T>(count: number): OperatorFunction<T, T> {
-  return source => new Observable(subscriber => {
+  return source => deriveObservable(source, subscriber => {
     if (count <= 0) {
       subscriber.complete();
       return;

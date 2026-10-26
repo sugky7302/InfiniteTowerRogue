@@ -19,4 +19,7 @@
 - WC3 Lua 沒有 `debug` 函式庫。
     - TSTL 的 `Error` 沒有 `stack`。把 `Error` 物件轉為字串（`print`、`tostring`、字串串接）時，會因呼叫 `debug.getinfo` 而失敗，並遮蔽原始錯誤。
     - 輸出錯誤時，請使用 `src/shared/logger.ts` 的 `logger.error`。不得直接 `print` 錯誤物件。
+- TSTL 把 `for (let i = ...; ...; ...)` 轉譯為共用一個變數的 `while` 迴圈。每次迴圈不會建立新的 `i`。
+    - 閉包（回呼、訂閱、計時器）在迴圈結束後讀取 `i` 時，會讀到最後的值。
+    - 閉包需要迴圈變數時，請在迴圈內複製到 `const`。例如：`const id = index;`。
 - 會在 WC3 中執行的程式，完成後必須在測試地圖（`pnpm run test`）中驗證。

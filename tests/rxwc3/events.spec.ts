@@ -1,13 +1,12 @@
 import { strict as assert } from "node:assert";
 import { test as nodeTest } from "node:test";
 import {
-  AttackType, Clock, config, createWc3Events, DamageEvent, DamagingEvent, DamageType,
-  delay, fromTrigger, map, Phase, PlayerHandle, Subject, Subscription, switchMap,
-  Subscriber, take, takeUntil, timer, WeaponType,
+  Clock, config, createWc3Events, DamageEvent, DamagingEvent, delay, fromTrigger, map, Phase,
+  Subject, Subscription, switchMap, Subscriber, take, takeUntil, timer,
 } from "../../src/shared/rxwc3";
 import { damage, FakeEventNatives, fakeUnit, spell } from "./fake-event-natives";
 import { FakeClockDriver } from "./fake-clock-driver";
-import { wc3EventNatives } from "../../src/shared/rxwc3/wc3/wc3-event-natives";
+import { wc3EventNatives } from "@shared/wc3-def/wc3-natives";
 import { verifyEvents } from "./events-lua.spec";
 
 // 訂閱者內的斷言會被錯誤隔離捕捉；測試結束時也必須檢查這些錯誤。
@@ -84,7 +83,7 @@ test("傷害、施法、死亡與聊天快照在 delay 之後仍可讀取", () =
   const s = setup(), driver = new FakeClockDriver(), clock = new Clock(driver);
   const originalDamage = damage(), originalSpell = spell();
   const death = { unit: fakeUnit(), killer: fakeUnit() };
-  const chat = { player: {} as PlayerHandle, message: "-load 測試" };
+  const chat = { player: {} as player, message: "-load 測試" };
   const values: unknown[] = [];
   s.onDamaged.pipe(delay(1, { clock })).subscribe(e => values.push(e));
   s.onSpellEffect.pipe(delay(1, { clock })).subscribe(e => values.push(e));
@@ -96,7 +95,7 @@ test("傷害、施法、死亡與聊天快照在 delay 之後仍可讀取", () =
   s.natives.currentChat = chat; s.natives.emit("chat");
   s.natives.currentDamage = damage(); s.natives.currentSpell = spell();
   s.natives.currentDeath = { unit: fakeUnit(), killer: undefined };
-  s.natives.currentChat = { player: {} as PlayerHandle, message: "已變更" };
+  s.natives.currentChat = { player: {} as player, message: "已變更" };
   driver.advance(1);
   assert.deepEqual(values, [originalDamage, originalSpell, death, chat]);
   assert.notEqual(values[0], originalDamage);
@@ -118,7 +117,7 @@ test("可修改傷害依全域、來源與目標的訂閱順序傳遞", () => {
 
 test("攻擊、傷害與武器類型修改更新後續訂閱者的快照", () => {
   const s = setup();
-  const attack = {} as AttackType, damageKind = {} as DamageType, weapon = {} as WeaponType;
+  const attack = {} as attacktype, damageKind = {} as damagetype, weapon = {} as weapontype;
   s.onDamaging.subscribe(e => {
     e.setAttackType(attack); e.setDamageType(damageKind); e.setWeaponType(weapon);
   });
@@ -134,7 +133,7 @@ test("原生函式拒絕類型修改時保留舊快照", () => {
   const s = setup(), before = s.natives.currentDamage;
   s.natives.rejectType = true;
   s.onDamaging.subscribe(e => {
-    e.setAttackType({} as AttackType); e.setDamageType({} as DamageType); e.setWeaponType({} as WeaponType);
+    e.setAttackType({} as attacktype); e.setDamageType({} as damagetype); e.setWeaponType({} as weapontype);
     assert.equal(e.attackType, before.attackType);
     assert.equal(e.damageType, before.damageType);
     assert.equal(e.weaponType, before.weaponType);
@@ -147,8 +146,8 @@ test("分發後全部修改方法被拒絕並各回報一次，不改動原生�
   const s = setup();
   let saved!: DamagingEvent;
   s.onDamaging.subscribe(e => { saved = e; }); s.natives.emit("damaging");
-  saved.setAmount(1); saved.setAttackType({} as AttackType);
-  saved.setDamageType({} as DamageType); saved.setWeaponType({} as WeaponType);
+  saved.setAmount(1); saved.setAttackType({} as attacktype);
+  saved.setDamageType({} as damagetype); saved.setWeaponType({} as weapontype);
   assert.equal(s.natives.writes, 0);
   assert.equal(saved.amount, 100);
   assert.equal(errors.length, 4);
@@ -250,7 +249,7 @@ test("五個施法事件依施法者分發且保存全部欄位", () => {
 });
 
 test("聊天共用觸發器並保存玩家與全部指令文字", () => {
-  const s = setup(), player = {} as PlayerHandle;
+  const s = setup(), player = {} as player;
   const values: string[] = [];
   s.onPlayerChat.subscribe(e => { assert.equal(e.player, player); values.push(e.message); });
   s.onPlayerChat.subscribe();

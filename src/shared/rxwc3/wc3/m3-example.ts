@@ -4,38 +4,17 @@ import { Phase } from "../scheduler/phase";
 import { timer } from "../sources/timer";
 import { switchMap } from "../operators/switch-map";
 import { takeUntil } from "../operators/take-until";
-import { PlayerHandle, UnitHandle } from "./event-natives";
 import { onDamaging, onDamaged, onSpellChannel, onSpellCast, onSpellEffect,
   onSpellFinish, onSpellEndCast, onUnitDeath, onPlayerChat } from "./events";
 import { installWc3ClockDrivers } from "./wc3-clock-driver";
 
-declare function Player(this: void, id: number): PlayerHandle;
-declare function GetPlayerId(this: void, player: PlayerHandle): number;
-declare function FourCC(this: void, code: string): number;
-declare function CreateUnit(this: void, player: PlayerHandle, id: number, x: number, y: number,
-  facing: number): UnitHandle | undefined;
-declare function GetUnitName(this: void, unit: UnitHandle): string;
-declare function IssueTargetOrder(this: void, unit: UnitHandle, order: string, target: UnitHandle): boolean;
-declare function IssuePointOrder(this: void, unit: UnitHandle, order: string, x: number, y: number): boolean;
-declare function IssueImmediateOrder(this: void, unit: UnitHandle, order: string): boolean;
-declare function UnitAddAbility(this: void, unit: UnitHandle, ability: number): boolean;
-declare function SetUnitAbilityLevel(this: void, unit: UnitHandle, ability: number, level: number): number;
-declare function BlzEndUnitAbilityCooldown(this: void, unit: UnitHandle, ability: number): void;
-declare function BlzSetUnitMaxHP(this: void, unit: UnitHandle, value: number): void;
-declare function SetWidgetLife(this: void, unit: UnitHandle, value: number): void;
-declare function BlzSetUnitArmor(this: void, unit: UnitHandle, value: number): void;
-declare function SetPlayerAlliance(this: void, source: PlayerHandle, target: PlayerHandle,
-  kind: AllianceType, value: boolean): void;
-interface AllianceType { readonly __alliancetype: never; }
-declare const ALLIANCE_PASSIVE: AllianceType;
-declare const PLAYER_NEUTRAL_AGGRESSIVE: number;
 
 // 同步測試範例：全部建立、命令、訂閱與計時都在共同地圖啟動流程執行。
 export function runM3Example(): void {
   try {
     installWc3ClockDrivers();
-    const player = Player(0);
-    const enemy = Player(PLAYER_NEUTRAL_AGGRESSIVE);
+    const player = Player(0)!;
+    const enemy = Player(PLAYER_NEUTRAL_AGGRESSIVE)!;
     SetPlayerAlliance(player, enemy, ALLIANCE_PASSIVE, false);
     SetPlayerAlliance(enemy, player, ALLIANCE_PASSIVE, false);
     const first = CreateUnit(player, FourCC("hfoo"), 400, 0, 0);

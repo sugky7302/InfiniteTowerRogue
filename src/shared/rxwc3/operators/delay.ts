@@ -1,10 +1,10 @@
-import { Observable, OperatorFunction } from "../core/observable";
+import { deriveObservable, Observable, OperatorFunction } from "../core/observable";
 import { operatorSubscriber } from "../core/subscriber";
 import { TimeOptions, worldClock } from "../scheduler/clocks";
 import { durationTicks } from "../scheduler/time";
 
 export function delay<T>(seconds: number, options: TimeOptions = {}): OperatorFunction<T, T> {
-  return source => new Observable(subscriber => {
+  return source => deriveObservable(source, subscriber => {
     const duration = durationTicks(seconds);
     const clock = options.clock ?? worldClock;
     let pending = 0;

@@ -1,4 +1,4 @@
-import { Observable, OperatorFunction } from "../core/observable";
+import { deriveObservable, Observable, OperatorFunction } from "../core/observable";
 import { Subscriber } from "../core/subscriber";
 import { Subject } from "../core/subject";
 import { SyncKind } from "../sync/types";
@@ -13,7 +13,7 @@ interface SharedState<T, K extends SyncKind> {
 export function share<T>(): OperatorFunction<T, T> {
   return <K extends SyncKind>(source: Observable<T, K>) => {
     let state: SharedState<T, K> | undefined;
-    return new Observable<T, K>(subscriber => {
+    return deriveObservable<T, K>(source, subscriber => {
       if (state === undefined) {
         const subject = new Subject<T, K>();
         const connection = new Subscriber<T>({

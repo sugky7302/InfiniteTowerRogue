@@ -1,6 +1,6 @@
 import {
-  AttackType, Clock, config, createWc3Events, DamagingEvent, DamageType, delay,
-  fromTrigger, map, Phase, switchMap, takeUntil, timer, WeaponType,
+  Clock, config, createWc3Events, DamagingEvent, delay, fromTrigger, map, Phase, switchMap,
+  takeUntil, timer,
 } from "../../src/shared/rxwc3";
 import { damage, FakeEventNatives, fakeUnit, spell } from "./fake-event-natives";
 import { FakeClockDriver } from "./fake-clock-driver";
@@ -27,7 +27,7 @@ export function verifyEvents(): number {
   let errors = 0;
   config.onUnhandledError = () => { errors++; };
   try {
-    const attack = {} as AttackType, damageKind = {} as DamageType, weapon = {} as WeaponType;
+    const attack = {} as attacktype, damageKind = {} as damagetype, weapon = {} as weapontype;
     const amounts: number[] = [];
     let saved!: DamagingEvent;
     events.onDamaging.ofSource(source).subscribe(event => {
@@ -37,7 +37,7 @@ export function verifyEvents(): number {
       event.setAttackType(attack); event.setDamageType(damageKind); event.setWeaponType(weapon);
     });
     events.onDamaging.subscribe(event => { amounts.push(event.amount); event.setAmount(event.amount - 10); });
-    let observedAttack: AttackType | undefined;
+    let observedAttack: attacktype | undefined;
     events.onDamaging.ofTarget(target).subscribe(event => {
       amounts.push(event.amount); observedAttack = event.attackType;
     });

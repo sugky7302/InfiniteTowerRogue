@@ -10,7 +10,10 @@ export type LocalObservable<T> = Observable<T, Local>;
 export class Observable<T, K extends SyncKind = Sync> {
   declare protected readonly syncKind: K;
 
-  public constructor(private readonly initializer?: (this: void, subscriber: Subscriber<T>) => TeardownLogic) {}
+  public constructor(
+    private readonly initializer?: (this: void, subscriber: Subscriber<T>) => TeardownLogic,
+    public readonly runtimeSyncKind: SyncKind = "sync",
+  ) {}
 
   public subscribe(
     observer?: PartialObserver<T> | ((this: void, value: T) => void) | Subscriber<T>,
@@ -21,6 +24,7 @@ export class Observable<T, K extends SyncKind = Sync> {
       typeof observer === "function" ? { next: observer, error, complete } : observer,
     );
     if (!subscriber.closed) {
+      subscriber.localContext = subscriber.localContext || this.runtimeSyncKind === "local";
       try {
         subscriber.add(this.subscribeActual(subscriber));
       } catch (caught) {
@@ -62,5 +66,29 @@ export class Observable<T, K extends SyncKind = Sync> {
       result = operation(result);
     }
     return result;
+  }
+}
+
+/** 共用標記規則。一般 operator 只提供來源與訂閱流程。 */
+export function deriveObservable<T, K extends SyncKind>(
+  sources: Observable<any, any> | readonly Observable<any, any>[],
+  initializer: (this: void, subscriber: Subscriber<T>) => TeardownLogic,
+  extraKind: SyncKind = "sync",
+): Observable<T, K> {
+  let kind = extraKind;
+  if (sources instanceof Observable) {
+    if (sources.runtimeSyncKind === "local") kind = "local";
+  } else {
+    for (const source of sources) {
+      if (source.runtimeSyncKind === "local") kind = "local";
+    }
+  }
+  return new Observable<T, K>(initializer, kind);
+}
+
+/** 未預先宣告的本地內層不能進入同步輸出。 */
+export function checkInnerSync(source: Observable<any, any>, inner: Observable<any, any>, declared: SyncKind): void {
+  if (source.runtimeSyncKind !== "local" && declared !== "local" && inner.runtimeSyncKind === "local") {
+    throw new Error("本地內層必須在建立 operator 時指定 innerSyncKind 為 local。");
   }
 }

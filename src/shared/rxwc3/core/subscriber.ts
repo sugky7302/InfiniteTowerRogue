@@ -1,5 +1,6 @@
 import { reportUnhandledError } from "./config";
-import { Subscription } from "./subscription";
+import { Subscription, TeardownLogic } from "./subscription";
+import { runLocal } from "../sync/execution";
 
 export interface Observer<T> {
   next: (this: void, value: T) => void;
@@ -10,16 +11,28 @@ export interface Observer<T> {
 export type PartialObserver<T> = Partial<Observer<T>>;
 
 export class Subscriber<T> extends Subscription {
+  /** 本地串流的回呼不能建立同步觸發器。 */
+  public localContext = false;
   private stopped = false;
 
   public constructor(private readonly observer: PartialObserver<T> = {}) {
     super();
   }
 
+  public add(teardown: TeardownLogic): void {
+    // 同步完成後才加入的清理也屬於原本的本地回呼。
+    if (this.closed && this.localContext) runLocal(() => super.add(teardown));
+    else super.add(teardown);
+  }
+
   public next(value: T): void {
     if (!this.closed && !this.stopped && this.observer.next !== undefined) {
       try {
-        this.observer.next(value);
+        if (this.localContext) {
+          runLocal(() => this.observer.next!(value));
+        } else {
+          this.observer.next(value);
+        }
       } catch (error) {
         reportUnhandledError(error);
       }
@@ -33,7 +46,8 @@ export class Subscriber<T> extends Subscription {
     this.stopped = true;
     try {
       if (this.observer.error !== undefined) {
-        this.observer.error(error);
+        if (this.localContext) runLocal(() => this.observer.error!(error));
+        else this.observer.error(error);
       } else {
         reportUnhandledError(error);
       }
@@ -51,7 +65,8 @@ export class Subscriber<T> extends Subscription {
     this.stopped = true;
     try {
       if (this.observer.complete !== undefined) {
-        this.observer.complete();
+        if (this.localContext) runLocal(() => this.observer.complete!());
+        else this.observer.complete();
       }
     } catch (error) {
       reportUnhandledError(error);
@@ -62,7 +77,8 @@ export class Subscriber<T> extends Subscription {
 
   public unsubscribe(): void {
     this.stopped = true;
-    super.unsubscribe();
+    if (this.localContext) runLocal(() => super.unsubscribe());
+    else super.unsubscribe();
   }
 }
 

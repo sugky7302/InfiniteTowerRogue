@@ -1,4 +1,4 @@
-import { Observable, OperatorFunction } from "../core/observable";
+import { deriveObservable, Observable, OperatorFunction } from "../core/observable";
 import { operatorSubscriber } from "../core/subscriber";
 
 /**
@@ -26,7 +26,7 @@ export function map<T, R>(project: (this: void, value: T, index: number) => R): 
    * 上游 source ──► operatorSubscriber ──► destination（下游）
    * ```
    */
-  return source => new Observable(subscriber => {
+  return source => deriveObservable(source, subscriber => {
     let index = 0;
     source.subscribe(operatorSubscriber<T>(subscriber, value => {
       subscriber.next(project(value, index++));

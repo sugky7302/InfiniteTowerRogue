@@ -1,4 +1,4 @@
-import { Observable } from "../core/observable";
+import { deriveObservable, Observable } from "../core/observable";
 import { operatorSubscriber } from "../core/subscriber";
 import { Local, Sync, SyncKind } from "../sync/types";
 
@@ -7,7 +7,7 @@ type KindOf<S> = S extends Observable<any, infer K> ? K : never;
 type MergedKind<S> = Local extends KindOf<S> ? Local : Sync;
 
 export function merge<S extends readonly Observable<any, SyncKind>[]>(...sources: S): Observable<ValueOf<S[number]>, MergedKind<S[number]>> {
-  return new Observable(subscriber => {
+  return deriveObservable(sources, subscriber => {
     let remaining = sources.length;
     if (remaining === 0) {
       subscriber.complete();

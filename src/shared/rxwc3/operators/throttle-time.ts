@@ -1,4 +1,4 @@
-import { Observable, OperatorFunction } from "../core/observable";
+import { deriveObservable, Observable, OperatorFunction } from "../core/observable";
 import { operatorSubscriber } from "../core/subscriber";
 import { TimeOptions, worldClock } from "../scheduler/clocks";
 import { ScheduledTask } from "../scheduler/scheduler";
@@ -10,7 +10,7 @@ export interface ThrottleTimeOptions extends TimeOptions {
 }
 
 export function throttleTime<T>(seconds: number, options: ThrottleTimeOptions = {}): OperatorFunction<T, T> {
-  return source => new Observable(subscriber => {
+  return source => deriveObservable(source, subscriber => {
     const duration = durationTicks(seconds);
     const clock = options.clock ?? worldClock;
     const leading = options.leading ?? true;

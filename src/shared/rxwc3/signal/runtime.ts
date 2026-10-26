@@ -95,6 +95,8 @@ interface EffectState {
 
 let active: Consumer | undefined;
 let executing: Consumer | undefined;
+/** 即使 untracked 停止追蹤，也保留目前計算的本地性。 */
+export function isLocalSignalExecution(): boolean { return executing?.kind === "local"; }
 let calculationDepth = 0;
 let batchDepth = 0;
 let flushing = false;

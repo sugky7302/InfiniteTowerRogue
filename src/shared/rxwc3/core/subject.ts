@@ -1,5 +1,5 @@
 import { Sync, SyncKind } from "../sync/types";
-import { Observable } from "./observable";
+import { deriveObservable, Observable } from "./observable";
 import { Subscriber } from "./subscriber";
 import { TeardownLogic } from "./subscription";
 import { reportUnhandledError } from "./config";
@@ -49,7 +49,7 @@ export class Subject<T, K extends SyncKind = Sync> extends Observable<T, K> {
   }
 
   public asObservable(): Observable<T, K> {
-    return new Observable<T, K>(subscriber => this.subscribe(subscriber));
+    return deriveObservable<T, K>(this, subscriber => this.subscribe(subscriber));
   }
 
   private dispatch(notify: (this: void, subscriber: Subscriber<T>) => void): void {

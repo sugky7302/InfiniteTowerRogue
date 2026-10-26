@@ -2,18 +2,11 @@ import { ClockDriver, installClockDriver } from "../scheduler/clock";
 import { uiClock, worldClock } from "../scheduler/clocks";
 import { addTicks, toTicks } from "../scheduler/time";
 
-// 使用模組內宣告，讓純邏輯與 Node 測試不必載入 WC3 全域型別。
-interface TimerHandle { readonly __wc3Timer: unique symbol; }
-declare function CreateTimer(this: void): TimerHandle;
-declare function DestroyTimer(this: void, timer: TimerHandle): void;
-declare function PauseTimer(this: void, timer: TimerHandle): void;
-declare function TimerGetElapsed(this: void, timer: TimerHandle): number;
-declare function TimerStart(this: void, timer: TimerHandle, timeout: number, periodic: boolean,
-  callback: (this: void) => void): void;
+// 計時器原生函式與 `timer` 型別來自 war3-types-strict 的全域宣告。
 
 export class Wc3ClockDriver implements ClockDriver {
-  private timer: TimerHandle | undefined;
-  private measuring: TimerHandle | undefined;
+  private timer: timer | undefined;
+  private measuring: timer | undefined;
   private ticks = 0;
 
   public start(): void {

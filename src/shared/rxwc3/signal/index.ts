@@ -75,15 +75,14 @@ export function localEffect(fn: EffectFunction): EffectRef {
   return createEffect("local", fn);
 }
 
-interface SignalObservable<T, K extends SyncKind> extends Observable<T, K> {
-  signalKind?: K;
-}
-
-export function toSignal<T, K extends SyncKind>(source: Observable<T, K>, initial: T, options?: { owner?: Subscription; syncKind?: K }): Signal<T, K> {
+export function toSignal<T, K extends SyncKind, O extends SyncKind>(source: Observable<T, K>, initial: T, options: { owner?: Subscription; syncKind: O }): Signal<T, O>;
+export function toSignal<T, K extends SyncKind>(source: Observable<T, K>, initial: T, options?: { owner?: Subscription; syncKind?: K }): Signal<T, K>;
+export function toSignal<T, K extends SyncKind>(source: Observable<T, K>, initial: T, options?: { owner?: Subscription; syncKind?: SyncKind }): Signal<T, SyncKind> {
   // 一般串流的 K 在執行時不存在。呼叫端可明確提供本地標記。
-  const kind = options?.syncKind ?? (source as SignalObservable<T, K>).signalKind ?? "sync";
+  // M4 的明確選項可覆寫標記；其餘來源讀取統一的執行時標記。
+  const kind = options?.syncKind ?? source.runtimeSyncKind ?? "sync";
   const node = createNode(kind, initial);
-  const target = writableCallable<T, K>(node);
+  const target = writableCallable<T, SyncKind>(node);
   const subscriber = new Subscriber<T>({ next: value => target.set(value) });
   // 先連接擁有者，讓同步來源也能即時停止。
   options?.owner?.add(subscriber);
@@ -92,12 +91,11 @@ export function toSignal<T, K extends SyncKind>(source: Observable<T, K>, initia
 }
 
 export function toObservable<T, K extends SyncKind>(source: Signal<T, K>): Observable<T, K> {
-  const result: SignalObservable<T, K> = new Observable<T, K>(subscriber => {
+  const result = new Observable<T, K>(subscriber => {
     createEffect(source.syncKind, () => {
       const value = source();
       untracked(() => subscriber.next(value));
     }, subscriber);
-  });
-  result.signalKind = source.syncKind;
+  }, source.syncKind);
   return result;
 }
