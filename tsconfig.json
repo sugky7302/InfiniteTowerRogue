@@ -11,6 +11,9 @@
     ],
     "moduleResolution": "node",
     "paths": {
+      "@shared/*": [
+        "./src/shared/*"
+      ],
       "@objectdata/*": [
         "./node_modules/war3-objectdata-th/dist/cjs/generated/constants/*"
       ]
