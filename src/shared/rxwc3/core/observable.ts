@@ -36,6 +36,16 @@ export class Observable<T, K extends SyncKind = Sync> {
     }
   }
 
+  /**
+   * 方法版 `pipe`：把 operator 依序套用到這個 Observable，並立即傳回結果。平常組合串流時使用。
+   * ```ts
+   * onSpellChannel.of(caster).pipe(filter(...), switchMap(...)).subscribe(...);
+   * ```
+   * 獨立函式版 `pipe`（`./pipe.ts`）不同：它還沒有來源，傳回的是一個新的 operator。
+   *
+   * 多個重載：TS 無法用一個簽名表示「每一步的輸出是下一步的輸入」，所以列出 0 至 9 個參數的情況。
+   * 最後一個沒有型別限制的簽名才是實作。
+   */
   public pipe(): Observable<T, K>;
   public pipe<A>(a: UnaryFunction<Observable<T, K>, A>): A;
   public pipe<A, B>(a: UnaryFunction<Observable<T, K>, A>, b: UnaryFunction<A, B>): B;

@@ -34,3 +34,7 @@ export { delay } from "./operators/delay";
 export { throttleTime, ThrottleTimeOptions } from "./operators/throttle-time";
 export { debounceTime } from "./operators/debounce-time";
 export { Wc3ClockDriver, installWc3ClockDrivers } from "./wc3/wc3-clock-driver";
+export { fromTrigger } from "./wc3/from-trigger";
+export * from "./wc3/event-natives";
+export { createWc3Events, onDamaging, onDamaged, onSpellChannel, onSpellCast,
+  onSpellEffect, onSpellFinish, onSpellEndCast, onUnitDeath, onPlayerChat } from "./wc3/events";
