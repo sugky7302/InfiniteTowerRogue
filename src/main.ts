@@ -9,34 +9,34 @@ const BUILD_DATE = compiletime(() => new Date().toUTCString());
 const TS_VERSION = compiletime(() => require("typescript").version);
 const TSTL_VERSION = compiletime(() => require("typescript-to-lua").version);
 
-compiletime(( { objectData, constants }) => {
-  const unit = objectData.units.get(constants.units.Footman);
+compiletime(({ objectData, constants }) => {
+    const unit = objectData.units.get(constants.units.Footman);
 
-  if (!unit) {
-    return;
-  }
+    if (!unit) {
+        return;
+    }
 
-  unit.modelFile = "units\\human\\TheCaptain\\TheCaptain.mdl";
+    unit.modelFile = "units\\human\\TheCaptain\\TheCaptain.mdl";
 
-  objectData.save();
+    objectData.save();
 });
 
 function tsMain() {
-  try {
-    print(`Build: ${BUILD_DATE}`);
-    print(`Typescript: v${TS_VERSION}`);
-    print(`Transpiler: v${TSTL_VERSION}`);
-    print(" ");
-    print("Welcome to TypeScript!");
+    try {
+        print(`Build: ${BUILD_DATE}`);
+        print(`Typescript: v${TS_VERSION}`);
+        print(`Transpiler: v${TSTL_VERSION}`);
+        print(" ");
+        print("Welcome to TypeScript!");
 
-    const unit = Unit.create(Players[0], FourCC(Units.Footman), 0, 0, 270)!;
+        const unit = Unit.create(Players[0], FourCC(Units.Footman), 0, 0, 270)!;
 
-    Timer.create().start(1.0, true, () => {
-      unit.color = Players[math.random(0, bj_MAX_PLAYERS)].color;
-    });
-  } catch (e) {
-    logger.error(e);
-  }
+        Timer.create().start(1.0, true, () => {
+            unit.color = Players[math.random(0, bj_MAX_PLAYERS)].color;
+        });
+    } catch (e) {
+        logger.error(e);
+    }
 }
 
 addScriptHook(W3TS_HOOK.MAIN_AFTER, tsMain);

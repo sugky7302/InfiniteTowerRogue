@@ -1,9 +1,21 @@
 import {
-  computed, linkedSignal, Local, localComputed, localLinkedSignal, localSignal,
-  Observable, Signal, signal, Sync, toObservable, toSignal, WritableSignal,
+    computed,
+    linkedSignal,
+    Local,
+    localComputed,
+    localLinkedSignal,
+    localSignal,
+    Observable,
+    Signal,
+    signal,
+    Sync,
+    toObservable,
+    toSignal,
+    WritableSignal,
 } from "../../src/shared/rxwc3";
 
-type Equal<A, B> = (<T>() => T extends A ? 1 : 2) extends (<T>() => T extends B ? 1 : 2) ? true : false;
+type Equal<A, B> =
+    (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? true : false;
 type Assert<T extends true> = T;
 function acceptsSync(source: Signal<number, Sync>): void {}
 const writable = signal(1);
@@ -29,8 +41,11 @@ const syncObservable = toObservable(readonly);
 type SyncObservableKind = Assert<Equal<typeof syncObservable, Observable<number, Sync>>>;
 const syncConverted = toSignal(syncObservable, 0);
 type SyncConverted = Assert<Equal<typeof syncConverted, Signal<number, Sync>>>;
-const linked = linkedSignal<number, number>({ source: writable, computation: (source, previous) => source + (previous?.value ?? 0) });
-const localLinked = localLinkedSignal({ source: local, computation: source => source });
+const linked = linkedSignal<number, number>({
+    source: writable,
+    computation: (source, previous) => source + (previous?.value ?? 0),
+});
+const localLinked = localLinkedSignal({ source: local, computation: (source) => source });
 const localSimple = localLinkedSignal(() => local());
 type Linked = Assert<Equal<typeof linked, WritableSignal<number, Sync>>>;
 type LocalLinked = Assert<Equal<typeof localLinked, WritableSignal<number, Local>>>;

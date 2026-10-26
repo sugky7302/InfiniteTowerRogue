@@ -4,29 +4,29 @@ import { Subscriber } from "./subscriber";
 import { TeardownLogic } from "./subscription";
 
 export class BehaviorSubject<T, K extends SyncKind = Sync> extends Subject<T, K> {
-  public constructor(private currentValue: T) {
-    super();
-  }
-
-  protected subscribeActual(subscriber: Subscriber<T>): TeardownLogic {
-    const teardown = super.subscribeActual(subscriber);
-    if (!subscriber.closed) {
-      subscriber.next(this.currentValue);
+    public constructor(private currentValue: T) {
+        super();
     }
-    return teardown;
-  }
 
-  public getValue(): T {
-    if (this.hasError) {
-      throw this.terminalError;
+    protected subscribeActual(subscriber: Subscriber<T>): TeardownLogic {
+        const teardown = super.subscribeActual(subscriber);
+        if (!subscriber.closed) {
+            subscriber.next(this.currentValue);
+        }
+        return teardown;
     }
-    return this.currentValue;
-  }
 
-  public next(value: T): void {
-    if (!this.stopped) {
-      this.currentValue = value;
-      super.next(value);
+    public getValue(): T {
+        if (this.hasError) {
+            throw this.terminalError;
+        }
+        return this.currentValue;
     }
-  }
+
+    public next(value: T): void {
+        if (!this.stopped) {
+            this.currentValue = value;
+            super.next(value);
+        }
+    }
 }

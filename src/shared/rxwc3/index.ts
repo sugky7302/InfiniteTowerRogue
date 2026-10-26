@@ -1,4 +1,10 @@
-export { Observable, deriveObservable, LocalObservable, OperatorFunction, FlattenOperatorFunction } from "./core/observable";
+export {
+    Observable,
+    deriveObservable,
+    LocalObservable,
+    OperatorFunction,
+    FlattenOperatorFunction,
+} from "./core/observable";
 export { Subscriber, Observer, PartialObserver } from "./core/subscriber";
 export { Subscription, Teardown, TeardownLogic } from "./core/subscription";
 export { Subject } from "./core/subject";
@@ -42,5 +48,15 @@ export { fromTrigger } from "./wc3/from-trigger";
 export * from "@shared/wc3-def/events";
 export * from "@shared/wc3-def/inputs";
 export * from "@shared/wc3-def/natives";
-export { createWc3Events, onDamaging, onDamaged, onSpellChannel, onSpellCast,
-  onSpellEffect, onSpellFinish, onSpellEndCast, onUnitDeath, onPlayerChat } from "./wc3/events";
+export {
+    createWc3Events,
+    onDamaging,
+    onDamaged,
+    onSpellChannel,
+    onSpellCast,
+    onSpellEffect,
+    onSpellFinish,
+    onSpellEndCast,
+    onUnitDeath,
+    onPlayerChat,
+} from "./wc3/events";

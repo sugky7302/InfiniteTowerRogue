@@ -1,0 +1,19 @@
+# 相依套件、快取與建置產物。
+node_modules/
+.cache/
+dist/
+target/
+coverage/
+*.tsbuildinfo
+*.log
+
+# 原始地圖、翻譯資料與鎖定檔。
+/maps/
+/i18n/
+/pnpm-lock.yaml
+
+# 此宣告檔由地圖腳本自動產生。
+/src/war3map.d.ts
+
+# 建置流程會重新寫入此設定檔。
+/tsconfig.json

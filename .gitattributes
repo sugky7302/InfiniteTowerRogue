@@ -1,2 +1,9 @@
-# Auto detect text files and perform LF normalization
+# 自動判斷文字檔案，並將儲存庫內容正規化為 LF。
 * text=auto
+
+# 格式化範圍中的程式與工具設定固定使用 LF。
+*.ts text eol=lf
+*.cjs text eol=lf
+/.vscode/*.json text eol=lf
+/package.json text eol=lf
+/.prettierrc.json text eol=lf

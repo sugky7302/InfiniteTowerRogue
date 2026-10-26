@@ -7,9 +7,9 @@ export type PlayerInput = player | { readonly handle: player };
 
 // WC3 原生 handle 是 userdata，`typeof` 不是 "object"。只有包裝物件可以索引 `handle` 欄位。
 export function unwrapUnit(input: UnitInput): unit {
-  return typeof input === "object" && "handle" in input ? input.handle : input as unit;
+    return typeof input === "object" && "handle" in input ? input.handle : (input as unit);
 }
 
 export function unwrapPlayer(input: PlayerInput): player {
-  return typeof input === "object" && "handle" in input ? input.handle : input as player;
+    return typeof input === "object" && "handle" in input ? input.handle : (input as player);
 }

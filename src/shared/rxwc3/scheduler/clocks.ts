@@ -2,8 +2,8 @@ import { Clock } from "./clock";
 import { Phase } from "./phase";
 
 export interface TimeOptions {
-  clock?: Clock;
-  phase?: Phase;
+    clock?: Clock;
+    phase?: Phase;
 }
 
 export const worldClock = new Clock();

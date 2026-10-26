@@ -30,77 +30,77 @@ export type Teardown = Subscription | ((this: void) => void);
 export type TeardownLogic = Teardown | void;
 
 export class Subscription {
-  public closed = false;
-  private teardowns: Teardown[] = [];
-  private parents: Subscription[] = [];
+    public closed = false;
+    private teardowns: Teardown[] = [];
+    private parents: Subscription[] = [];
 
-  public constructor(teardown?: (this: void) => void) {
-    if (teardown !== undefined) {
-      this.add(teardown);
+    public constructor(teardown?: (this: void) => void) {
+        if (teardown !== undefined) {
+            this.add(teardown);
+        }
     }
-  }
 
-  /** 加入 teardown。如果 Subscription 已經關閉，立即執行它，以避免資源洩漏。 */
-  public add(teardown: TeardownLogic): void {
-    if (teardown === undefined || teardown === this) {
-      return;
+    /** 加入 teardown。如果 Subscription 已經關閉，立即執行它，以避免資源洩漏。 */
+    public add(teardown: TeardownLogic): void {
+        if (teardown === undefined || teardown === this) {
+            return;
+        }
+        if (teardown instanceof Subscription && teardown.closed) {
+            return;
+        }
+        if (this.closed) {
+            this.runTeardown(teardown);
+            // 如果 teardown 已經在 teardowns 中，避免重複加入，否則會重複執行。
+        } else if (this.teardowns.indexOf(teardown) < 0) {
+            this.teardowns.push(teardown);
+            if (teardown instanceof Subscription) {
+                teardown.parents.push(this);
+            }
+        }
     }
-    if (teardown instanceof Subscription && teardown.closed) {
-      return;
-    }
-    if (this.closed) {
-      this.runTeardown(teardown);
-    // 如果 teardown 已經在 teardowns 中，避免重複加入，否則會重複執行。
-    } else if (this.teardowns.indexOf(teardown) < 0) {
-      this.teardowns.push(teardown);
-      if (teardown instanceof Subscription) {
-        teardown.parents.push(this);
-      }
-    }
-  }
 
-  public remove(teardown: Teardown): void {
-    const index = this.teardowns.indexOf(teardown);
-    if (index >= 0) {
-      this.teardowns.splice(index, 1);
+    public remove(teardown: Teardown): void {
+        const index = this.teardowns.indexOf(teardown);
+        if (index >= 0) {
+            this.teardowns.splice(index, 1);
+        }
+        // 如果 teardown 是 Subscription，從它的 parents 中移除自己，避免記憶體洩漏。
+        if (teardown instanceof Subscription) {
+            const parentIndex = teardown.parents.indexOf(this);
+            if (parentIndex >= 0) {
+                teardown.parents.splice(parentIndex, 1);
+            }
+        }
     }
-    // 如果 teardown 是 Subscription，從它的 parents 中移除自己，避免記憶體洩漏。
-    if (teardown instanceof Subscription) {
-      const parentIndex = teardown.parents.indexOf(this);
-      if (parentIndex >= 0) {
-        teardown.parents.splice(parentIndex, 1);
-      }
-    }
-  }
 
-  /** 關閉 Subscription，執行所有 teardown。 */
-  public unsubscribe(): void {
-    if (this.closed) {
-      return;
+    /** 關閉 Subscription，執行所有 teardown。 */
+    public unsubscribe(): void {
+        if (this.closed) {
+            return;
+        }
+        this.closed = true;
+        const parents = this.parents;
+        this.parents = [];
+        for (const parent of parents) {
+            parent.remove(this);
+        }
+        const teardowns = this.teardowns;
+        this.teardowns = [];
+        for (const teardown of teardowns) {
+            this.runTeardown(teardown);
+        }
     }
-    this.closed = true;
-    const parents = this.parents;
-    this.parents = [];
-    for (const parent of parents) {
-      parent.remove(this);
-    }
-    const teardowns = this.teardowns;
-    this.teardowns = [];
-    for (const teardown of teardowns) {
-      this.runTeardown(teardown);
-    }
-  }
 
-  /** 一個 teardown 拋出錯誤時，報告錯誤，其他 teardown 繼續執行。 */
-  private runTeardown(teardown: Teardown): void {
-    try {
-      if (typeof teardown === "function") {
-        teardown();
-      } else {
-        teardown.unsubscribe();
-      }
-    } catch (error) {
-      reportUnhandledError(error);
+    /** 一個 teardown 拋出錯誤時，報告錯誤，其他 teardown 繼續執行。 */
+    private runTeardown(teardown: Teardown): void {
+        try {
+            if (typeof teardown === "function") {
+                teardown();
+            } else {
+                teardown.unsubscribe();
+            }
+        } catch (error) {
+            reportUnhandledError(error);
+        }
     }
-  }
 }

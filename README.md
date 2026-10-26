@@ -1,5 +1,15 @@
 # 無盡高塔地圖
 
+## 程式格式
+
+- 執行 `pnpm install`，安裝專案固定版本的 Prettier 與其他相依套件。
+- 執行 `pnpm run format`，格式化程式碼與工具設定。
+- 執行 `pnpm run format:check`，檢查格式。此指令不會修改檔案，格式不符時會回傳失敗狀態。
+- 格式化範圍包含 `src/`、`scripts/`、`tests/`、`package.json`、`.prettierrc.json` 與 `.vscode/` 中的 JSON 設定。
+- 格式使用四個空格縮排、雙引號、分號與 LF 換行。設定在 `.prettierrc.json`，排除規則在 `.prettierignore`。
+- 地圖、翻譯資料、建置產物與自動產生的 `src/war3map.d.ts` 不納入格式化。建置流程會重新寫入 `tsconfig.json`，因此也將它排除。
+- 使用 VS Code 時，安裝建議的 `esbenp.prettier-vscode` 擴充套件。專案已啟用 TypeScript 與 JavaScript 的存檔格式化。
+
 ## 編輯與測試
 
 - 使用 World Editor 編輯 `maps/map.w3x`。這是原始地圖資料夾。

@@ -6,6 +6,20 @@
 - TypeScript 檔名使用 Angular v20 命名法。
     - 使用 kebab-case，不加類型後綴。例如：`behavior-subject.ts`、`switch-map.ts`、`wc3-clock-driver.ts`。
     - 測試檔使用 `.spec.ts`。例如：`core.spec.ts`。
+- TypeScript 不得使用 `enum` 或 `const enum`。
+    - 固定值集合統一使用 `const` 物件、`as const` 與同名 `type`。
+    - 使用 `(typeof 名稱)[keyof typeof 名稱]` 推導值的聯合型別。
+    - 執行時使用物件屬性取得常數，型別註記使用同名 `type`。
+
+```ts
+export const TowerState = {
+    Idle: "idle",
+    Running: "running",
+    Completed: "completed",
+} as const;
+
+export type TowerState = (typeof TowerState)[keyof typeof TowerState];
+```
 
 # WC3 Lua 限制
 

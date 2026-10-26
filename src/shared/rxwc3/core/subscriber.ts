@@ -3,83 +3,83 @@ import { Subscription, TeardownLogic } from "./subscription";
 import { runLocal } from "../sync/execution";
 
 export interface Observer<T> {
-  next: (this: void, value: T) => void;
-  error: (this: void, error: unknown) => void;
-  complete: (this: void) => void;
+    next: (this: void, value: T) => void;
+    error: (this: void, error: unknown) => void;
+    complete: (this: void) => void;
 }
 
 export type PartialObserver<T> = Partial<Observer<T>>;
 
 export class Subscriber<T> extends Subscription {
-  /** 本地串流的回呼不能建立同步觸發器。 */
-  public localContext = false;
-  private stopped = false;
+    /** 本地串流的回呼不能建立同步觸發器。 */
+    public localContext = false;
+    private stopped = false;
 
-  public constructor(private readonly observer: PartialObserver<T> = {}) {
-    super();
-  }
+    public constructor(private readonly observer: PartialObserver<T> = {}) {
+        super();
+    }
 
-  public add(teardown: TeardownLogic): void {
-    // 同步完成後才加入的清理也屬於原本的本地回呼。
-    if (this.closed && this.localContext) runLocal(() => super.add(teardown));
-    else super.add(teardown);
-  }
+    public add(teardown: TeardownLogic): void {
+        // 同步完成後才加入的清理也屬於原本的本地回呼。
+        if (this.closed && this.localContext) runLocal(() => super.add(teardown));
+        else super.add(teardown);
+    }
 
-  public next(value: T): void {
-    if (!this.closed && !this.stopped && this.observer.next !== undefined) {
-      try {
-        if (this.localContext) {
-          runLocal(() => this.observer.next!(value));
-        } else {
-          this.observer.next(value);
+    public next(value: T): void {
+        if (!this.closed && !this.stopped && this.observer.next !== undefined) {
+            try {
+                if (this.localContext) {
+                    runLocal(() => this.observer.next!(value));
+                } else {
+                    this.observer.next(value);
+                }
+            } catch (error) {
+                reportUnhandledError(error);
+            }
         }
-      } catch (error) {
-        reportUnhandledError(error);
-      }
     }
-  }
 
-  public error(error: unknown): void {
-    if (this.closed || this.stopped) {
-      return;
+    public error(error: unknown): void {
+        if (this.closed || this.stopped) {
+            return;
+        }
+        this.stopped = true;
+        try {
+            if (this.observer.error !== undefined) {
+                if (this.localContext) runLocal(() => this.observer.error!(error));
+                else this.observer.error(error);
+            } else {
+                reportUnhandledError(error);
+            }
+        } catch (handlerError) {
+            reportUnhandledError(handlerError);
+        } finally {
+            this.unsubscribe();
+        }
     }
-    this.stopped = true;
-    try {
-      if (this.observer.error !== undefined) {
-        if (this.localContext) runLocal(() => this.observer.error!(error));
-        else this.observer.error(error);
-      } else {
-        reportUnhandledError(error);
-      }
-    } catch (handlerError) {
-      reportUnhandledError(handlerError);
-    } finally {
-      this.unsubscribe();
-    }
-  }
 
-  public complete(): void {
-    if (this.closed || this.stopped) {
-      return;
+    public complete(): void {
+        if (this.closed || this.stopped) {
+            return;
+        }
+        this.stopped = true;
+        try {
+            if (this.observer.complete !== undefined) {
+                if (this.localContext) runLocal(() => this.observer.complete!());
+                else this.observer.complete();
+            }
+        } catch (error) {
+            reportUnhandledError(error);
+        } finally {
+            this.unsubscribe();
+        }
     }
-    this.stopped = true;
-    try {
-      if (this.observer.complete !== undefined) {
-        if (this.localContext) runLocal(() => this.observer.complete!());
-        else this.observer.complete();
-      }
-    } catch (error) {
-      reportUnhandledError(error);
-    } finally {
-      this.unsubscribe();
-    }
-  }
 
-  public unsubscribe(): void {
-    this.stopped = true;
-    if (this.localContext) runLocal(() => super.unsubscribe());
-    else super.unsubscribe();
-  }
+    public unsubscribe(): void {
+        this.stopped = true;
+        if (this.localContext) runLocal(() => super.unsubscribe());
+        else super.unsubscribe();
+    }
 }
 
 /**
@@ -99,42 +99,42 @@ export class Subscriber<T> extends Subscription {
  *    在 WC3 中，`takeUntil` 中斷倒數時，上游的計時器在同一時刻釋放。
  */
 export function operatorSubscriber<T>(
-  destination: Subscriber<any>,
-  next: (this: void, value: T) => void,
-  complete?: (this: void) => void,
-  error?: (this: void, error: unknown) => void,
+    destination: Subscriber<any>,
+    next: (this: void, value: T) => void,
+    complete?: (this: void) => void,
+    error?: (this: void, error: unknown) => void,
 ): Subscriber<T> {
-  const subscriber = new Subscriber<T>({
-    next: value => {
-      try {
-        next(value);
-      } catch (caught) {
-        destination.error(caught);
-      }
-    },
-    complete: () => {
-      try {
-        if (complete === undefined) {
-          destination.complete();
-        } else {
-          complete();
-        }
-      } catch (caught) {
-        destination.error(caught);
-      }
-    },
-    error: caught => {
-      if (error === undefined) {
-        destination.error(caught);
-      } else {
-        try {
-          error(caught);
-        } catch (handlerError) {
-          destination.error(handlerError);
-        }
-      }
-    },
-  });
-  destination.add(subscriber);
-  return subscriber;
+    const subscriber = new Subscriber<T>({
+        next: (value) => {
+            try {
+                next(value);
+            } catch (caught) {
+                destination.error(caught);
+            }
+        },
+        complete: () => {
+            try {
+                if (complete === undefined) {
+                    destination.complete();
+                } else {
+                    complete();
+                }
+            } catch (caught) {
+                destination.error(caught);
+            }
+        },
+        error: (caught) => {
+            if (error === undefined) {
+                destination.error(caught);
+            } else {
+                try {
+                    error(caught);
+                } catch (handlerError) {
+                    destination.error(handlerError);
+                }
+            }
+        },
+    });
+    destination.add(subscriber);
+    return subscriber;
 }
