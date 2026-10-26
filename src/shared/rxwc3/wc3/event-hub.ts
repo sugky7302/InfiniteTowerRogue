@@ -6,6 +6,12 @@ import { TeardownLogic } from "../core/subscription";
 import { EventNatives } from "@shared/wc3-def/natives";
 import { UnitInput } from "@shared/wc3-def/inputs";
 
+/**
+ * 一個訂閱者在中樞中的記錄。
+ * - `order`：全域訂閱編號，由 `EventHub.append` 遞增配發。`dispatch` 依它決定跨路由的順序。
+ * - `previous`／`next`：把中樞全部訂閱者串成雙向鏈結串列。只用於 `hasSubscribers()`，
+ *   以及編號接近 int32 上限時重新編號（WC3 Lua 使用 32 位元整數）。
+ */
 interface Entry<T> {
   subscriber: Subscriber<T>;
   order: number;
@@ -13,7 +19,13 @@ interface Entry<T> {
   next?: Entry<T>;
 }
 
-// M3 專用 Subject。保留原 Subject 行為，僅在中樞中提供跨路由的訂閱順序。
+/**
+ * 一條路由的 Subject，例如「全部事件」或「hero 的目標路由」。保留原 Subject 行為。
+ * - `entries`：此路由的訂閱者。依訂閱先後加入，所以已依 `order` 排序。
+ * - `count`：目前的訂閱者數量。降為 0 時呼叫 `empty()`，從 Map 刪除此單位，避免中樞保留單位參照。
+ * - `dirty`：分發中有訂閱者取消時只標記，分發結束後才 `compactEntries()`。
+ *   原因：效能規則禁止在分發時複製訂閱者陣列。
+ */
 class RouteSubject<T> extends Subject<T> {
   public readonly entries: Entry<T>[] = [];
   public count = 0;
@@ -44,7 +56,33 @@ class RouteSubject<T> extends Subject<T> {
   }
 }
 
-// 純邏輯中樞。原生註冊與資料讀取由呼叫者注入。
+/**
+ * 事件中樞：把一種 WC3 事件有效率地、依正確順序送給相關的訂閱者。純邏輯；原生註冊與資料讀取由呼叫者注入。
+ *
+ * 每種事件（例如 `onDamaging`）一個中樞。它有一個觸發器（第一個訂閱者出現時才建立，之後不刪除）與三條路由：
+ * ```
+ * EventHub（onDamaging）
+ * ├─ global                             ← onDamaging.subscribe(...)：全部事件
+ * ├─ primary   Map<unit, RouteSubject>  ← .ofTarget(hero)：依目標（施法事件為施法者）分組
+ * └─ secondary Map<unit, RouteSubject>  ← .ofSource(boss)：依來源分組
+ * ```
+ * 事件發生時只查兩次 Map，就能找到相關的訂閱者，不必檢查全部訂閱者再 `filter`。
+ *
+ * 跨路由的順序：傷害修正依訂閱順序執行（已決策），但訂閱者分散在不同路由。例如：
+ * ```
+ * 訂閱順序：1. A（全部，增傷） 2. B（hero，護盾） 3. A'（全部，記錄）
+ * global:  [A(1), A'(3)]
+ * primary: [B(2)]
+ * ```
+ * 先通知 global 再通知 primary 會變成 A → A' → B，記錄會讀到尚未扣護盾的值。
+ * 所以 `dispatch` 同時看三條清單的開頭，每次取出 `order` 最小者（與合併排序的「合併」步驟相同），
+ * 結果為 A(1) → B(2) → A'(3)。
+ *
+ * 其他規則：
+ * - 分發前記錄三條清單的長度。分發中新加入的訂閱者不收到目前事件。
+ * - `depth`：目前的分發深度（傷害回呼中可能再造成傷害）。最外層分發結束時才清理 dirty 路由。
+ * - `select`：`.ofTarget(u)` 只建立 Observable，真正訂閱時才建立 Map 項目。只呼叫而不訂閱不會保留單位。
+ */
 export class EventHub<T> extends Observable<T> {
   private readonly global = new RouteSubject<T>(this);
   private readonly primary = new Map<unit, RouteSubject<T>>();
