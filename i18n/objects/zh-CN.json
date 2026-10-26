@@ -1,0 +1,18 @@
+{
+  "ability:A0I1:name": "语言之光",
+  "ability:A0I1:researchtip:1": "学习语言之光",
+  "ability:A0I1:researchubertip:1": "学习恢复生命的技能。",
+  "ability:A0I1:tip:1": "语言之光：第 1 级",
+  "ability:A0I1:tip:2": "语言之光：第 2 级",
+  "ability:A0I1:ubertip:1": "恢复生命。这是第 1 级的翻译说明。",
+  "ability:A0I1:ubertip:2": "恢复更多生命。这是第 2 级的翻译说明。",
+  "item:I0I1:description": "多语言示例物品。",
+  "item:I0I1:name": "语言护符",
+  "item:I0I1:tip": "携带语言护符",
+  "item:I0I1:ubertip": "这件物品用来检查语言切换。",
+  "unit:H0I1:description": "多语言示例英雄。",
+  "unit:H0I1:name": "语言守卫",
+  "unit:H0I1:properNames": "明光",
+  "unit:H0I1:tip": "语言守卫",
+  "unit:H0I1:ubertip": "守卫使用可切换语言的技能。"
+}

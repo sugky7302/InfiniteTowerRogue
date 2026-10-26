@@ -1,0 +1,12 @@
+{
+  "name": "Infinite Tower",
+  "author": "TriggerHappy",
+  "description": "Challenge enemies in the infinite tower. Collect equipment and abilities.",
+  "recommendedPlayers": "Any number of players",
+  "loadingScreenText": "Enter the tower and challenge enemies. Type -lang to list the supported languages.",
+  "loadingScreenTitle": "Infinite Tower",
+  "loadingScreenSubtitle": "Language test map",
+  "prologueScreenText": "",
+  "prologueScreenTitle": "",
+  "prologueScreenSubtitle": ""
+}

@@ -1,0 +1,18 @@
+{
+  "unit:H0I1:description": "多語言範例英雄。",
+  "unit:H0I1:name": "語言守衛",
+  "unit:H0I1:properNames": "明光",
+  "unit:H0I1:tip": "語言守衛",
+  "unit:H0I1:ubertip": "守衛使用可切換語言的技能。",
+  "item:I0I1:description": "多語言範例物品。",
+  "item:I0I1:name": "語言護符",
+  "item:I0I1:tip": "攜帶語言護符",
+  "item:I0I1:ubertip": "這件物品用來檢查語言切換。",
+  "ability:A0I1:tip:1": "語言之光：第 1 級",
+  "ability:A0I1:tip:2": "語言之光：第 2 級",
+  "ability:A0I1:ubertip:1": "恢復生命。這是第 1 級的翻譯說明。",
+  "ability:A0I1:ubertip:2": "恢復更多生命。這是第 2 級的翻譯說明。",
+  "ability:A0I1:name": "語言之光",
+  "ability:A0I1:researchtip:1": "學習語言之光",
+  "ability:A0I1:researchubertip:1": "學習恢復生命的技能。"
+}

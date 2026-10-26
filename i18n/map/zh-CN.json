@@ -1,0 +1,12 @@
+{
+  "name": "无尽高塔",
+  "author": "TriggerHappy",
+  "description": "在无尽高塔中挑战敌人，取得装备与技能。",
+  "recommendedPlayers": "任意人数",
+  "loadingScreenText": "进入高塔，挑战敌人。输入 -lang 可查看支持的语言。",
+  "loadingScreenTitle": "无尽高塔",
+  "loadingScreenSubtitle": "多语言测试地图",
+  "prologueScreenText": "",
+  "prologueScreenTitle": "",
+  "prologueScreenSubtitle": ""
+}

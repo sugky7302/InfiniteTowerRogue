@@ -1,0 +1,18 @@
+{
+  "ability:A0I1:name": "Light of Language",
+  "ability:A0I1:researchtip:1": "Learn Light of Language",
+  "ability:A0I1:researchubertip:1": "Learn a skill that restores health.",
+  "ability:A0I1:tip:1": "Light of Language: Level 1",
+  "ability:A0I1:tip:2": "Light of Language: Level 2",
+  "ability:A0I1:ubertip:1": "Restores health. This is the level 1 description.",
+  "ability:A0I1:ubertip:2": "Restores more health. This is the level 2 description.",
+  "item:I0I1:description": "An item for the language example.",
+  "item:I0I1:name": "Language Charm",
+  "item:I0I1:tip": "Carry the Language Charm",
+  "item:I0I1:ubertip": "Use this item to check language changes.",
+  "unit:H0I1:description": "A hero for the language example.",
+  "unit:H0I1:name": "Language Guard",
+  "unit:H0I1:properNames": "Bright Light",
+  "unit:H0I1:tip": "Language Guard",
+  "unit:H0I1:ubertip": "The guard has a skill with translated text."
+}

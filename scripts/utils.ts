@@ -141,6 +141,16 @@ export function compileMap(config: IProjectConfig) {
         return false;
     }
 
+    // 全部建置期物件修改完成後，產生翻譯範本並把翻譯資料寫入 Lua。
+    logger.info("正在產生物件翻譯範本與 Lua 翻譯表……");
+    const translations = require("./i18n-objects.cjs").finalizeTranslations(
+        process.cwd(),
+        config.mapFolder,
+        tsLua,
+    );
+    logger.info("正在產生自動層語言字串檔……");
+    require("./i18n-locales.cjs").buildLocales(process.cwd(), config.mapFolder, translations);
+
     // 將編譯產物合併到地圖腳本。
     const mapLua = `./dist/${config.mapFolder}/war3map.lua`;
 
