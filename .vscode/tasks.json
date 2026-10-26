@@ -1,0 +1,29 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "編譯並測試",
+			"type": "npm",
+			"script": "test",
+			"group": "test",
+			"problemMatcher": [],
+			"detail": "ts-node --transpile-only scripts/test.ts"
+		},
+		{
+			"label": "編譯",
+			"type": "npm",
+			"script": "build",
+			"group": "build",
+			"problemMatcher": [],
+			"detail": "ts-node --transpile-only scripts/build.ts"
+		},
+		{
+			"label": "生成物件",
+			"type": "npm",
+			"script": "build:defs",
+			"group": "build",
+			"problemMatcher": [],
+			"detail": "ts-node scripts/dev"
+		}
+	]
+}
