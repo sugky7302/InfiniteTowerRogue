@@ -1,7 +1,7 @@
 import { Sync, SyncKind } from "../sync/types";
-import { Subject } from "./Subject";
-import { Subscriber } from "./Subscriber";
-import { TeardownLogic } from "./Subscription";
+import { Subject } from "./subject";
+import { Subscriber } from "./subscriber";
+import { TeardownLogic } from "./subscription";
 
 export class BehaviorSubject<T, K extends SyncKind = Sync> extends Subject<T, K> {
   public constructor(private currentValue: T) {

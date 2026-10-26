@@ -1,4 +1,4 @@
-import { Subscription } from "../core/Subscription";
+import { Subscription } from "../core/subscription";
 import { Local, Sync } from "../sync/types";
 
 export interface Signal<T, K extends Sync | Local = Sync> {

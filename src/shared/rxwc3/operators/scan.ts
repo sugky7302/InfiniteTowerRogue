@@ -1,5 +1,5 @@
-import { Observable, OperatorFunction } from "../core/Observable";
-import { operatorSubscriber } from "../core/Subscriber";
+import { Observable, OperatorFunction } from "../core/observable";
+import { operatorSubscriber } from "../core/subscriber";
 
 export function scan<T, R>(accumulate: (this: void, state: R, value: T, index: number) => R, seed: R): OperatorFunction<T, R> {
   return source => new Observable(subscriber => {

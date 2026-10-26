@@ -2,42 +2,94 @@ import { config, reportUnhandledError as reportCoreError } from "../core/config"
 import { SyncKind } from "../sync/types";
 import { Cleanup, EffectFunction, EffectRef, Signal, SignalOptions, WritableSignal } from "./types";
 
-// Lua 使用可呼叫的資料表。Node 使用函式物件。
+/**
+ * Lua 使用可呼叫的資料表。Node 使用函式物件。
+ *
+ * 用途：signal 必須同時支援 `s()` 與 `s.set(v)`。JS 的函式可以有欄位，Lua 的函式不可以。
+ * 所以在 Lua 中，signal 是含 `__call` 的資料表。資料表放 `set` 等欄位，`__call` 讓它可以被呼叫。
+ *
+ * 這是型別宣告，不產生程式碼。`tsconfig.test.json` 只載入 Node 型別，沒有 `lua-types`，
+ * 所以必須在這裡宣告。本檔是模組，所以宣告只在本檔有效。TSTL 轉譯後直接呼叫 Lua 的全域 `setmetatable`。
+ *
+ * `__call` 的第一個參數是資料表本身（Lua 的規則）。`this: void` 使 TSTL 不再加入另一個 `self` 參數。
+ */
 declare function setmetatable(this: void, table: object, meta: {
   __call: (this: void, self: unknown) => unknown;
 }): unknown;
 
+/*
+ * 依賴圖使用「推拉混合」模型：
+ * - 推（push）：寫入時，`invalidate` 沿 `consumers` 把下游標記為 `dirty`，並把 effect 加入佇列。不計算新值。
+ * - 拉（pull）：讀取或執行 effect 時，`refresh`/`changed` 比較 `Dependency.version`，只重算真的改變的節點。
+ * 所以菱形依賴不會產生中間值（glitch-free），未被讀取的 computed 也不會計算。
+ */
+
+/**
+ * 一條「讀取記錄」：某個 Consumer 讀過某個節點，以及讀取時該節點的版本。
+ * `changed()` 比較 `version` 與節點目前的版本，判斷 Consumer 是否需要重算。
+ */
 interface Dependency {
+  /** 被讀取的節點。 */
   node: ValueNode;
+  /** 讀取時節點的 `version`。 */
   version: number;
 }
 
+/**
+ * 會讀取 signal 的一方：computed／linkedSignal 的計算，或 effect。
+ * 每次重新執行前，`detach()` 清除舊依賴，執行中重新登記。所以依賴是動態的。
+ */
 interface Consumer {
+  /** 同步性。同步的 Consumer 讀取本地節點時，`read()` 報告錯誤。 */
   kind: SyncKind;
+  /** 上一次執行時讀取的節點（拉的方向）。 */
   dependencies: Dependency[];
+  /** 上游可能已改變。由 `invalidate()` 設定，重算或確認未改變後清除。 */
   dirty: boolean;
+  /** Consumer 是 effect 時，指向其狀態。 */
   effect?: EffectState;
+  /** Consumer 是 computed／linkedSignal 時，指向計算結果所在的節點。 */
   output?: ValueNode;
 }
 
+/**
+ * 保存一個值的節點。`signal`、`computed`、`linkedSignal` 都以它為核心，
+ * `callable()` 再把它包成可呼叫的物件。
+ */
 export interface ValueNode {
+  /** 同步性。 */
   kind: SyncKind;
+  /** 目前的值。computed 在 `refresh()` 後才是最新值。 */
   value: any;
+  /** 值改變（`equal` 判斷為不同）時加 1。下游用它判斷是否需要重算。 */
   version: number;
+  /** 是否已有值。computed 建立時為 `false`，第一次讀取才計算（延遲計算）。 */
   initialized: boolean;
+  /** 依賴本節點的 Consumer（推的方向）。 */
   consumers: Set<Consumer>;
+  /** 衍生節點（computed／linkedSignal）自己的計算角色。一般 signal 沒有。 */
   consumer?: Consumer;
+  /** 衍生節點的計算函式。 */
   calculate?: (this: void) => any;
+  /** 判斷新舊值是否相同。相同時不增加 `version`，也不通知下游。 */
   equal: (this: void, previous: any, current: any) => boolean;
+  /** 正在計算。計算中再次讀取自己時，表示有循環依賴。 */
   evaluating: boolean;
 }
 
+/** 一個 effect 的執行狀態。 */
 interface EffectState {
+  /** effect 讀取 signal 時使用的 Consumer。 */
   consumer: Consumer;
+  /** 傳回給使用者的參照。`destroy()` 後 `closed` 為 `true`，不再執行。 */
   ref: EffectRef;
+  /** 使用者的 effect 函式。 */
   fn: EffectFunction;
+  /** 經由 `onCleanup` 登記的清理函式。下一次執行前或 `destroy()` 時執行。 */
   cleanups: Cleanup[];
+  /** 已在佇列中。避免同一輪重複加入。 */
   queued: boolean;
+  /** 尚未執行過。第一次執行不檢查依賴是否改變。 */
   initial: boolean;
 }
 
@@ -284,6 +336,8 @@ export function createNode<T>(kind: SyncKind, value: T, options?: SignalOptions<
 
 export function callable<T, K extends SyncKind>(node: ValueNode): Signal<T, K> {
   let result: Signal<T, K>;
+  // Lua（WC3）有 `setmetatable`：建立含 `__call` 的資料表。
+  // Node（單元測試）沒有 `setmetatable`：使用箭頭函式，再直接加入方法。
   if (typeof setmetatable === "function") {
     result = setmetatable({}, { __call: (_self: unknown) => read(node) }) as Signal<T, K>;
   } else {

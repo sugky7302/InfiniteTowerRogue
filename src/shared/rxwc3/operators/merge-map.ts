@@ -1,5 +1,5 @@
-import { FlattenOperatorFunction, Observable } from "../core/Observable";
-import { operatorSubscriber } from "../core/Subscriber";
+import { FlattenOperatorFunction, Observable } from "../core/observable";
+import { operatorSubscriber } from "../core/subscriber";
 import { SyncKind } from "../sync/types";
 
 export function mergeMap<T, R, I extends SyncKind>(project: (this: void, value: T, index: number) => Observable<R, I>): FlattenOperatorFunction<T, R, I> {

@@ -1,5 +1,5 @@
-import { Observable, OperatorFunction } from "../core/Observable";
-import { operatorSubscriber } from "../core/Subscriber";
+import { Observable, OperatorFunction } from "../core/observable";
+import { operatorSubscriber } from "../core/subscriber";
 
 export function takeWhile<T>(predicate: (this: void, value: T, index: number) => boolean): OperatorFunction<T, T> {
   return source => new Observable(subscriber => {

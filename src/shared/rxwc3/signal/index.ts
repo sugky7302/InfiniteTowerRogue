@@ -1,6 +1,6 @@
-import { Observable } from "../core/Observable";
-import { Subscriber } from "../core/Subscriber";
-import { Subscription } from "../core/Subscription";
+import { Observable } from "../core/observable";
+import { Subscriber } from "../core/subscriber";
+import { Subscription } from "../core/subscription";
 import { Local, Sync, SyncKind } from "../sync/types";
 import { callable, createEffect, createNode, untracked, writableCallable } from "./runtime";
 import { EffectFunction, EffectRef, LinkedOptions, LinkedPrevious, Signal, SignalOptions, WritableSignal } from "./types";

@@ -1,7 +1,7 @@
 import { Sync, SyncKind } from "../sync/types";
-import { Observable } from "./Observable";
-import { Subscriber } from "./Subscriber";
-import { TeardownLogic } from "./Subscription";
+import { Observable } from "./observable";
+import { Subscriber } from "./subscriber";
+import { TeardownLogic } from "./subscription";
 import { reportUnhandledError } from "./config";
 
 export class Subject<T, K extends SyncKind = Sync> extends Observable<T, K> {

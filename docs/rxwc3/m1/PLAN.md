@@ -30,7 +30,7 @@
 
 - 終端版本：Node 26.8.1。找不到 `pnpm`。工具下載受網路限制。
 - `npm run test:unit`：型別檢查通過；94 項測試通過，0 項失敗。
-- 型別檢查包含 `tests/rxwc3/types.test.ts`。該檔案不在執行測試時載入。
+- 型別檢查包含 `tests/rxwc3/types.spec.ts`。該檔案不在執行測試時載入。
 - `npm run build`：通過，已產生 `dist/bin/map.w3x`。
 - `node_modules/.bin/tstl.cmd -p tsconfig.rxwc3.json`：通過，已產生 `dist/rxwc3/rxwc3.lua`。
 - 使用已安裝的 Fengari 執行 Lua 5.3 產物。轉換與取消、事件分發、內層清理、共用連接共 4 組檢查通過。

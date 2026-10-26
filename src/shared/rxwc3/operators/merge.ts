@@ -1,5 +1,5 @@
-import { Observable } from "../core/Observable";
-import { operatorSubscriber } from "../core/Subscriber";
+import { Observable } from "../core/observable";
+import { operatorSubscriber } from "../core/subscriber";
 import { Local, Sync, SyncKind } from "../sync/types";
 
 type ValueOf<S> = S extends Observable<infer T, any> ? T : never;

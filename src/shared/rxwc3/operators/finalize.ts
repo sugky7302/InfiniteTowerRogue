@@ -1,4 +1,4 @@
-import { Observable, OperatorFunction } from "../core/Observable";
+import { Observable, OperatorFunction } from "../core/observable";
 
 export function finalize<T>(callback: (this: void) => void): OperatorFunction<T, T> {
   return source => new Observable(subscriber => {

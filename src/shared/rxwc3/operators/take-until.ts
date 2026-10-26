@@ -1,5 +1,5 @@
-import { Observable, OperatorFunction } from "../core/Observable";
-import { operatorSubscriber } from "../core/Subscriber";
+import { Observable, OperatorFunction } from "../core/observable";
+import { operatorSubscriber } from "../core/subscriber";
 import { SyncKind } from "../sync/types";
 
 export function takeUntil<T>(notifier: Observable<any, SyncKind>): OperatorFunction<T, T> {

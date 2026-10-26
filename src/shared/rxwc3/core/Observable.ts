@@ -1,6 +1,6 @@
 import { CombinedKind, Local, Sync, SyncKind } from "../sync/types";
-import { PartialObserver, Subscriber } from "./Subscriber";
-import { TeardownLogic } from "./Subscription";
+import { PartialObserver, Subscriber } from "./subscriber";
+import { TeardownLogic } from "./subscription";
 import { UnaryFunction } from "./pipe";
 
 export type OperatorFunction<T, R> = <K extends SyncKind>(this: void, source: Observable<T, K>) => Observable<R, K>;

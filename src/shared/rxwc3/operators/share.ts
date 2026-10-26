@@ -1,6 +1,6 @@
-import { Observable, OperatorFunction } from "../core/Observable";
-import { Subscriber } from "../core/Subscriber";
-import { Subject } from "../core/Subject";
+import { Observable, OperatorFunction } from "../core/observable";
+import { Subscriber } from "../core/subscriber";
+import { Subject } from "../core/subject";
 import { SyncKind } from "../sync/types";
 
 interface SharedState<T, K extends SyncKind> {

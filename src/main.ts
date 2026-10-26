@@ -2,6 +2,8 @@ import { Timer, Unit } from "w3ts";
 import { Players } from "w3ts/globals";
 import { W3TS_HOOK, addScriptHook } from "w3ts/hooks";
 import { Units } from "@objectdata/units";
+import { logger } from "@shared/logger";
+import { runM2Example } from "@shared/rxwc3/wc3/m2-example";
 
 const BUILD_DATE = compiletime(() => new Date().toUTCString());
 const TS_VERSION = compiletime(() => require("typescript").version);
@@ -33,8 +35,9 @@ function tsMain() {
       unit.color = Players[math.random(0, bj_MAX_PLAYERS)].color;
     });
   } catch (e) {
-    print(e);
+    logger.error(e);
   }
 }
 
 addScriptHook(W3TS_HOOK.MAIN_AFTER, tsMain);
+addScriptHook(W3TS_HOOK.MAIN_AFTER, runM2Example);

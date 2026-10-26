@@ -1,4 +1,4 @@
-import { Observable } from "../core/Observable";
+import { Observable } from "../core/observable";
 import { SyncKind } from "../sync/types";
 
 export function from<T, K extends SyncKind>(input: Observable<T, K>): Observable<T, K>;

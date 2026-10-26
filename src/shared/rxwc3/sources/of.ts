@@ -1,4 +1,4 @@
-import { Observable } from "../core/Observable";
+import { Observable } from "../core/observable";
 import { from } from "./from";
 
 export function of<T>(...values: T[]): Observable<T> {

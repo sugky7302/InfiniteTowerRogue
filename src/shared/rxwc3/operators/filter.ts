@@ -1,5 +1,5 @@
-import { Observable, OperatorFunction } from "../core/Observable";
-import { operatorSubscriber } from "../core/Subscriber";
+import { Observable, OperatorFunction } from "../core/observable";
+import { operatorSubscriber } from "../core/subscriber";
 
 export function filter<T, S extends T>(predicate: (this: void, value: T, index: number) => value is S): OperatorFunction<T, S>;
 export function filter<T>(predicate: (this: void, value: T, index: number) => boolean): OperatorFunction<T, T>;

@@ -1,5 +1,5 @@
 import { reportUnhandledError } from "./config";
-import { Subscription } from "./Subscription";
+import { Subscription } from "./subscription";
 
 export interface Observer<T> {
   next: (this: void, value: T) => void;
@@ -66,7 +66,22 @@ export class Subscriber<T> extends Subscription {
   }
 }
 
-// 先連接取消關係，讓同步來源可以立即停止。
+/**
+ * 建立 operator 用來訂閱上游的 Subscriber。相當於 rxjs 內部的 `createOperatorSubscriber`。
+ *
+ * ```
+ * 上游 source ──► operatorSubscriber ──► destination（下游）
+ * ```
+ *
+ * 它處理三件事：
+ * 1. 預設轉送：`next` 必須傳入。省略 `complete` 或 `error` 時，直接轉送給下游。
+ * 2. 例外轉為串流錯誤：operator 回呼（例如 `map` 的 `project`）拋出錯誤時，送出下游的 `error`，串流結束並清理。
+ *    一般 `Subscriber` 不同：最終訂閱者的回呼出錯時，只回報 `reportUnhandledError`，串流繼續。
+ *    原因：operator 的錯誤屬於資料流，下游可以處理；使用者回呼的錯誤不應影響其他訂閱者。
+ * 3. 先連接取消關係：`destination.add(subscriber)` 在 `source.subscribe(...)` 之前執行。下游取消時，上游立即關閉。
+ *    例如 `of(1, 2, 3).pipe(map(...), take(1))`：`take(1)` 收到 1 後取消，2 與 3 不再經過 `map`。
+ *    在 WC3 中，`takeUntil` 中斷倒數時，上游的計時器在同一時刻釋放。
+ */
 export function operatorSubscriber<T>(
   destination: Subscriber<any>,
   next: (this: void, value: T) => void,
