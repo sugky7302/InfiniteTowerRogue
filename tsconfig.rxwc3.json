@@ -7,6 +7,7 @@
     "types": ["war3-types-strict/1.33.0"]
   },
   "include": ["src/shared/rxwc3/**/*.ts"],
+  "exclude": ["src/shared/rxwc3/benchmark/wc3/example.ts"],
   "tstl": {
     "luaTarget": "5.3",
     "noHeader": true,

@@ -192,7 +192,10 @@ test("W3I 第 39 版在載入畫面編號後跳過 4 位元組整數，且改寫
         const original = fs.readFileSync(path.join(root, "dist/map.w3x/war3map.w3i"));
         assert.equal(original.readInt32LE(141), 64);
         const slots = locales.mapTextSlots(original);
-        assert.equal(slots.find((slot: { key: string }) => slot.key === "loadingScreenText").start, 146);
+        assert.equal(
+            slots.find((slot: { key: string }) => slot.key === "loadingScreenText").start,
+            146,
+        );
         const fog = (buffer: Buffer, cursor: number) => [
             buffer.readInt32LE(cursor),
             buffer.readFloatLE(cursor + 4),

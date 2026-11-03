@@ -1,8 +1,7 @@
 import { Sync, SyncKind } from "../sync/types";
 import { deriveObservable, Observable } from "./observable";
-import { Subscriber } from "./subscriber";
+import { notifyComplete, notifyError, notifyNext, Subscriber } from "./subscriber";
 import { TeardownLogic } from "./subscription";
-import { reportUnhandledError } from "./config";
 
 export class Subject<T, K extends SyncKind = Sync> extends Observable<T, K> {
     protected stopped = false;
@@ -28,7 +27,7 @@ export class Subject<T, K extends SyncKind = Sync> extends Observable<T, K> {
 
     public next(value: T): void {
         if (!this.stopped) {
-            this.dispatch((subscriber) => subscriber.next(value));
+            this.dispatch(notifyNext, value);
         }
     }
 
@@ -37,14 +36,14 @@ export class Subject<T, K extends SyncKind = Sync> extends Observable<T, K> {
             this.stopped = true;
             this.hasError = true;
             this.terminalError = error;
-            this.dispatch((subscriber) => subscriber.error(error));
+            this.dispatch(notifyError, error);
         }
     }
 
     public complete(): void {
         if (!this.stopped) {
             this.stopped = true;
-            this.dispatch((subscriber) => subscriber.complete());
+            this.dispatch(notifyComplete, undefined);
         }
     }
 
@@ -67,26 +66,20 @@ export class Subject<T, K extends SyncKind = Sync> extends Observable<T, K> {
      * ```
      * rxjs 每次通知前複製陣列（`slice()`）。傷害事件頻率高，複製會增加 Lua GC 負擔，所以設計稿禁止複製。
      */
-    private dispatch(notify: (this: void, subscriber: Subscriber<T>) => void): void {
+    private dispatch(
+        notify: (this: void, subscriber: Subscriber<T>, value: any) => void,
+        value: any,
+    ): void {
         const length = this.subscribers.length;
         this.dispatchDepth++;
-        try {
-            for (let index = 0; index < length; index++) {
-                const subscriber = this.subscribers[index];
-                if (!subscriber.closed) {
-                    try {
-                        notify(subscriber);
-                    } catch (error) {
-                        reportUnhandledError(error);
-                    }
-                }
-            }
-        } finally {
-            this.dispatchDepth--;
-            if (this.dispatchDepth === 0) {
-                this.compact();
+        for (let index = 0; index < length; index++) {
+            const subscriber = this.subscribers[index];
+            if (!subscriber.closed) {
+                notify(subscriber, value);
             }
         }
+        this.dispatchDepth--;
+        if (this.dispatchDepth === 0) this.compact();
     }
 
     /**

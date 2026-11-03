@@ -2,6 +2,7 @@
 
 - 每次開發請先撰寫設計稿，先在 `docs/` 底下建立該設計的資料夾，然後新建 `PLAN.md` 於該資料夾。
     - `PLAN.md` 必須含有建立日期，以及是否完成兩個屬性。
+    - 完成的 `PLAN.md`，請精煉為 skill，放到 `.github/skills` 裡面。若是已經存在，請根據內容，自主判斷要更新還是不變動。
 - 撰寫時請遵守 ASD-STE100 原則，並使用正體中文書寫。
 - TypeScript 檔名使用 Angular v20 命名法。
     - 使用 kebab-case，不加類型後綴。例如：`behavior-subject.ts`、`switch-map.ts`、`wc3-clock-driver.ts`。

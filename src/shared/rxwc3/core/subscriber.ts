@@ -1,6 +1,7 @@
 import { reportUnhandledError } from "./config";
 import { Subscription, TeardownLogic } from "./subscription";
-import { runLocal } from "../sync/execution";
+import { isLocalExecution, runLocal, setLocalExecution } from "../sync/execution";
+import { protectedCall } from "./protected-call";
 
 export interface Observer<T> {
     next: (this: void, value: T) => void;
@@ -27,14 +28,10 @@ export class Subscriber<T> extends Subscription {
 
     public next(value: T): void {
         if (!this.closed && !this.stopped && this.observer.next !== undefined) {
-            try {
-                if (this.localContext) {
-                    runLocal(() => this.observer.next!(value));
-                } else {
-                    this.observer.next(value);
-                }
-            } catch (error) {
-                reportUnhandledError(error);
+            if (this.localContext) this.notify(this.observer.next, value);
+            else {
+                const [ok, error] = protectedCall(this.observer.next, value);
+                if (!ok) reportUnhandledError(error);
             }
         }
     }
@@ -44,18 +41,9 @@ export class Subscriber<T> extends Subscription {
             return;
         }
         this.stopped = true;
-        try {
-            if (this.observer.error !== undefined) {
-                if (this.localContext) runLocal(() => this.observer.error!(error));
-                else this.observer.error(error);
-            } else {
-                reportUnhandledError(error);
-            }
-        } catch (handlerError) {
-            reportUnhandledError(handlerError);
-        } finally {
-            this.unsubscribe();
-        }
+        if (this.observer.error !== undefined) this.notify(this.observer.error, error);
+        else reportUnhandledError(error);
+        this.unsubscribe();
     }
 
     public complete(): void {
@@ -63,22 +51,71 @@ export class Subscriber<T> extends Subscription {
             return;
         }
         this.stopped = true;
-        try {
-            if (this.observer.complete !== undefined) {
-                if (this.localContext) runLocal(() => this.observer.complete!());
-                else this.observer.complete();
-            }
-        } catch (error) {
-            reportUnhandledError(error);
-        } finally {
-            this.unsubscribe();
-        }
+        if (this.observer.complete !== undefined)
+            this.notify(this.observer.complete, undefined, true);
+        this.unsubscribe();
+    }
+
+    private notify(callback: (this: void, value: any) => void, value: any, noValue = false): void {
+        const previous = isLocalExecution();
+        if (this.localContext) setLocalExecution(true);
+        let ok: boolean;
+        let error: unknown;
+        if (noValue) [ok, error] = protectedCall(callback);
+        else [ok, error] = protectedCall(callback, value);
+        setLocalExecution(previous);
+        if (!ok) reportUnhandledError(error);
     }
 
     public unsubscribe(): void {
         this.stopped = true;
         if (this.localContext) runLocal(() => super.unsubscribe());
         else super.unsubscribe();
+    }
+}
+
+function callNext(this: void, subscriber: Subscriber<any>, value: any): void {
+    subscriber.next(value);
+}
+
+function callError(this: void, subscriber: Subscriber<any>, error: unknown): void {
+    subscriber.error(error);
+}
+
+function callComplete(this: void, subscriber: Subscriber<any>): void {
+    subscriber.complete();
+}
+
+/** 一般方法已有保護。自訂方法須由分發端隔離錯誤。 */
+export function notifyNext(this: void, subscriber: Subscriber<any>, value: any): void {
+    if (subscriber.next === Subscriber.prototype.next) subscriber.next(value);
+    else {
+        const [ok, error] = protectedCall(callNext, subscriber, value);
+        if (!ok) reportUnhandledError(error);
+    }
+}
+
+export function notifyError(this: void, subscriber: Subscriber<any>, error: unknown): void {
+    if (
+        subscriber.error === Subscriber.prototype.error &&
+        subscriber.unsubscribe === Subscriber.prototype.unsubscribe
+    )
+        subscriber.error(error);
+    else {
+        const [ok, caught] = protectedCall(callError, subscriber, error);
+        if (!ok) reportUnhandledError(caught);
+    }
+}
+
+export function notifyComplete(this: void, subscriber: Subscriber<any>): void {
+    if (
+        subscriber.complete === Subscriber.prototype.complete &&
+        subscriber.unsubscribe === Subscriber.prototype.unsubscribe
+    )
+        subscriber.complete();
+    else {
+        const [ok, error] = protectedCall(callComplete, subscriber);
+        if (!ok) reportUnhandledError(error);
     }
 }
 

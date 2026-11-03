@@ -7,3 +7,6 @@ import "./wc3-number.spec";
 import "./events.spec";
 import "./sync.spec";
 import "./m5.spec";
+import "./benchmark.spec";
+import "./benchmark-stress.spec";
+import "./benchmark-p3.spec";

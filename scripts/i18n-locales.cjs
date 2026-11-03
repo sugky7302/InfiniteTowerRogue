@@ -54,7 +54,12 @@ function verifyFogFields(buffer, cursor) {
     const end = buffer.readFloatLE(cursor + 8);
     const density = buffer.readFloatLE(cursor + 12);
     const plausible = (value, max) => Number.isFinite(value) && value >= 0 && value <= max;
-    if (!plausible(style, 16) || !plausible(start, 100000) || !plausible(end, 100000) || !plausible(density, 16))
+    if (
+        !plausible(style, 16) ||
+        !plausible(start, 100000) ||
+        !plausible(end, 100000) ||
+        !plausible(density, 16)
+    )
         throw new Error(
             `地圖資訊結構不符：霧設定不合理（style=${style}, start=${start}, end=${end}, density=${density}）。` +
                 "文字欄位位置可能錯誤，已停止改寫。",

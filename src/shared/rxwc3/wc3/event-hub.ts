@@ -1,7 +1,8 @@
 import { reportUnhandledError } from "../core/config";
 import { Observable } from "../core/observable";
 import { Subject } from "../core/subject";
-import { Subscriber } from "../core/subscriber";
+import { notifyNext, Subscriber } from "../core/subscriber";
+import { protectedCall } from "../core/protected-call";
 import { TeardownLogic } from "../core/subscription";
 import { EventNatives } from "@shared/wc3-def/natives";
 import { UnitInput } from "@shared/wc3-def/inputs";
@@ -147,11 +148,8 @@ export class EventHub<T> extends Observable<T> {
         this.trigger = trigger;
         try {
             this.natives.addAction(trigger, () => {
-                try {
-                    this.receive(this);
-                } catch (error) {
-                    reportUnhandledError(error);
-                }
+                const [ok, error] = protectedCall(this.receive, this);
+                if (!ok) reportUnhandledError(error);
             });
             this.register(trigger);
         } catch (error) {
@@ -211,39 +209,32 @@ export class EventHub<T> extends Observable<T> {
             bi = 0,
             ci = 0;
         this.depth++;
-        try {
-            // 最多合併三組相關訂閱。保留初始長度，新增訂閱不接收目前事件。
-            while (ai < al || bi < bl || ci < cl) {
-                const ae = ai < al ? a[ai] : undefined;
-                const be = bi < bl ? b![bi] : undefined;
-                const ce = ci < cl ? c![ci] : undefined;
-                let entry = ae;
-                let route = 0;
-                if (be !== undefined && (entry === undefined || be.order < entry.order)) {
-                    entry = be;
-                    route = 1;
-                }
-                if (ce !== undefined && (entry === undefined || ce.order < entry.order)) {
-                    entry = ce;
-                    route = 2;
-                }
-                if (route === 0) ai++;
-                else if (route === 1) bi++;
-                else ci++;
-                if (entry !== undefined && !entry.subscriber.closed) {
-                    try {
-                        entry.subscriber.next(value);
-                    } catch (error) {
-                        reportUnhandledError(error);
-                    }
-                }
+        // 最多合併三組相關訂閱。保留初始長度，新增訂閱不接收目前事件。
+        while (ai < al || bi < bl || ci < cl) {
+            const ae = ai < al ? a[ai] : undefined;
+            const be = bi < bl ? b![bi] : undefined;
+            const ce = ci < cl ? c![ci] : undefined;
+            let entry = ae;
+            let route = 0;
+            if (be !== undefined && (entry === undefined || be.order < entry.order)) {
+                entry = be;
+                route = 1;
             }
-        } finally {
-            this.depth--;
-            if (this.depth === 0) {
-                for (const subject of this.dirty) subject.compactEntries();
-                this.dirty.length = 0;
+            if (ce !== undefined && (entry === undefined || ce.order < entry.order)) {
+                entry = ce;
+                route = 2;
             }
+            if (route === 0) ai++;
+            else if (route === 1) bi++;
+            else ci++;
+            if (entry !== undefined && !entry.subscriber.closed) {
+                notifyNext(entry.subscriber, value);
+            }
+        }
+        this.depth--;
+        if (this.depth === 0) {
+            for (const subject of this.dirty) subject.compactEntries();
+            this.dirty.length = 0;
         }
     }
 }

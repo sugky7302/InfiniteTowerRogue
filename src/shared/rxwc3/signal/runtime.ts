@@ -1,3 +1,4 @@
+import { protectedCall } from "../core/protected-call";
 import { config, reportUnhandledError as reportCoreError } from "../core/config";
 import { SyncKind } from "../sync/types";
 import { Cleanup, EffectFunction, EffectRef, Signal, SignalOptions, WritableSignal } from "./types";
@@ -33,21 +34,28 @@ declare function setmetatable(
  * `changed()` 比較 `version` 與節點目前的版本，判斷 Consumer 是否需要重算。
  */
 interface Dependency {
+    consumer: Consumer;
     /** 被讀取的節點。 */
     node: ValueNode;
     /** 讀取時節點的 `version`。 */
     version: number;
+    seen: boolean;
+    previous?: Dependency;
+    next?: Dependency;
 }
 
 /**
  * 會讀取 signal 的一方：computed／linkedSignal 的計算，或 effect。
- * 每次重新執行前，`detach()` 清除舊依賴，執行中重新登記。所以依賴是動態的。
+ * 每次重新執行前，先斷開舊依賴，讀取時接回連結。執行後移除未讀取的記錄。
  */
 interface Consumer {
     /** 同步性。同步的 Consumer 讀取本地節點時，`read()` 報告錯誤。 */
     kind: SyncKind;
     /** 上一次執行時讀取的節點（拉的方向）。 */
     dependencies: Dependency[];
+    dependencyMap: Map<ValueNode, Dependency>;
+    cursor: number;
+    tracking: boolean;
     /** 上游可能已改變。由 `invalidate()` 設定，重算或確認未改變後清除。 */
     dirty: boolean;
     /** Consumer 是 effect 時，指向其狀態。 */
@@ -69,8 +77,9 @@ export interface ValueNode {
     version: number;
     /** 是否已有值。computed 建立時為 `false`，第一次讀取才計算（延遲計算）。 */
     initialized: boolean;
-    /** 依賴本節點的 Consumer（推的方向）。 */
-    consumers: Set<Consumer>;
+    /** 依讀取順序排列的反向連結。重用連結，避免反覆配置 Set 項目。 */
+    firstConsumer?: Dependency;
+    lastConsumer?: Dependency;
     /** 衍生節點（computed／linkedSignal）自己的計算角色。一般 signal 沒有。 */
     consumer?: Consumer;
     /** 衍生節點的計算函式。 */
@@ -95,6 +104,7 @@ interface EffectState {
     queued: boolean;
     /** 尚未執行過。第一次執行不檢查依賴是否改變。 */
     initial: boolean;
+    onCleanup: (this: void, callback: Cleanup) => void;
 }
 
 let active: Consumer | undefined;
@@ -106,7 +116,9 @@ export function isLocalSignalExecution(): boolean {
 let calculationDepth = 0;
 let batchDepth = 0;
 let flushing = false;
-let queue: EffectState[] = [];
+const queue: EffectState[] = [];
+const visited = new Set<Consumer>();
+const counts = new Map<EffectState, number>();
 
 function reportUnhandledError(error: unknown): void {
     const previousActive = active;
@@ -122,10 +134,43 @@ function reportUnhandledError(error: unknown): void {
 }
 
 function detach(consumer: Consumer): void {
+    for (const dependency of consumer.dependencies) unlink(dependency);
+    consumer.dependencies.length = 0;
+    consumer.dependencyMap.clear();
+}
+
+function unlink(dependency: Dependency): void {
+    if (!dependency.seen) return;
+    const node = dependency.node;
+    if (dependency.previous === undefined) node.firstConsumer = dependency.next;
+    else dependency.previous.next = dependency.next;
+    if (dependency.next === undefined) node.lastConsumer = dependency.previous;
+    else dependency.next.previous = dependency.previous;
+    dependency.previous = undefined;
+    dependency.next = undefined;
+    dependency.seen = false;
+}
+
+/** 保留依賴記錄與索引。重新讀取時接回尾端，保留原有通知順序。 */
+function beginTracking(consumer: Consumer): void {
+    consumer.cursor = 0;
+    consumer.tracking = true;
     for (const dependency of consumer.dependencies) {
-        dependency.node.consumers.delete(consumer);
+        unlink(dependency);
     }
-    consumer.dependencies = [];
+}
+
+function endTracking(consumer: Consumer): void {
+    if (!consumer.tracking) return;
+    consumer.tracking = false;
+    let count = 0;
+    for (const dependency of consumer.dependencies) {
+        if (dependency.seen) consumer.dependencies[count++] = dependency;
+        else {
+            consumer.dependencyMap.delete(dependency.node);
+        }
+    }
+    consumer.dependencies.length = count;
 }
 
 function enqueue(state: EffectState): void {
@@ -135,19 +180,17 @@ function enqueue(state: EffectState): void {
     }
 }
 
-function invalidate(node: ValueNode, visited: Set<Consumer> = new Set()): void {
-    for (const consumer of node.consumers) {
-        if (visited.has(consumer)) {
-            continue;
+function invalidate(node: ValueNode): void {
+    let dependency = node.firstConsumer;
+    while (dependency !== undefined) {
+        const consumer = dependency.consumer;
+        if (!visited.has(consumer)) {
+            visited.add(consumer);
+            consumer.dirty = true;
+            if (consumer.output !== undefined) invalidate(consumer.output);
+            if (consumer.effect !== undefined) enqueue(consumer.effect);
         }
-        visited.add(consumer);
-        consumer.dirty = true;
-        if (consumer.output !== undefined) {
-            invalidate(consumer.output, visited);
-        }
-        if (consumer.effect !== undefined) {
-            enqueue(consumer.effect);
-        }
+        dependency = dependency.next;
     }
 }
 
@@ -163,45 +206,53 @@ function changed(consumer: Consumer): boolean {
     return result;
 }
 
-function refresh(node: ValueNode): void {
-    const consumer = node.consumer;
-    if (consumer === undefined || (!consumer.dirty && node.initialized)) {
+/** 比較期間不追蹤依賴。錯誤仍交由原呼叫者處理。 */
+function equal(node: ValueNode, value: any): boolean {
+    if (node.equal === defaultEqual) return node.value === value;
+    const previousActive = active;
+    active = undefined;
+    const [ok, result] = protectedCall(node.equal, node.value, value);
+    active = previousActive;
+    if (!ok) throw result;
+    return result;
+}
+
+function refreshValue(this: void, node: ValueNode, consumer: Consumer): void {
+    if (node.initialized && !changed(consumer)) {
+        consumer.dirty = false;
         return;
     }
-    if (node.evaluating) {
-        throw new Error("Signal 有循環計算依賴。");
+    beginTracking(consumer);
+    active = consumer;
+    executing = consumer;
+    calculationDepth++;
+    const value = node.calculate!();
+    calculationDepth--;
+    if (!node.initialized || !equal(node, value)) {
+        node.value = value;
+        node.version++;
     }
+    node.initialized = true;
+    consumer.dirty = false;
+}
+
+function refresh(node: ValueNode): void {
+    const consumer = node.consumer;
+    if (consumer === undefined || (!consumer.dirty && node.initialized)) return;
+    if (node.evaluating) throw new Error("Signal 有循環計算依賴。");
     node.evaluating = true;
     const previousActive = active;
     const previousExecuting = executing;
+    const previousDepth = calculationDepth;
     active = undefined;
     executing = undefined;
-    try {
-        if (node.initialized && !changed(consumer)) {
-            consumer.dirty = false;
-            return;
-        }
-        detach(consumer);
-        active = consumer;
-        executing = consumer;
-        calculationDepth++;
-        let value: any;
-        try {
-            value = node.calculate!();
-        } finally {
-            calculationDepth--;
-        }
-        if (!node.initialized || !untracked(() => node.equal(node.value, value))) {
-            node.value = value;
-            node.version++;
-        }
-        node.initialized = true;
-        consumer.dirty = false;
-    } finally {
-        active = previousActive;
-        executing = previousExecuting;
-        node.evaluating = false;
-    }
+    const [ok, error] = protectedCall(refreshValue, node, consumer);
+    endTracking(consumer);
+    active = previousActive;
+    executing = previousExecuting;
+    calculationDepth = previousDepth;
+    node.evaluating = false;
+    if (!ok) throw error;
 }
 
 export function read(node: ValueNode): any {
@@ -216,12 +267,21 @@ export function read(node: ValueNode): any {
     // 先登記依賴，讓計算失敗後仍能由來源變更觸發重試。
     let dependency: Dependency | undefined;
     if (active !== undefined) {
-        dependency = active.dependencies.find((item) => item.node === node);
+        const candidate = active.dependencies[active.cursor];
+        dependency = candidate?.node === node ? candidate : active.dependencyMap.get(node);
         if (dependency === undefined) {
-            dependency = { node, version: node.version };
+            dependency = { node, version: node.version, seen: false, consumer: active };
             active.dependencies.push(dependency);
-            node.consumers.add(active);
+            active.dependencyMap.set(node, dependency);
         }
+        if (!dependency.seen) {
+            dependency.seen = true;
+            dependency.previous = node.lastConsumer;
+            if (node.lastConsumer === undefined) node.firstConsumer = dependency;
+            else node.lastConsumer.next = dependency;
+            node.lastConsumer = dependency;
+        }
+        active.cursor++;
     }
     refresh(node);
     if (dependency !== undefined) {
@@ -243,96 +303,89 @@ export function write(node: ValueNode, value: any): void {
         return;
     }
     refresh(node);
-    if (untracked(() => node.equal(node.value, value))) {
+    if (equal(node, value)) {
         return;
     }
     node.value = value;
     node.version++;
     invalidate(node);
+    // 走訪不呼叫使用者程式。先清除，巢狀寫入才不會共用舊標記。
+    visited.clear();
     flush();
 }
 
 function cleanup(state: EffectState): void {
     const cleanups = state.cleanups;
     state.cleanups = [];
-    untracked(() => {
-        for (const callback of cleanups) {
-            try {
-                callback();
-            } catch (error) {
-                reportUnhandledError(error);
-            }
-        }
-    });
+    const previousActive = active;
+    active = undefined;
+    for (const callback of cleanups) {
+        const [ok, error] = protectedCall(callback);
+        if (!ok) reportUnhandledError(error);
+    }
+    active = previousActive;
 }
 
-function run(state: EffectState, counts?: Map<EffectState, number>): void {
+function runEffect(this: void, state: EffectState, runCounts?: Map<EffectState, number>): void {
     const consumer = state.consumer;
+    if (!state.initial && !changed(consumer)) {
+        consumer.dirty = false;
+        return;
+    }
+    if (runCounts !== undefined) {
+        const count = (runCounts.get(state) ?? 0) + 1;
+        runCounts.set(state, count);
+        if (count > 100) {
+            state.ref.destroy();
+            reportUnhandledError(new Error("同一輪的副作用執行超過 100 次，已停止。"));
+            return;
+        }
+    }
+    state.initial = false;
+    beginTracking(consumer);
+    consumer.dirty = false;
+    cleanup(state);
+    if (state.ref.closed) return;
+    active = consumer;
+    executing = consumer;
+    state.fn(state.onCleanup);
+}
+
+function run(state: EffectState, runCounts?: Map<EffectState, number>): void {
     const previousActive = active;
     const previousExecuting = executing;
     active = undefined;
     executing = undefined;
-    try {
-        if (!state.initial && !changed(consumer)) {
-            consumer.dirty = false;
-            return;
-        }
-        if (counts !== undefined) {
-            const count = (counts.get(state) ?? 0) + 1;
-            counts.set(state, count);
-            if (count > 100) {
-                // 停止循環的副作用，其他副作用仍可執行。
-                state.ref.destroy();
-                reportUnhandledError(new Error("同一輪的副作用執行超過 100 次，已停止。"));
-                return;
-            }
-        }
-        state.initial = false;
-        detach(consumer);
-        consumer.dirty = false;
-        cleanup(state);
-        if (state.ref.closed) {
-            return;
-        }
-        active = consumer;
-        executing = consumer;
-        state.fn((callback) => {
-            if (state.ref.closed) {
-                untracked(callback);
-            } else {
-                state.cleanups.push(callback);
-            }
-        });
-    } catch (error) {
-        reportUnhandledError(error);
-    } finally {
-        active = previousActive;
-        executing = previousExecuting;
-        if (state.ref.closed) {
-            detach(consumer);
-        }
+    const [ok, error] = protectedCall(runEffect, state, runCounts);
+    endTracking(state.consumer);
+    // 錯誤處理器不得成為依賴，也不得繼承 effect 的本地狀態。
+    if (!ok) reportUnhandledError(error);
+    active = previousActive;
+    executing = previousExecuting;
+    if (state.ref.closed) detach(state.consumer);
+}
+
+function drain(this: void): void {
+    let index = 0;
+    while (index < queue.length) {
+        const state = queue[index++];
+        state.queued = false;
+        if (!state.ref.closed) run(state, counts);
     }
 }
 
 function flush(): void {
-    if (flushing || batchDepth > 0) {
-        return;
-    }
+    if (flushing || batchDepth > 0) return;
     flushing = true;
-    const counts = new Map<EffectState, number>();
-    let index = 0;
-    try {
-        while (index < queue.length) {
-            const state = queue[index++];
-            state.queued = false;
-            if (!state.ref.closed) {
-                run(state, counts);
-            }
-        }
-    } finally {
-        queue = [];
-        flushing = false;
-    }
+    const [ok, error] = protectedCall(drain);
+    queue.length = 0;
+    counts.clear();
+    flushing = false;
+    if (!ok) throw error;
+}
+
+function defaultEqual(this: void, previous: any, current: any): boolean {
+    return previous === current;
 }
 
 export function createNode<T>(
@@ -346,13 +399,20 @@ export function createNode<T>(
         value,
         version: 0,
         initialized: calculate === undefined,
-        consumers: new Set(),
         calculate,
         evaluating: false,
-        equal: options?.equal ?? ((previous, current) => previous === current),
+        equal: options?.equal ?? defaultEqual,
     };
     if (calculate !== undefined) {
-        node.consumer = { kind, dependencies: [], dirty: true, output: node };
+        node.consumer = {
+            kind,
+            dependencies: [],
+            dependencyMap: new Map(),
+            cursor: 0,
+            tracking: false,
+            dirty: true,
+            output: node,
+        };
     }
     return node;
 }
@@ -376,10 +436,12 @@ export function writableCallable<T, K extends SyncKind>(node: ValueNode): Writab
     result.set = (value) => write(node, value);
     result.update = (fn) => {
         if (writable()) {
-            write(
-                node,
-                untracked(() => fn(read(node))),
-            );
+            const previousActive = active;
+            active = undefined;
+            const [ok, value] = protectedCall(updateValue, node, fn);
+            active = previousActive;
+            if (!ok) throw value;
+            write(node, value);
         }
     };
     result.asReadOnly = () => {
@@ -391,14 +453,36 @@ export function writableCallable<T, K extends SyncKind>(node: ValueNode): Writab
     return result;
 }
 
+function updateValue(this: void, node: ValueNode, fn: (this: void, value: any) => any): any {
+    return fn(read(node));
+}
+
 export function createEffect(
     kind: SyncKind,
     fn: EffectFunction,
     owner?: SubscriptionOwner,
 ): EffectRef {
-    const consumer: Consumer = { kind, dependencies: [], dirty: false };
+    const consumer: Consumer = {
+        kind,
+        dependencies: [],
+        dependencyMap: new Map(),
+        cursor: 0,
+        tracking: false,
+        dirty: false,
+    };
     const ref = new EffectRef();
-    const state: EffectState = { consumer, ref, fn, cleanups: [], queued: false, initial: true };
+    const state: EffectState = {
+        consumer,
+        ref,
+        fn,
+        cleanups: [],
+        queued: false,
+        initial: true,
+        onCleanup: (callback) => {
+            if (ref.closed) untracked(callback);
+            else state.cleanups.push(callback);
+        },
+    };
     consumer.effect = state;
     ref.add(() => {
         detach(consumer);
@@ -424,19 +508,17 @@ interface SubscriptionOwner {
 export function untracked<T>(fn: (this: void) => T): T {
     const previousActive = active;
     active = undefined;
-    try {
-        return fn();
-    } finally {
-        active = previousActive;
-    }
+    const [ok, result] = protectedCall(fn);
+    active = previousActive;
+    if (!ok) throw result;
+    return result;
 }
 
 export function batch<T>(fn: (this: void) => T): T {
     batchDepth++;
-    try {
-        return fn();
-    } finally {
-        batchDepth--;
-        flush();
-    }
+    const [ok, result] = protectedCall(fn);
+    batchDepth--;
+    flush();
+    if (!ok) throw result;
+    return result;
 }

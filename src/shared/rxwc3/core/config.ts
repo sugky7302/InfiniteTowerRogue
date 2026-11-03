@@ -1,4 +1,5 @@
 import { logger } from "@shared/logger";
+import { protectedCall } from "./protected-call";
 
 export const config: {
     onUnhandledError: (this: void, error: unknown) => void;
@@ -9,9 +10,8 @@ export const config: {
 };
 
 export function reportUnhandledError(error: unknown): void {
-    try {
-        config.onUnhandledError(error);
-    } catch (handlerError) {
+    const [ok, handlerError] = protectedCall(config.onUnhandledError, error);
+    if (!ok) {
         logger.error(handlerError);
     }
 }

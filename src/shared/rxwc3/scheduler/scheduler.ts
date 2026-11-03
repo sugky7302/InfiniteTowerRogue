@@ -2,6 +2,11 @@ import { Subscription } from "../core/subscription";
 import { Phase } from "./phase";
 import { checkTicks } from "./time";
 
+/**
+ * 排程中的一個任務。繼承 `Subscription`：取消任務就是 `unsubscribe()`，例如 `takeUntil` 中斷 `timer` 時。
+ * - `heapIndex`：任務在堆積陣列中的位置。取消時直接從此位置移除，不必搜尋整個陣列。-1 表示不在堆積中。
+ * - `dueTicks`、`phase`、`order`：排序依據，見 `Scheduler.before`。
+ */
 export class ScheduledTask extends Subscription {
     public heapIndex = -1;
 
@@ -16,6 +21,19 @@ export class ScheduledTask extends Subscription {
     }
 }
 
+/**
+ * 優先佇列：保存未來要執行的任務，隨時能取出「下一個應執行的任務」。只負責排序，不處理時間與 WC3 計時器。
+ * ```
+ * timer() / delay() / interval()
+ *   → Clock.schedule() → Scheduler.schedule()      加入任務
+ *   Clock 只為 Scheduler.peek()（最早到期者）啟動一個 WC3 計時器
+ *   → 計時器觸發 → Clock.flush() → Scheduler.pop()  依序取出已到期任務並執行
+ * ```
+ * 因此不論排了多少任務，每個時鐘只使用一個 WC3 計時器（B4 基準：500 個任務只用 2 個計時器）。
+ *
+ * 實作為最小堆積：`peek` 為 O(1)，加入、取出、取消為 O(log n)。排序好的陣列在加入與取消時為 O(n)。
+ * `up`／`down` 是堆積的標準調整：維持「父節點一定比子節點早」。
+ */
 export class Scheduler {
     private readonly heap: ScheduledTask[] = [];
     private order = 0;
@@ -27,6 +45,7 @@ export class Scheduler {
         onCancel: (this: void) => void = () => {},
     ): ScheduledTask {
         checkTicks(dueTicks);
+        // order 是加入順序。WC3 Lua 為 32 位元整數，所以堆積清空時歸零，到達上限時拋出錯誤。
         if (this.heap.length === 0) this.order = 0;
         if (this.order === 2147483647) throw new Error("排程加入順序超過 2147483647 上限。");
         const task = new ScheduledTask(dueTicks, phase, this.order++, callback, () => {
@@ -56,6 +75,13 @@ export class Scheduler {
         return task;
     }
 
+    /**
+     * a 是否應早於 b 執行。依序比較：
+     * 1. `dueTicks`：到期時間（整數毫秒），早者先執行。
+     * 2. `phase`：同一時間點的結算階段，Combat → Extraction → World → Default
+     *    （設計文件：傷害與失能 → 撤離完成 → 潮封）。
+     * 3. `order`：加入先後，先加入者先執行。
+     */
     private before(a: ScheduledTask, b: ScheduledTask): boolean {
         return (
             a.dueTicks < b.dueTicks ||
