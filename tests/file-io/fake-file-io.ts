@@ -3,6 +3,7 @@ import { FileIoNatives } from "../../src/shared/wc3-def/file-io-natives";
 /** 模擬預載檔的技能資料通道，不模擬遊戲的磁碟權限或快取。 */
 export function fakeFileIo() {
     const files = new Map<string, string>();
+    const outputs = new Map<string, string[]>();
     const lines: string[] = [];
     let tooltip = "原始提示";
     let prepares = 0;
@@ -38,6 +39,7 @@ export function fakeFileIo() {
                 }
             }
             files.set(path, data);
+            outputs.set(path, [...lines]);
             writes++;
         },
         load(path) {
@@ -49,6 +51,7 @@ export function fakeFileIo() {
     return {
         natives,
         files,
+        outputs,
         lines,
         getTooltip: () => tooltip,
         prepares: () => prepares,

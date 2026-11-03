@@ -21,7 +21,8 @@
         "test:i18n:artifact": "ts-node --transpile-only --project tsconfig.test.json tests/i18n/artifact.spec.ts",
         "build": "ts-node --transpile-only scripts/build.ts",
         "dev": "npm-watch",
-        "build:defs": "ts-node scripts/dev"
+        "build:defs": "ts-node scripts/dev",
+        "test:save:lua": "node scripts/verify-save-lua.cjs"
     },
     "dependencies": {
         "w3ts": "^3.0.2"

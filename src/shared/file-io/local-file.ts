@@ -103,6 +103,33 @@ export function createLocalFileIo(natives: FileIoNatives) {
             }
             return result;
         },
+        /** 每條受限 ASCII 文字完整寫成註解行，方便玩家從實體檔案複製。 */
+        writeReadable(path: string, lines: readonly string[]): FileWrite {
+            if (!safePath(path)) return { status: FileWriteStatus.InvalidPath };
+            if (
+                lines.length < 1 ||
+                encodeFileData(lines.join(" ")) === undefined ||
+                lines.some((line) => line.length < 1 || line.length > 126)
+            )
+                return { status: FileWriteStatus.InvalidData };
+            let result: FileWrite;
+            try {
+                natives.clear();
+                natives.start();
+                // 結束 Preload 字串後寫入註解。輸入已排除引號、反斜線與換行。
+                for (const line of lines) natives.emit('\")\n// ' + line + "\n//");
+                natives.finish(path);
+                result = { status: FileWriteStatus.Issued };
+            } catch {
+                result = { status: FileWriteStatus.Failed };
+            }
+            try {
+                natives.clear();
+            } catch {
+                return { status: FileWriteStatus.Failed };
+            }
+            return result;
+        },
     };
 }
 

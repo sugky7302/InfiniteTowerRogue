@@ -11,6 +11,8 @@ export { Subject } from "./core/subject";
 export { BehaviorSubject } from "./core/behavior-subject";
 export { pipe, UnaryFunction } from "./core/pipe";
 export { config } from "./core/config";
+export { syncChunked, ChunkedSyncOptions } from "./sync/sync-chunked";
+export { FragmentReceiver, fragmentNumber } from "./sync/fragments";
 export { Sync, Local, SyncKind, CombinedKind } from "./sync/types";
 export { forLocalPlayer } from "./sync/for-local-player";
 export { sync, SyncOptions } from "./sync/sync";

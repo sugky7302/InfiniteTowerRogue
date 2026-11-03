@@ -8,3 +8,7 @@ import "./file-io/file-io.spec";
 import "./skill/skill.spec";
 import "./skill/objects.spec";
 import "./skill/natives.spec";
+import "./save/codec.spec";
+import "./rxwc3/sync-chunked.spec";
+import "./save/chat.spec";
+import "./file-io/readable.spec";
