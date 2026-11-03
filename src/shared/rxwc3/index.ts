@@ -39,6 +39,7 @@ export { Clock, ClockDriver, installClockDriver, MAX_TASKS_PER_WAKE } from "./sc
 export { worldClock, uiClock, TimeOptions } from "./scheduler/clocks";
 export { timer } from "./sources/timer";
 export { interval } from "./sources/interval";
+export { frames, Frame, FrameOptions } from "./sources/frames";
 export { delay } from "./operators/delay";
 export { throttleTime, ThrottleTimeOptions } from "./operators/throttle-time";
 export { debounceTime } from "./operators/debounce-time";
@@ -57,6 +58,7 @@ export {
     onSpellEffect,
     onSpellFinish,
     onSpellEndCast,
+    onUnitOrder,
     onUnitDeath,
     onPlayerChat,
 } from "./wc3/events";

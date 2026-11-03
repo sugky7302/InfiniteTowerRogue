@@ -19,10 +19,16 @@ export const wc3EventNatives: EventNatives = {
     // 介面方法在 Lua 中會收到 self；一般函式沒有 self，所以用箭頭函式包裝。
     unwrapUnit: (input) => unwrapUnit(input),
     registerUnitEvent(trigger, kind: UnitEventKind) {
-        // 同步：以下八種玩家單位事件由共同模擬的戰鬥、施法與死亡狀態產生。
+        // 同步：玩家單位事件由共同模擬的命令、戰鬥、施法與死亡狀態產生。
         // 全部玩家註冊相同事件，沒有 GetLocalPlayer 分支或本地介面事件。
         let event: playerunitevent;
         switch (kind) {
+            case "order":
+                TriggerRegisterAnyUnitEventBJ(trigger, EVENT_PLAYER_UNIT_ISSUED_ORDER);
+                TriggerRegisterAnyUnitEventBJ(trigger, EVENT_PLAYER_UNIT_ISSUED_POINT_ORDER);
+                // ISSUED_UNIT_ORDER 與 ISSUED_TARGET_ORDER 是同一事件，只註冊一次。
+                TriggerRegisterAnyUnitEventBJ(trigger, EVENT_PLAYER_UNIT_ISSUED_TARGET_ORDER);
+                return;
             case "damaging":
                 event = EVENT_PLAYER_UNIT_DAMAGING;
                 break;
@@ -75,6 +81,23 @@ export const wc3EventNatives: EventNatives = {
             target: GetSpellTargetUnit(),
             targetX: GetSpellTargetX(),
             targetY: GetSpellTargetY(),
+        };
+    },
+    readOrder() {
+        const event = GetTriggerEventId();
+        const kind =
+            event === EVENT_PLAYER_UNIT_ISSUED_POINT_ORDER
+                ? "point"
+                : event === EVENT_PLAYER_UNIT_ISSUED_TARGET_ORDER
+                  ? "target"
+                  : "immediate";
+        return {
+            unit: GetOrderedUnit()!,
+            orderId: GetIssuedOrderId(),
+            kind,
+            target: kind === "target" ? GetOrderTarget() : undefined,
+            targetX: kind === "point" ? GetOrderPointX() : 0,
+            targetY: kind === "point" ? GetOrderPointY() : 0,
         };
     },
     readDeath() {

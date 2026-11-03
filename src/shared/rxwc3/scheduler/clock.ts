@@ -1,4 +1,5 @@
 import { reportUnhandledError } from "../core/config";
+import { Subject } from "../core/subject";
 import { Phase } from "./phase";
 import { ScheduledTask, Scheduler } from "./scheduler";
 import { addTicks, durationTicks, TICKS_PER_SECOND, toTicks } from "./time";
@@ -16,6 +17,8 @@ export interface ClockDriver {
 export const MAX_TASKS_PER_WAKE = 10000;
 
 export class Clock {
+    private readonly pauseState = new Subject<boolean>();
+    public readonly pauseChanges = this.pauseState.asObservable();
     private readonly scheduler = new Scheduler();
     private driver: ClockDriver | undefined;
     private time = 0;
@@ -58,6 +61,7 @@ export class Clock {
             this.driver?.stop();
         }
         this.pauseCount++;
+        if (this.pauseCount === 1) this.pauseState.next(true);
     }
 
     public resume(): void {
@@ -65,6 +69,7 @@ export class Clock {
         if (--this.pauseCount === 0) {
             this.driver?.start();
             this.updateWake();
+            this.pauseState.next(false);
         }
     }
 

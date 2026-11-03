@@ -40,6 +40,7 @@ function hubNatives(): EventNatives {
         registerChat: () => {},
         readDamage: () => unused(),
         readSpell: () => unused(),
+        readOrder: () => unused(),
         readDeath: () => unused(),
         readChat: () => unused(),
         setDamageAmount: () => {},

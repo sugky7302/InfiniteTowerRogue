@@ -14,5 +14,14 @@
   "unit:H0I1:name": "语言守卫",
   "unit:H0I1:properNames": "明光",
   "unit:H0I1:tip": "语言守卫",
-  "unit:H0I1:ubertip": "守卫使用可切换语言的技能。"
+  "unit:H0I1:ubertip": "守卫使用可切换语言的技能。",
+  "ability:A0SF:name": null,
+  "ability:A0SF:tip:1": null,
+  "ability:A0SF:ubertip:1": null,
+  "ability:A0SI:name": null,
+  "ability:A0SI:tip:1": null,
+  "ability:A0SI:ubertip:1": null,
+  "unit:H0SS:name": null,
+  "unit:H0SS:properNames": null,
+  "unit:h0SE:name": null
 }

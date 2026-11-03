@@ -5,3 +5,6 @@ import "./i18n/build.spec";
 import "./i18n/natives.spec";
 import "./i18n/locales.spec";
 import "./file-io/file-io.spec";
+import "./skill/skill.spec";
+import "./skill/objects.spec";
+import "./skill/natives.spec";

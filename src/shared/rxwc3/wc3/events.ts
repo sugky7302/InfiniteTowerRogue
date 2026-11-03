@@ -8,6 +8,7 @@ import {
     DeathEvent,
     SpellEvent,
     UnitEventKind,
+    UnitOrderEvent,
 } from "@shared/wc3-def/events";
 import { EventNatives } from "@shared/wc3-def/natives";
 import { UnitInput } from "@shared/wc3-def/inputs";
@@ -149,6 +150,14 @@ export function createWc3Events(natives: EventNatives) {
     const onSpellEffect = spell("spellEffect");
     const onSpellFinish = spell("spellFinish");
     const onSpellEndCast = spell("spellEndCast");
+    const onUnitOrder = new UnitSource<UnitOrderEvent>(
+        natives,
+        (trigger) => natives.registerUnitEvent(trigger, "order"),
+        (hub) => {
+            if (hub.hasSubscribers()) dispatch(hub, natives.readOrder());
+        },
+        (value) => value.unit,
+    );
     // 同步：死亡由共同單位狀態產生。此來源不會自動結束單位訂閱。
     const onUnitDeath = new UnitSource<DeathEvent>(
         natives,
@@ -175,6 +184,7 @@ export function createWc3Events(natives: EventNatives) {
         onSpellEffect,
         onSpellFinish,
         onSpellEndCast,
+        onUnitOrder,
         onUnitDeath,
         onPlayerChat,
     };
@@ -189,6 +199,7 @@ export const {
     onSpellEffect,
     onSpellFinish,
     onSpellEndCast,
+    onUnitOrder,
     onUnitDeath,
     onPlayerChat,
 } = createWc3Events(wc3EventNatives);

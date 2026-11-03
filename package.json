@@ -10,6 +10,8 @@
         "format:check": "prettier --check src scripts tests package.json .prettierrc.json \".vscode/*.json\"",
         "test": "ts-node --transpile-only scripts/test.ts",
         "test:unit": "tsc --noEmit -p tsconfig.test.json && ts-node --transpile-only --project tsconfig.test.json -r tsconfig-paths/register tests/run.ts",
+        "test:skill:lua": "node scripts/verify-skill-lua.cjs",
+        "test:skill:artifact": "ts-node --transpile-only --project tsconfig.test.json -r tsconfig-paths/register tests/skill/artifact.spec.ts",
         "test:benchmark:lua": "node scripts/verify-benchmark-lua.cjs",
         "test:benchmark:artifact": "ts-node --transpile-only --project tsconfig.test.json tests/rxwc3/benchmark-artifact.spec.ts",
         "bench:auto": "node scripts/run-bench.cjs",

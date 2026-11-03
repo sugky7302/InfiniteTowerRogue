@@ -4,6 +4,7 @@ import {
     DeathEvent,
     SpellEvent,
     UnitEventKind,
+    UnitOrderEvent,
 } from "@shared/wc3-def/events";
 import { EventNatives } from "@shared/wc3-def/natives";
 import { UnitInput } from "@shared/wc3-def/inputs";
@@ -41,6 +42,14 @@ export class FakeEventNatives implements EventNatives {
     public failRegister = false;
     public currentDamage = damage();
     public currentSpell = spell();
+    public currentOrder: UnitOrderEvent = {
+        unit: fakeUnit(),
+        orderId: 851972,
+        kind: "immediate",
+        target: undefined,
+        targetX: 0,
+        targetY: 0,
+    };
     public currentDeath: DeathEvent = { unit: fakeUnit(), killer: undefined };
     public currentChat: ChatEvent = { player: {} as player, message: "" };
 
@@ -78,6 +87,10 @@ export class FakeEventNatives implements EventNatives {
     public readSpell(): SpellEvent {
         this.read();
         return { ...this.currentSpell };
+    }
+    public readOrder(): UnitOrderEvent {
+        this.read();
+        return { ...this.currentOrder };
     }
     public readDeath(): DeathEvent {
         this.read();

@@ -8,7 +8,17 @@ export type UnitEventKind =
     | "spellEffect"
     | "spellFinish"
     | "spellEndCast"
-    | "death";
+    | "death"
+    | "order";
+
+export interface UnitOrderEvent {
+    readonly unit: unit;
+    readonly orderId: number;
+    readonly kind: "immediate" | "point" | "target";
+    readonly target: widget | undefined;
+    readonly targetX: number;
+    readonly targetY: number;
+}
 
 export interface DamageEvent {
     readonly source: unit | undefined;

@@ -1,1 +1,11 @@
-{}
+{
+  "unit:H0SS:name": "符文學者",
+  "unit:H0SS:properNames": "符文學者",
+  "unit:h0SE:name": "測試敵人",
+  "ability:A0SF:name": "火球術",
+  "ability:A0SF:tip:1": "火球術",
+  "ability:A0SF:ubertip:1": "火球術：施法 1.5 秒，法力 15，冷卻 4 秒。",
+  "ability:A0SI:name": "寒冰箭",
+  "ability:A0SI:tip:1": "寒冰箭",
+  "ability:A0SI:ubertip:1": "寒冰箭：施法 1.75 秒，法力 10，冷卻 0 秒。"
+}

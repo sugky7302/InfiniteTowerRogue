@@ -1,4 +1,11 @@
-import { ChatEvent, DamageEvent, DeathEvent, SpellEvent, UnitEventKind } from "./events";
+import {
+    ChatEvent,
+    DamageEvent,
+    DeathEvent,
+    SpellEvent,
+    UnitEventKind,
+    UnitOrderEvent,
+} from "./events";
 import { UnitInput } from "./inputs";
 
 // 原生函式介面。WC3 實作在 `wc3-natives.ts`；Node 測試注入假的實作，不呼叫 WC3 原生函式。
@@ -15,6 +22,7 @@ export interface EventNatives extends TriggerNatives {
     registerChat(trigger: trigger): void;
     readDamage(): DamageEvent;
     readSpell(): SpellEvent;
+    readOrder(): UnitOrderEvent;
     readDeath(): DeathEvent;
     readChat(): ChatEvent;
     setDamageAmount(value: number): void;

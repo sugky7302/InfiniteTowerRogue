@@ -35,6 +35,7 @@ export function buildMap(config: IProjectConfig): string {
     logger.info("正在建立地圖封裝檔……");
     fs.ensureDirSync(config.outputFolder);
     const output = path.resolve(config.outputFolder, config.mapFolder);
+    require("./skill-misc.cjs").writeSkillMisc(path.resolve("dist", config.mapFolder));
     createMapFromDir(output, path.resolve("dist", config.mapFolder));
     return output;
 }
