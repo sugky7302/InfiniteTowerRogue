@@ -72,5 +72,9 @@ export function unequip(
     slot: EquipSlot,
 ): { readonly state: EquipmentState; readonly removed?: ItemInstance } {
     const removed = state[slot];
-    return { state: removed ? { ...state, [slot]: undefined } : state, removed };
+    if (!removed) return { state, removed };
+    // Lua 的 nil 不會覆寫物件展開中的舊欄位，必須明確清除。
+    const next = { ...state };
+    next[slot] = undefined;
+    return { state: next, removed };
 }

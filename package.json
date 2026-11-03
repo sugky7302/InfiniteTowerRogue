@@ -25,6 +25,8 @@
         "test:save:lua": "node scripts/verify-save-lua.cjs",
         "lint:fsd": "steiger ./src",
         "test:combat:lua": "node scripts/verify-combat-lua.cjs",
+        "test:hero:lua": "node scripts/verify-hero-lua.cjs",
+        "test:hero:artifact": "ts-node --transpile-only --project tsconfig.test.json tests/hero/artifact.spec.ts",
         "test:combat:artifact": "ts-node --transpile-only --project tsconfig.test.json tests/combat/artifact.spec.ts"
     },
     "dependencies": {

@@ -22,3 +22,4 @@ export * from "./model/damage-steps";
 export * from "./model/combatant";
 export { BleedingWound, selectBleedingWound } from "./model/bleeding";
 export { meleeReach, MeleeReachInput } from "./model/melee-reach";
+export { combatNumber, combatAdd, combatMultiply, clampCombat } from "./model/combat-number";

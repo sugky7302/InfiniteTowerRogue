@@ -1,10 +1,11 @@
-import { scholar, testEnemy } from "@entities/character";
+import { runeScholar, combatLevel, testEnemy } from "@entities/character";
 import {
     DamageStat,
     attributeModifier,
     CombatStats,
     Defense,
     spellDefense,
+    deriveCombatStats,
 } from "@entities/combat";
 import { SkillNatives } from "@features/skill";
 import { CombatRegistry, TacticalPause } from "@features/combat";
@@ -62,6 +63,14 @@ export function createWc3SkillNatives(registry?: CombatRegistry, pause?: Tactica
     const heroes = new Set<unit>();
     const enemies = new Set<unit>();
     const stats: CombatStats = {
+        caster: () => ({
+            level: combatLevel(runeScholar),
+            intelligence: runeScholar.attributes.intelligence,
+            spellPower: deriveCombatStats({
+                ...runeScholar.attributes,
+                level: combatLevel(runeScholar),
+            }).spellPower,
+        }),
         damageTarget(target) {
             const defense = stats.defense(target);
             return {
@@ -81,7 +90,10 @@ export function createWc3SkillNatives(registry?: CombatRegistry, pause?: Tactica
         defense(target): Defense {
             return {
                 defense: heroes.has(target)
-                    ? spellDefense(scholar.spirit, scholar.constitution)
+                    ? spellDefense(
+                          runeScholar.attributes.spirit,
+                          runeScholar.attributes.constitution,
+                      )
                     : enemies.has(target)
                       ? spellDefense(testEnemy.spirit, testEnemy.constitution)
                       : 0,
@@ -98,6 +110,7 @@ export function createWc3SkillNatives(registry?: CombatRegistry, pause?: Tactica
             heroes.has(target) || (enemies.has(target) && testEnemy.combustible),
     };
     if (registry !== undefined) {
+        stats.caster = (source) => registry.caster(source);
         stats.damageTarget = (target) => registry.target(target);
         stats.damageAttacker = (source) => registry.attacker(source);
         stats.commitDamage = (source, target, result) => registry.commit(source, target, result);

@@ -10,7 +10,7 @@ import {
     Subscription,
     worldClock,
 } from "@shared/rxwc3";
-import { scholar, patrolMachine } from "@entities/character";
+import { scholar, runeScholar, combatLevel, patrolMachine } from "@entities/character";
 import { displayNumber, manaCapacity } from "@entities/combat";
 import { CombatRegistry, CombatRuntime, PatrolMachine, installPauseBridge } from "@features/combat";
 import {
@@ -21,6 +21,7 @@ import {
 } from "@shared/wc3-def";
 import { skills, SkillRuntime } from "@features/skill";
 import { createWc3SkillNatives } from "./wc3-skill-natives";
+import { HeroExample } from "./hero-example";
 
 declare function compiletime<T>(
     this: void,
@@ -139,11 +140,19 @@ export function runSkillExample(): void {
         const hero = CreateUnit(Player(0)!, FourCC("H0SS"), 0, -160, 270)!;
         units.push(hero);
         adapter.heroes.add(hero);
-        registry.register(hero, "scholar", "player", scholar);
-        BlzSetUnitAttackCooldown(
+        registry.register(hero, "scholar", "player", {
+            ...runeScholar.attributes,
+            level: combatLevel(runeScholar),
+            challenge: 1,
+            armor: 0,
+        });
+        const heroExample = new HeroExample(
+            registry,
             hero,
-            scholar.attackSeconds / (1 + registry.require(hero).stats.attackSpeed),
-            0,
+            (low, high) => GetRandomInt(low, high),
+            (summary) => {
+                BlzSetUnitAttackCooldown(hero, 1.5 / (1 + summary.stats.attackSpeed), 0);
+            },
         );
         SuspendHeroXP(hero, true);
         BlzSetUnitMaxMana(hero, manaCapacity(scholar.intelligence, scholar.spirit));
@@ -195,6 +204,17 @@ export function runSkillExample(): void {
         let moveRight = true;
         listeners.add(
             onPlayerChat.subscribe((event) => {
+                if (event.player !== GetOwningPlayer(hero)) return;
+                try {
+                    const messages = heroExample.command(event.message);
+                    if (messages !== undefined) {
+                        for (const message of messages) logger.info(message);
+                        return;
+                    }
+                } catch (error) {
+                    logger.error(error);
+                    return;
+                }
                 if (event.message === "-pause") {
                     pauses++;
                     worldClock.pause();
@@ -227,7 +247,7 @@ export function runSkillExample(): void {
         );
         SelectUnit(hero, true);
         logger.info(
-            "戰鬥範例已啟動。火球術 F，寒冰箭 I。右鍵普通攻擊。指令 -pause、-resume、-skill-status、-skill-move、-revive、-skill-stop。",
+            "戰鬥範例已啟動。火球術 F，寒冰箭 I。右鍵普通攻擊。指令 -pause、-resume、-skill-status、-skill-move、-revive、-skill-stop、-hero、-hero-up、-item-new <基底>、-items、-equip <編號>、-unequip <位置>。",
         );
     } catch (error) {
         owner.unsubscribe();

@@ -8,7 +8,6 @@ import {
     DefenseChannel,
     deriveCombatStats,
     PrimaryAttributes,
-    spellPower,
 } from "@entities/combat";
 import { EquipSlot, getItemBase, getItemBonuses, ItemBonusStat, ItemWeapon } from "@entities/item";
 import { equipmentAdd, equipmentMultiply, equipmentNumber, EquipmentRound } from "../lib/numbers";
@@ -81,32 +80,14 @@ export function aggregateEquipment(
         evasion: totals.evasion,
         attackSpeed: ratio(ItemBonusStat.AttackSpeed),
         spellPower: totals.spellPower,
+        maxLifePercent: ratio(ItemBonusStat.MaxLifePercent),
+        maxLifeFixed: 0,
     };
     const attributes: PrimaryAttributes = { ...hero.attributes, level: combatLevel(hero) };
     const derived = deriveCombatStats(attributes, bonuses);
-    const maxLifePercent = ratio(ItemBonusStat.MaxLifePercent);
+    const maxLifePercent = bonuses.maxLifePercent ?? 0;
     const stats: { -readonly [Key in keyof EquipmentStats]: EquipmentStats[Key] } = {
         ...derived,
-        maxLife: Math.max(
-            1,
-            Math.min(
-                100000,
-                calculateMaxLife(
-                    {
-                        constitution: attributes.constitution,
-                        level: attributes.level,
-                        bonus: bonuses.maxLife,
-                        percent: maxLifePercent,
-                    },
-                    round,
-                ),
-            ),
-        ),
-        spellPower: equipmentAdd(
-            spellPower(attributes.intelligence, attributes.spirit),
-            bonuses.spellPower,
-            round,
-        ),
         meleeCritChance: Math.max(
             0,
             Math.min(

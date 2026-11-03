@@ -13,6 +13,9 @@ export interface PrimaryAttributes {
 }
 export interface CombatBonuses {
     readonly maxLife?: number;
+    readonly maxLifePercent?: number;
+    readonly maxLifeFixed?: number;
+    readonly spellPower?: number;
     readonly meleeAttack?: number;
     readonly rangedAttack?: number;
     readonly armor?: number;
@@ -37,13 +40,24 @@ export function deriveCombatStats(attributes: PrimaryAttributes, bonuses: Combat
     return {
         maxLife: clampCombat(
             sum(
-                40,
-                combatMultiply(attributes.constitution, 5),
-                combatMultiply(attributes.level, 2),
-                bonuses.maxLife ?? 0,
+                combatMultiply(
+                    sum(
+                        40,
+                        combatMultiply(attributes.constitution, 5),
+                        combatMultiply(attributes.level, 2),
+                        bonuses.maxLife ?? 0,
+                    ),
+                    sum(1, bonuses.maxLifePercent ?? 0),
+                ),
+                bonuses.maxLifeFixed ?? 0,
             ),
             1,
             100000,
+        ),
+        spellPower: sum(
+            combatMultiply(attributes.intelligence, 2),
+            attributes.spirit,
+            bonuses.spellPower ?? 0,
         ),
         meleeAttack: Math.max(
             0,
@@ -126,6 +140,18 @@ export function createCombatLife(
 /** 套用結算後的生命與護盾。重複套用同一快照不會再次扣血。 */
 export function updateCombatLife(state: CombatLife, life: number, shield: number): CombatLife {
     return createCombatLife(state.role, state.maxLife, life, shield);
+}
+/** 增加上限時補相同生命；減少時限制目前生命。失能與擊倒維持 0。 */
+export function resizeCombatLife(state: CombatLife, maxLife: number): CombatLife {
+    const maximum = clampCombat(maxLife, 1, 100000);
+    const life =
+        state.incapacitated || state.knockedDown
+            ? 0
+            : Math.min(
+                  maximum,
+                  combatAdd(state.life, Math.max(0, combatAdd(maximum, -state.maxLife))),
+              );
+    return createCombatLife(state.role, maximum, life, state.shield);
 }
 /** 恢復明確解除失能或擊倒。一般補血不會自動復起。 */
 export function reviveCombatLife(state: CombatLife, life = state.maxLife): CombatLife {

@@ -14,9 +14,9 @@ description: 新增或修改技能、施法流程、投射物、傷害套用、�
 | `src/features/skill/config/definitions.ts` | 技能定義。純資料，試玩值註明來源 |
 | `src/features/skill/model/runtime.ts` | 施法流程、投射物、命中。建構時分別接收 `SkillNatives` 與 `CombatStats` |
 | `src/features/skill/api/natives.ts` | `SkillNatives`：從 `@shared/wc3-def` 組合需要的原生操作 |
-| `src/features/combat/` | 暫停轉接 |
+| `src/features/combat/` | 戰鬥登錄、普通攻擊、巡檢機、戰術暫停與技能資源轉接 |
 | `src/entities/combat/` | 傷害公式、燃燒與減速、D20 檢定、`CombatStats` 介面 |
-| `src/entities/character/` | 固定角色數值（符文學者、測試敵人） |
+| `src/entities/character/` | 英雄狀態、職業與固定角色資料；scholar 仍供建置使用 |
 | `src/app/skill-example.ts`、`src/app/wc3-skill-natives.ts` | 技能範例；組合 WC3 原生操作與範例戰鬥數值 |
 | `src/shared/rxwc3/sources/frames.ts` | 固定步進幀來源 `frames()` |
 | `src/shared/wc3-def/` | 技能與幀的原生函式介面及 WC3 實作 |
@@ -71,10 +71,20 @@ description: 新增或修改技能、施法流程、投射物、傷害套用、�
 - 玩家失能時才使用 `PauseUnit` 阻止命令。戰術暫停使用方法 2。原有施法資源轉接仍跳過施法中的技能。
 - 本次新增流程以明確的 catch 清理後重新拋出。TSTL 的部分 `try/finally` 轉譯會吞掉錯誤。Lua 驗證器必須用故障注入檢查失敗路徑。
 
+## H4 英雄與裝備接線
+
+- 規格為 `docs/hero-item-attributes/PLAN.md`。app 的 `HeroExample` 保存英雄、穿戴物與持有清單，透過 `CombatRegistry.update` 提交匯總。features 之間不互相 import。
+- 技能完成施法時，以 `CombatStats.caster` 讀取目前戰鬥等級與智力。命中時讀取目前法術強度。不得在 runtime 讀 scholar。法力容量與恢復仍使用建置常數，此限制尚未解除。
+- 直接傷害與燃燒使用登錄的裝備修正。燃燒仍鎖定輸出快照並逐次讀取目標。分類暴擊修正只加入裝備差值，不能再加入顯示用完整分類暴擊率。
+- 最大生命增加時，目前生命補相同差值；減少時限制目前生命；失能維持 0。復起使用新上限。原生血條仍最低顯示 1。
+- 沒有主武器時，普通攻擊拒絕命令與結算，顯示「沒有武器」。法術仍可施放。
+- 起始穿上新產生的符文杖與學徒長袍。持有清單為空。新指令為 `-hero`、`-hero-up`、`-item-new <基底>`、`-items`、`-equip <編號>`、`-unequip <位置>`。既有技能、戰鬥與存檔指令保留。
+- 工具驗證不等於 H5 遊戲驗證。H5 步驟見 `docs/hero-item-attributes/implementation/PLAN.md`。
+
 ## 驗證
 
-- `pnpm run test:unit`、`pnpm run test:skill:lua`、`pnpm run format:check`、`pnpm run build`。
-- 遊戲內驗證：`pnpm run test`。地圖會停在開啟地圖之後，直到使用者點擊遊戲視窗。
+- `npm run test:unit`、`npm run test:skill:lua`、`npm run test:combat:lua`、`npm run test:hero:lua`、`npm run format:check`、`npm run lint:fsd`、`npm run build`，再執行各地圖產物測試。
+- 遊戲內驗證：`npm run test`。地圖會停在開啟地圖之後，直到使用者點擊遊戲視窗。使用者要求略過時，保留遊戲驗證狀態為未完成。
 - 範例指令包括 `-skill-status`、`-skill-move`、`-pause`、`-resume`、`-revive` 與 `-skill-stop`。
 
 ## 待觀察

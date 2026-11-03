@@ -59,6 +59,9 @@ export function makeUnit(x = 0, y = 0): unit {
 }
 export const abilityCode = (code: string): number => (code === "A0SF" ? 1 : 2);
 export class FakeSkillNatives implements SkillNatives, CombatStats {
+    public caster(): { level: number; intelligence: number; spellPower: number } {
+        return { level: 1, intelligence: 16, spellPower: 41 };
+    }
     public stops: unit[] = [];
     public onStop: ((this: void, target: unit) => void) | undefined;
     public resourceCalls: string[] = [];

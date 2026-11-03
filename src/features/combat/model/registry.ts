@@ -6,11 +6,13 @@ import {
     DamageStat,
     DamageResult,
     DamageEvent,
+    DamageModifier,
     createCombatLife,
     updateCombatLife,
     reviveCombatLife,
     recoverCombatLife,
     deriveCombatStats,
+    resizeCombatLife,
     settleDamage,
 } from "@entities/combat";
 import { Clock, Phase, Subscription, Subject } from "@shared/rxwc3";
@@ -19,13 +21,17 @@ import { CombatNatives } from "../api/natives";
 export interface CombatProfile extends PrimaryAttributes {
     readonly challenge: number;
     readonly armor: number;
-    readonly weapon: { readonly base: number; readonly coefficient: number };
+    readonly weapon?: { readonly base: number; readonly coefficient: number };
 }
 export interface Combatant {
     readonly unit: unit;
     readonly faction: string;
-    readonly profile: CombatProfile;
-    readonly stats: ReturnType<typeof deriveCombatStats>;
+    profile: CombatProfile;
+    stats: ReturnType<typeof deriveCombatStats>;
+    modifiers: {
+        readonly attacker: readonly DamageModifier[];
+        readonly target: readonly DamageModifier[];
+    };
     life: CombatLife;
     /** 本系統的設定值。登錄時明確寫入 1。 */
     timeScale: number;
@@ -54,6 +60,7 @@ export class CombatRegistry {
             faction,
             profile,
             stats,
+            modifiers: { attacker: [], target: [] },
             life: createCombatLife(role, stats.maxLife),
             timeScale: 1,
         };
@@ -62,6 +69,29 @@ export class CombatRegistry {
         this.natives.displayLife(target, state.life.maxLife, state.life.life);
         this.registrations.next(state);
         return state;
+    }
+    /** 組合層已完成純匯總。此處提交快照並更新原生生命顯示。 */
+    public update(
+        target: unit,
+        profile: CombatProfile,
+        stats: Combatant["stats"],
+        modifiers: Combatant["modifiers"],
+    ): void {
+        const state = this.require(target);
+        const life = resizeCombatLife(state.life, stats.maxLife);
+        state.profile = profile;
+        state.stats = stats;
+        state.modifiers = modifiers;
+        state.life = life;
+        this.natives.displayLife(target, life.maxLife, life.life);
+    }
+    public caster(target: unit): { level: number; intelligence: number; spellPower: number } {
+        const state = this.require(target);
+        return {
+            level: state.profile.level,
+            intelligence: state.profile.intelligence,
+            spellPower: state.stats.spellPower,
+        };
     }
     public active(target: unit): boolean {
         const state = this.units.get(target);
@@ -75,12 +105,14 @@ export class CombatRegistry {
             physicalDefense: state.stats.physicalDefense,
             spellDefense: state.stats.spellDefense,
             shields: [{ id: "combat-shield", capacity: state.life.shield }],
+            modifiers: state.modifiers.target,
         };
     }
     public attacker(target: unit): DamageAttacker {
         const state = this.require(target);
         return {
             modifiers: [
+                ...state.modifiers.attacker,
                 {
                     id: "combat-critical",
                     stat: DamageStat.CritChance,

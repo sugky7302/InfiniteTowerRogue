@@ -3,6 +3,11 @@ import { DamageAttacker, DamageTarget, DamageResult } from "./damage-event";
 
 /** 戰鬥數值查詢。屬於遊戲規則，所以不放在 shared 的原生函式介面中。實作由組合層提供。 */
 export interface CombatStats {
+    caster(source: unit): {
+        readonly level: number;
+        readonly intelligence: number;
+        readonly spellPower: number;
+    };
     commitDamage?(source: unit, target: unit, result: DamageResult): void;
     damageTarget?(target: unit): DamageTarget;
     damageAttacker?(source: unit): DamageAttacker;

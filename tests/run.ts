@@ -17,3 +17,4 @@ import "./combat/skill-integration.spec";
 import "./combat/melee-reach.spec";
 import "./combat/objects.spec";
 import "./combat/integration.spec";
+import "./hero/run";

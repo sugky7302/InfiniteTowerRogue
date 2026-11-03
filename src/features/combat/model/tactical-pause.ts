@@ -43,6 +43,11 @@ export class TacticalPause {
     public order(event: UnitOrderEvent): void {
         if (this.issuing || !this.registry.units.has(event.unit)) return;
         const state = this.registry.require(event.unit);
+        if (state.profile.weapon === undefined && this.requiresWeapon(event)) {
+            this.registry.natives.text(event.unit, "沒有武器");
+            this.stop(event.unit);
+            return;
+        }
         if (!this.registry.active(event.unit)) {
             this.stop(event.unit);
             return;
@@ -51,6 +56,14 @@ export class TacticalPause {
         this.orders.set(event.unit, event);
         // 清除引擎命令，避免恢復時先執行較早命令。
         this.stop(event.unit);
+    }
+    /** 右鍵敵人使用 smart 命令。右鍵友軍仍可跟隨。 */
+    private requiresWeapon(event: UnitOrderEvent): boolean {
+        if (event.orderId === 851983) return true;
+        if (event.orderId !== 851971 || event.kind !== "target" || event.target === undefined)
+            return false;
+        const target = this.registry.units.get(event.target as unit);
+        return target !== undefined && target.faction !== this.registry.require(event.unit).faction;
     }
     /** 本系統的停止命令不覆蓋玩家保存的命令。 */
     public stop(target: unit): void {
@@ -123,6 +136,10 @@ export class TacticalPause {
                 const target = order.target as unit | undefined;
                 if (
                     this.registry.active(order.unit) &&
+                    !(
+                        this.requiresWeapon(order) &&
+                        this.registry.require(order.unit).profile.weapon === undefined
+                    ) &&
                     !(
                         target !== undefined &&
                         this.registry.units.has(target) &&

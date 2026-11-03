@@ -13,8 +13,8 @@ description: 新增檔案、模組或功能，搬移程式，或決定程式要�
 src/
   main.ts          地圖入口，只掛載 app 的範例
   app/             組合功能、範例、範例用的規則實作（例如 CombatStats）
-  features/<名稱>/  skill、combat、save
-  entities/<名稱>/  combat（傷害、效果、檢定、CombatStats）、character（角色數值）
+  features/<名稱>/  skill、combat、save、equipment（穿脫、匯總、比較）
+  entities/<名稱>/  combat（傷害、效果、檢定、CombatStats）、character（英雄與職業）、item（基底與詞綴）
   shared/          rxwc3、wc3-def、i18n、file-io、logger
 ```
 
@@ -31,6 +31,8 @@ src/
 - 兩個功能都需要的程式，移到 entities；不要讓功能互相 import。
 - 純生命、護盾、失能與恢復狀態放在 `entities/combat/model/`。登錄戰鬥者、停止原生行動與血條顯示放在功能或組合層。
 - 技能透過 `entities/combat` 的 `CombatStats.commitDamage` 提交結算。app 把此介面接到 `features/combat` 的登錄。兩個 features 不互相 import。
+- `CombatStats.caster` 查詢目前英雄的戰鬥等級、智力與法術強度。app 的 `HeroExample` 組合 character、item、equipment 與 combat。equipment 不得直接更新戰鬥登錄。
+- item 與 character 不互相 import，也不得 import combat。equipment 將中性物品加成轉成 CombatBonuses 與傷害修正。正式數值由 combat 推導，32 位元運算從公開入口取得。
 - shared 需要遊戲規則時：在 entities 定義介面，由 app 實作並注入。例如 `CombatStats`。
 - 功能需要的原生操作組合（`Pick` + `&`），定義在功能自己的 `api/`，例如 `SkillNatives`。
 
@@ -48,7 +50,8 @@ src/
 | 建置腳本以字串路徑 `require` TypeScript 檔（例如技能定義、角色數值）。搬移檔案時型別檢查不會發現 | 搬移後搜尋 `require(root +`，並執行建置與地圖產物測試 |
 | 多個範例都安裝時鐘驅動器 | `installWc3ClockDrivers()` 可重複呼叫 |
 | 只執行 Steiger 無法發現行為錯誤 | 搬移後在遊戲中驗證受影響的範例 |
+| `{ ...state, [slot]: undefined }` 在 Lua 無法清除舊欄位 | 先複製，再明確指定 `next[slot] = undefined`。武器快照也須避免以含 undefined 的展開覆寫舊值 |
 
 ## 驗證
 
-`pnpm run lint:fsd`（必須沒有問題）、`pnpm run test:unit`、`pnpm run format:check`、全部 Lua 驗證、`pnpm run build`、地圖產物測試，最後 `pnpm run test` 遊戲內驗證。
+`npm run lint:fsd`（全專案 0 個問題，不加豁免）、`npm run test:unit`、`npm run format:check`、全部 Lua 驗證（含 `test:hero:lua`）、`npm run build`、地圖產物測試。遊戲內驗證使用 `npm run test`；使用者要求略過時，明列尚未驗證的階段，不得宣稱已通過遊戲驗證。

@@ -33,6 +33,11 @@ export function attackCheck(registry: CombatRegistry, source: unit, target: unit
 }
 export function weaponDamage(registry: CombatRegistry, source: unit, target: unit): void {
     const attacker = registry.require(source);
+    const weapon = attacker.profile.weapon;
+    if (weapon === undefined) {
+        registry.natives.text(source, "沒有武器");
+        return;
+    }
     const result = registry.damage({
         source,
         target,
@@ -42,9 +47,9 @@ export function weaponDamage(registry: CombatRegistry, source: unit, target: uni
         contact: true,
         parts: [
             {
-                amount: attacker.profile.weapon.base,
+                amount: weapon.base,
                 power: attacker.stats.meleeAttack,
-                coefficient: attacker.profile.weapon.coefficient,
+                coefficient: weapon.coefficient,
                 tags: ["physical"],
                 channel: DefenseChannel.Physical,
                 history: DamageHistory.Base,
@@ -59,13 +64,17 @@ export function ordinaryAttack(
     source: unit,
     target: unit,
     reach: (this: void) => MeleeReachInput,
-): "invalid" | "miss" | "dodge" | "hit" {
+): "invalid" | "unarmed" | "miss" | "dodge" | "hit" {
     if (
         !registry.active(source) ||
         !registry.active(target) ||
         registry.require(source).faction === registry.require(target).faction
     )
         return "invalid";
+    if (registry.require(source).profile.weapon === undefined) {
+        registry.natives.text(source, "沒有武器");
+        return "unarmed";
+    }
     if (!attackCheck(registry, source, target)) return "miss";
     if (!meleeReach(reach()).hit) {
         registry.natives.text(target, "閃避");

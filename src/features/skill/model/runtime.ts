@@ -26,9 +26,7 @@ import {
     snapshotDamageOffense,
     settleDamage,
     rollCheck,
-    spellPower,
 } from "@entities/combat";
-import { scholar } from "@entities/character";
 import { areaChallenge, castSeconds, SkillDefinition, yardsToWc3 } from "../config/definitions";
 import { SkillNatives } from "../api/natives";
 
@@ -154,13 +152,14 @@ export class SkillRuntime {
                 !n.enemyVisible(event.caster, event.target))
         )
             return;
+        const caster = this.stats.caster(event.caster);
         const threshold = checkValue({
             challenge:
                 skill.target === "point" ? areaChallenge : this.stats.challenge(event.target!),
             complexity: skill.complexity,
             adverse: skill.target === "point" ? 0 : this.stats.evasion(event.target!),
-            level: scholar.level,
-            attribute: attributeModifier(scholar.intelligence),
+            level: caster.level,
+            attribute: attributeModifier(caster.intelligence),
             knowledge: skill.knowledge,
             favorable: 0,
         });
@@ -269,7 +268,7 @@ export class SkillRuntime {
             this.damageEvent(source, target, skill, DamageKind.Direct, [
                 {
                     amount: skill.baseDamage,
-                    power: spellPower(scholar.intelligence, scholar.spirit),
+                    power: this.stats.caster(source).spellPower,
                     coefficient: skill.coefficient,
                     tags: [tag],
                     channel: DefenseChannel.Spell,
