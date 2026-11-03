@@ -9,10 +9,10 @@ import {
     SpellEvent,
     UnitEventKind,
     UnitOrderEvent,
-} from "@shared/wc3-def/events";
-import { EventNatives } from "@shared/wc3-def/natives";
-import { UnitInput } from "@shared/wc3-def/inputs";
-import { wc3EventNatives } from "@shared/wc3-def/wc3-natives";
+    EventNatives,
+    UnitInput,
+    wc3EventNatives,
+} from "@shared/wc3-def";
 
 interface DispatchContext {
     current: unknown;

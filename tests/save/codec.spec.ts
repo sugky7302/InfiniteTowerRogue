@@ -18,7 +18,7 @@ import {
     sha256,
     hmac256,
     utf8,
-} from "../../src/feature/save";
+} from "@features/save";
 import { encodeFileData } from "../../src/shared/file-io";
 import { verifySave } from "./basic-lua.spec";
 

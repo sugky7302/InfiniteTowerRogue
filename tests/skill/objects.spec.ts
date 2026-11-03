@@ -1,7 +1,10 @@
 import { strict as assert } from "node:assert";
 import { test } from "node:test";
 import { ObjectData } from "war3-objectdata-th/dist/cjs";
-import * as definitions from "../../src/feature/skill/definitions";
+import * as skill from "@features/skill";
+import { scholar } from "@entities/character";
+// 建置腳本同時讀取技能定義與角色數值。
+const definitions = { ...skill, scholar };
 const { createSkillObjects } = require("../../scripts/skill-objects.cjs");
 
 test("S2 Channel 物件使用整數目標與選項，寫入引導時間、法力與冷卻", () => {

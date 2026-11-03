@@ -6,7 +6,7 @@ import {
     languagePreferencePath,
 } from "../../src/shared/i18n/preference";
 import { fakeFileIo } from "./fake-file-io";
-export { wc3FileIoNatives as natives } from "../../src/shared/wc3-def/wc3-file-io-natives";
+export { wc3FileNatives as natives } from "@shared/wc3-def";
 export { createLocalFileIo } from "../../src/shared/file-io";
 
 function check(value: boolean, message: string): void {

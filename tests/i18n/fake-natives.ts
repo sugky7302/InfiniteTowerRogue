@@ -1,4 +1,4 @@
-import { I18nNatives } from "../../src/shared/wc3-def/i18n-natives";
+import { I18nNatives } from "@shared/i18n";
 import { ObjectTextData } from "../../src/shared/i18n/object-text";
 
 export interface TextCall {

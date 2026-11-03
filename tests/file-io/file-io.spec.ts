@@ -14,9 +14,8 @@ import {
 import { createI18n } from "../../src/shared/i18n/translation";
 import { installLanguageChat } from "../../src/shared/i18n/chat";
 import { Subject } from "../../src/shared/rxwc3/core/subject";
-import { ChatEvent } from "../../src/shared/wc3-def/events";
+import { ChatEvent, wc3FileNatives } from "@shared/wc3-def";
 import { FakeSyncNetwork } from "../rxwc3/fake-sync-natives";
-import { wc3FileIoNatives } from "../../src/shared/wc3-def/wc3-file-io-natives";
 import { fakeFileIo } from "./fake-file-io";
 import { verifyFileIo } from "./file-io-lua.spec";
 
@@ -221,7 +220,7 @@ test("正式介面只在 prepare 建立載入資源，讀寫只呼叫預載與�
             calls.push(["BlzSetAbilityTooltip", args]);
             tooltip = args[1] as string;
         };
-        const files = createLocalFileIo(wc3FileIoNatives);
+        const files = createLocalFileIo(wc3FileNatives);
         assert.equal(calls.filter(([name]) => name === "CreateUnit").length, 1);
         assert.equal(calls.filter(([name]) => name === "RemoveUnit").length, 1);
         calls.length = 0;

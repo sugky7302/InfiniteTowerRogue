@@ -1,6 +1,6 @@
 import { computed, effect, filter, map, scan, signal, Subject, Subscription, tap } from "../index";
 import { EventHub } from "../wc3/event-hub";
-import { EventNatives } from "../../wc3-def/natives";
+import { EventNatives } from "@shared/wc3-def";
 
 export type Mode = "rx" | "native";
 export interface Workload {

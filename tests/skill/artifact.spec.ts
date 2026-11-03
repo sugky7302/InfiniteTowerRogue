@@ -5,7 +5,7 @@ import War3Map from "mdx-m3-viewer-th/dist/cjs/parsers/w3x/map";
 import W3a from "mdx-m3-viewer-th/dist/cjs/parsers/w3x/w3d/file";
 import W3u from "mdx-m3-viewer-th/dist/cjs/parsers/w3x/w3u/file";
 import { ObjectData } from "war3-objectdata-th/dist/cjs";
-import { castSeconds, skills, yardsToWc3, rangeYards } from "../../src/feature/skill/definitions";
+import { castSeconds, skills, yardsToWc3, rangeYards } from "@features/skill";
 
 /** 直接讀取最終 MPQ，確認技能欄位與 Lua 都已封裝。 */
 export function verifySkillArtifact(): number {

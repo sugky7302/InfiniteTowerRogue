@@ -1,4 +1,4 @@
-import { DamagingEvent, SpellEvent } from "@shared/wc3-def/events";
+import { DamagingEvent, SpellEvent } from "@shared/wc3-def";
 import { Observable } from "../core/observable";
 import { pipe } from "../core/pipe";
 import { Subscription } from "../core/subscription";

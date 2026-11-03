@@ -5,7 +5,7 @@ import { createI18n } from "../../src/shared/i18n/translation";
 import { createObjectText } from "../../src/shared/i18n/object-text";
 import { localeFromClient } from "../../src/shared/i18n/locale";
 import { installLanguageChat } from "../../src/shared/i18n/chat";
-import { ChatEvent } from "../../src/shared/wc3-def/events";
+import { ChatEvent } from "@shared/wc3-def";
 import { FakeSyncNetwork } from "../rxwc3/fake-sync-natives";
 import { fakeNatives, fixtureData } from "./fake-natives";
 import { verifyI18n } from "./i18n-lua.spec";

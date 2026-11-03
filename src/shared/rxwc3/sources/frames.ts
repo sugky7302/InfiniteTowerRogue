@@ -1,5 +1,4 @@
-import { FrameNatives } from "../../wc3-def/frame-natives";
-import { wc3FrameNatives } from "../../wc3-def/wc3-frame-natives";
+import { TimerNatives, wc3TimerNatives } from "@shared/wc3-def";
 import { Observable } from "../core/observable";
 import { share } from "../operators/share";
 import { Clock } from "../scheduler/clock";
@@ -12,7 +11,7 @@ export interface Frame {
 export interface FrameOptions {
     readonly seconds?: number;
     readonly clock?: Clock;
-    readonly natives?: FrameNatives;
+    readonly natives?: TimerNatives;
 }
 
 let defaultFrames: Observable<Frame> | undefined;
@@ -25,7 +24,7 @@ export function frames(options?: FrameOptions): Observable<Frame> {
         throw new Error("幀間隔必須大於 0 且不超過 60 秒。");
     }
     const clock = options?.clock ?? worldClock;
-    const natives = options?.natives ?? wc3FrameNatives;
+    const natives = options?.natives ?? wc3TimerNatives;
     const frame: Frame = { deltaSeconds: seconds };
     const source = new Observable<Frame>((subscriber) =>
         natives.start(seconds, () => {

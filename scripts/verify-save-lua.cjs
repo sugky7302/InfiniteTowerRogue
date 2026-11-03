@@ -58,8 +58,8 @@ DisplayTimedTextToPlayer = function(...)
   assert(player == owner and x == 0 and y == 0 and duration == 30 and text == '存檔驗證', '顯示函式參數錯誤。')
   displayed = true
 end
-assert(checks.wc3SaveNatives:playerName(owner) == 'Alice#1234', '正式名稱介面錯誤。')
-checks.wc3SaveNatives:display(owner, '存檔驗證')
+assert(checks.wc3PlayerNatives:playerName(owner) == 'Alice#1234', '正式名稱介面錯誤。')
+checks.wc3PlayerNatives:display(owner, '存檔驗證')
 assert(displayed, '正式顯示介面未呼叫。')`,
     ),
 );

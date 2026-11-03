@@ -1,6 +1,6 @@
 import { strict as assert } from "node:assert";
 import { test } from "node:test";
-import { wc3I18nNatives } from "../../src/shared/wc3-def/wc3-i18n-natives";
+import { wc3I18nNatives } from "../../src/shared/i18n/natives";
 import { createI18n, getI18n, t } from "../../src/shared/i18n/translation";
 import { createObjectText } from "../../src/shared/i18n/object-text";
 import { fixtureData } from "./fake-natives";

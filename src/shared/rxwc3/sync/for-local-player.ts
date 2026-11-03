@@ -1,8 +1,6 @@
 import { Observable } from "../core/observable";
 import { operatorSubscriber } from "../core/subscriber";
-import { wc3SyncNatives } from "@shared/wc3-def/wc3-natives";
-import { PlayerInput, unwrapPlayer } from "@shared/wc3-def/inputs";
-import { SyncNatives } from "@shared/wc3-def/natives";
+import { wc3SyncNatives, PlayerInput, unwrapPlayer, SyncNatives } from "@shared/wc3-def";
 import { Local, Sync } from "./types";
 
 /** 在共同流程訂閱來源；只有指定玩家的用戶端轉送值。本地值只用於介面。 */

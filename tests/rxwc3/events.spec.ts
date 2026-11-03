@@ -20,7 +20,7 @@ import {
 } from "../../src/shared/rxwc3";
 import { damage, FakeEventNatives, fakeUnit, spell } from "./fake-event-natives";
 import { FakeClockDriver } from "./fake-clock-driver";
-import { wc3EventNatives } from "@shared/wc3-def/wc3-natives";
+import { wc3EventNatives } from "@shared/wc3-def";
 import { verifyEvents } from "./events-lua.spec";
 
 // 訂閱者內的斷言會被錯誤隔離捕捉；測試結束時也必須檢查這些錯誤。

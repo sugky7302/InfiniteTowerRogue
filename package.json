@@ -22,12 +22,14 @@
         "build": "ts-node --transpile-only scripts/build.ts",
         "dev": "npm-watch",
         "build:defs": "ts-node scripts/dev",
-        "test:save:lua": "node scripts/verify-save-lua.cjs"
+        "test:save:lua": "node scripts/verify-save-lua.cjs",
+        "lint:fsd": "steiger ./src"
     },
     "dependencies": {
         "w3ts": "^3.0.2"
     },
     "devDependencies": {
+        "@feature-sliced/steiger-plugin": "0.8.2",
         "@types/fs-extra": "11.0.4",
         "@types/node": "22.15.17",
         "@types/pako": "2.0.3",
@@ -38,6 +40,7 @@
         "mdx-m3-viewer-th": "^5.13.3",
         "npm-watch": "0.13.0",
         "prettier": "3.9.10",
+        "steiger": "0.9.0",
         "ts-node": "10.9.2",
         "tsconfig-paths": "4.2.0",
         "tsutils": "3.21.0",

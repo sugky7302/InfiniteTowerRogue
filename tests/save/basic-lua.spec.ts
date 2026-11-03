@@ -7,12 +7,12 @@ import {
     hmac256,
     sha256,
     utf8,
-} from "../../src/feature/save";
+} from "@features/save";
 import { Subject, Observable, Clock, syncChunked } from "../../src/shared/rxwc3";
 import { FakeSyncNetwork } from "../rxwc3/fake-sync-natives";
 import { FakeClockDriver } from "../rxwc3/fake-clock-driver";
 import { setupSave } from "./setup";
-export { wc3SaveNatives } from "../../src/shared/wc3-def/wc3-save-natives";
+export { wc3PlayerNatives } from "@shared/wc3-def";
 
 function check(condition: boolean, message: string): void {
     if (!condition) throw new Error(message);

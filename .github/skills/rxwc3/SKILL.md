@@ -27,7 +27,7 @@ description: 使用或修改 RxWC3（WC3 特化的 Observable、Signal、時鐘�
 - Effect 同步執行；用 `batch()` 合併寫入。`computed` 內不得寫入 signal。
 - 同一時間點的任務依結算階段排序：`Phase.Combat` → `Extraction` → `World` → `Default`。
 - 時鐘以整數毫秒保存時間（WC3 Lua 為 32 位元數字）。`pause()`／`resume()` 為引用計數。`clock.pauseChanges` 送出暫停狀態的變化。
-- 地圖啟動時呼叫一次 `installWc3ClockDrivers()`。
+- 地圖啟動時呼叫 `installWc3ClockDrivers()`。可以重複呼叫：多個功能或範例各自呼叫時，第二次以後傳回第一次安裝的驅動器（2026-11-03 起）。
 
 ## 同步與本地（防止不同步）
 

@@ -3,4 +3,5 @@ export * from "./translation";
 export * from "./object-text";
 export * from "./chat";
 export * from "./preference";
+export * from "./natives";
 export type { TranslationKey, Messages } from "./locales/zh-TW";

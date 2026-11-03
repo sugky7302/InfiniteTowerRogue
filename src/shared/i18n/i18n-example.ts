@@ -3,12 +3,12 @@ import { Subscription } from "../rxwc3/core/subscription";
 import { filter } from "../rxwc3/operators/filter";
 import { localEffect } from "../rxwc3/signal";
 import { onPlayerChat } from "../rxwc3/wc3/events";
-import { wc3I18nNatives } from "../wc3-def/wc3-i18n-natives";
+import { wc3FileNatives } from "@shared/wc3-def";
+import { wc3I18nNatives } from "./natives";
 import { installLanguageChat } from "./chat";
 import { createObjectText, ObjectTextData } from "./object-text";
 import { getI18n } from "./translation";
 import { createLocalFileIo } from "../file-io";
-import { wc3FileIoNatives } from "../wc3-def/wc3-file-io-natives";
 import { languagePreferencePath } from "./preference";
 
 // 此宣告也讓 Node 型別檢查不需要載入建置轉換器的全域型別。
@@ -36,7 +36,7 @@ declare const __i18nObjectData: ObjectTextData;
 export function runI18nExample(): void {
     const owner = new Subscription();
     try {
-        const files = createLocalFileIo(wc3FileIoNatives);
+        const files = createLocalFileIo(wc3FileNatives);
         const service = getI18n(files);
         logger.info(`語言偏好讀檔結果：${service.preference?.result.status ?? "未讀取"}。`);
         logger.info(`偏好檔相對路徑：CustomMapData\\${languagePreferencePath}`);

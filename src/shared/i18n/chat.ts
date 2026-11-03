@@ -1,6 +1,4 @@
-import { ChatEvent } from "../wc3-def/events";
-import { SyncNatives } from "../wc3-def/natives";
-import { wc3SyncNatives } from "../wc3-def/wc3-natives";
+import { ChatEvent, SyncNatives, wc3SyncNatives } from "@shared/wc3-def";
 import { Observable } from "../rxwc3/core/observable";
 import { Subscription } from "../rxwc3/core/subscription";
 import { filter } from "../rxwc3/operators/filter";

@@ -3,7 +3,8 @@ import { Players } from "w3ts/globals";
 import { W3TS_HOOK, addScriptHook } from "w3ts/hooks";
 import { Units } from "@objectdata/units";
 import { logger } from "@shared/logger";
-import { runSaveExample } from "./feature/save/example";
+import { runSaveExample } from "./app/save-example";
+import { runSkillExample } from "./app/skill-example";
 
 const BUILD_DATE = compiletime(() => new Date().toUTCString());
 const TS_VERSION = compiletime(() => require("typescript").version);
@@ -40,4 +41,5 @@ function tsMain() {
 }
 
 addScriptHook(W3TS_HOOK.MAIN_AFTER, tsMain);
+addScriptHook(W3TS_HOOK.MAIN_AFTER, runSkillExample);
 addScriptHook(W3TS_HOOK.MAIN_AFTER, runSaveExample);

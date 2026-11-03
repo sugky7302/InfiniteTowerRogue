@@ -11,12 +11,12 @@ description: 新增存檔欄位、修改存檔碼格式、密鑰、`-save`／`-l
 
 | 位置 | 內容 |
 |---|---|
-| `src/feature/save/format.ts` | 資料格式登錄（`SaveRegistry`、`SaveSection`）、位元打包、版本轉換 |
-| `src/feature/save/hash.ts` | SHA-256 與 HMAC（16 位元半字運算） |
-| `src/feature/save/keys.ts` | 密鑰與密鑰版本（唯一位置，不從 `index.ts` 匯出） |
-| `src/feature/save/codec.ts` | 驗證碼、混淆、Crockford Base32、分組 |
-| `src/feature/save/chat.ts`、`manual-input.ts` | `-save`、`-load`、手動分段輸入 |
-| `src/feature/save/demo.ts`、`example.ts` | 範例資料與範例地圖 |
+| `src/features/save/model/format.ts` | 資料格式登錄（`SaveRegistry`、`SaveSection`）、位元打包、版本轉換 |
+| `src/features/save/lib/hash.ts` | SHA-256 與 HMAC（16 位元半字運算） |
+| `src/features/save/config/keys.ts` | 密鑰與密鑰版本（唯一位置，不從 `index.ts` 匯出） |
+| `src/features/save/model/codec.ts` | 驗證碼、混淆、Crockford Base32、分組 |
+| `src/features/save/model/chat.ts`、`manual-input.ts` | `-save`、`-load`、手動分段輸入；`SaveNatives` |
+| `src/features/save/model/demo.ts`、`src/app/save-example.ts` | 範例資料與範例地圖 |
 | `src/shared/rxwc3/sync/sync-chunked.ts` | 分段同步 `syncChunked` |
 | `src/shared/file-io/` | `write`／`read`（存檔檔案）、`writeReadable`（可閱讀的指令檔） |
 

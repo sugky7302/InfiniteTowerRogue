@@ -1,10 +1,9 @@
-import { FrameNatives } from "../../src/shared/wc3-def/frame-natives";
-import { SkillNatives } from "../../src/shared/wc3-def/skill-natives";
-import { Defense } from "../../src/feature/combat/damage";
-import { attributeModifier } from "../../src/feature/skill/check";
-import { testEnemy } from "../../src/feature/skill/definitions";
+import { TimerNatives } from "@shared/wc3-def";
+import { SkillNatives } from "@features/skill";
+import { testEnemy } from "@entities/character";
+import { CombatStats, Defense, attributeModifier } from "@entities/combat";
 
-export class FakeFrames implements FrameNatives {
+export class FakeFrames implements TimerNatives {
     public starts = 0;
     public stops = 0;
     public seconds = 0;
@@ -59,7 +58,7 @@ export function makeUnit(x = 0, y = 0): unit {
     } as unknown as unit;
 }
 export const abilityCode = (code: string): number => (code === "A0SF" ? 1 : 2);
-export class FakeSkillNatives implements SkillNatives {
+export class FakeSkillNatives implements SkillNatives, CombatStats {
     public stops: unit[] = [];
     public onStop: ((this: void, target: unit) => void) | undefined;
     public resourceCalls: string[] = [];

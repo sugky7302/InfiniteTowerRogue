@@ -1,9 +1,14 @@
 import { Clock, config, frames } from "../../src/shared/rxwc3";
-import { fireball, frostbolt, castSeconds, yardsToWc3 } from "../../src/feature/skill/definitions";
-import { checkValue, rollCheck } from "../../src/feature/skill/check";
-import { resolveDamage } from "../../src/feature/combat/damage";
-import { Burning, MovementSlows, periodicTicks } from "../../src/feature/combat/effects";
-import { installPauseBridge } from "../../src/feature/combat/pause-bridge";
+import { fireball, frostbolt, castSeconds, yardsToWc3 } from "@features/skill";
+import {
+    checkValue,
+    rollCheck,
+    resolveDamage,
+    Burning,
+    MovementSlows,
+    periodicTicks,
+} from "@entities/combat";
+import { installPauseBridge } from "@features/combat";
 import { FakeClockDriver } from "../rxwc3/fake-clock-driver";
 import { FakeFrames, FakeSkillNatives, makeUnit, unitState } from "./fakes";
 import { setupSkill } from "./setup";

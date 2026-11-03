@@ -1,6 +1,5 @@
 import { localSignal } from "../rxwc3/signal";
-import { I18nNatives } from "../wc3-def/i18n-natives";
-import { wc3I18nNatives } from "../wc3-def/wc3-i18n-natives";
+import { I18nNatives, wc3I18nNatives } from "./natives";
 import { Locale, localeFromClient } from "./locale";
 import { enUS } from "./locales/en-US";
 import { zhCN } from "./locales/zh-CN";

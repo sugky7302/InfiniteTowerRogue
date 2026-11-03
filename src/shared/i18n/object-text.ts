@@ -1,5 +1,6 @@
 import { localEffect, untracked } from "../rxwc3/signal";
-import { I18nNatives, AbilityTextField, ItemTextField } from "../wc3-def/i18n-natives";
+import { AbilityTextField, ItemTextField } from "@shared/wc3-def";
+import { I18nNatives } from "./natives";
 import { Locale } from "./locale";
 import { I18n } from "./translation";
 

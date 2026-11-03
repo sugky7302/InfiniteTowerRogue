@@ -1,4 +1,4 @@
-import { FileIoNatives } from "../wc3-def/file-io-natives";
+import { FileNatives } from "@shared/wc3-def";
 import { decodeFileData, encodeFileData } from "./codec";
 
 export const FileReadStatus = {
@@ -37,7 +37,7 @@ function safePath(path: string): boolean {
 }
 
 /** 建立時須在共同流程預載資源。回傳的方法只供本地顯示資料使用。 */
-export function createLocalFileIo(natives: FileIoNatives) {
+export function createLocalFileIo(natives: FileNatives) {
     natives.prepare();
     return {
         read(path: string): FileRead {

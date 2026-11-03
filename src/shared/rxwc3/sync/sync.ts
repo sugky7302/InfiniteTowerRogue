@@ -2,11 +2,9 @@ import { reportUnhandledError } from "../core/config";
 import { Observable } from "../core/observable";
 import { Subscriber } from "../core/subscriber";
 import { isLocalSignalExecution } from "../signal/runtime";
-import { wc3SyncNatives } from "@shared/wc3-def/wc3-natives";
+import { wc3SyncNatives, PlayerInput, unwrapPlayer, SyncNatives } from "@shared/wc3-def";
 import { isLocalExecution } from "./execution";
 import { validSyncData, validSyncPrefix } from "./limits";
-import { PlayerInput, unwrapPlayer } from "@shared/wc3-def/inputs";
-import { SyncNatives } from "@shared/wc3-def/natives";
 import { Local, Sync } from "./types";
 
 export interface SyncOptions<T> {

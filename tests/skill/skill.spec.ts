@@ -1,25 +1,22 @@
 import { strict as assert } from "node:assert";
 import { test as nodeTest } from "node:test";
 import { Clock, config, createWc3Events, frames, Phase } from "../../src/shared/rxwc3";
-import { attributeModifier, checkValue, rollCheck } from "../../src/feature/skill/check";
 import {
-    castSeconds,
-    fireball,
-    frostbolt,
-    rangeYards,
-    scholar,
-    skills,
-    yardsToWc3,
-} from "../../src/feature/skill/definitions";
-import {
+    attributeModifier,
+    checkValue,
+    rollCheck,
     displayNumber,
     manaCapacity,
     resolveDamage,
     spellDefense,
     spellPower,
-} from "../../src/feature/combat/damage";
-import { Burning, MovementSlows, periodicTicks } from "../../src/feature/combat/effects";
-import { installPauseBridge } from "../../src/feature/combat/pause-bridge";
+    Burning,
+    MovementSlows,
+    periodicTicks,
+} from "@entities/combat";
+import { castSeconds, fireball, frostbolt, rangeYards, skills, yardsToWc3 } from "@features/skill";
+import { scholar } from "@entities/character";
+import { installPauseBridge } from "@features/combat";
 import { FakeEventNatives } from "../rxwc3/fake-event-natives";
 import { FakeClockDriver } from "../rxwc3/fake-clock-driver";
 import { abilityCode, FakeFrames, FakeSkillNatives, makeUnit, unitState } from "./fakes";

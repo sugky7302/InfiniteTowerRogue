@@ -4,8 +4,7 @@ import { Subject } from "../core/subject";
 import { notifyNext, Subscriber } from "../core/subscriber";
 import { protectedCall } from "../core/protected-call";
 import { TeardownLogic } from "../core/subscription";
-import { EventNatives } from "@shared/wc3-def/natives";
-import { UnitInput } from "@shared/wc3-def/inputs";
+import { EventNatives, UnitInput } from "@shared/wc3-def";
 
 /**
  * 一個訂閱者在中樞中的記錄。

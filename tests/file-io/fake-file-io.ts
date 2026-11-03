@@ -1,4 +1,4 @@
-import { FileIoNatives } from "../../src/shared/wc3-def/file-io-natives";
+import { FileNatives } from "@shared/wc3-def";
 
 /** 模擬預載檔的技能資料通道，不模擬遊戲的磁碟權限或快取。 */
 export function fakeFileIo() {
@@ -10,7 +10,7 @@ export function fakeFileIo() {
     let writes = 0;
     let failRead = false;
     let failWrite = false;
-    const natives: FileIoNatives = {
+    const natives: FileNatives = {
         prepare: () => {
             prepares++;
         },

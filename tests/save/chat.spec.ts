@@ -12,7 +12,7 @@ import {
     ManualSaveInput,
     saveFilePath,
     readableSavePath,
-} from "../../src/feature/save";
+} from "@features/save";
 import { encodeFileData, decodeFileData } from "../../src/shared/file-io";
 import { Clock } from "../../src/shared/rxwc3";
 import { FakeClockDriver } from "../rxwc3/fake-clock-driver";

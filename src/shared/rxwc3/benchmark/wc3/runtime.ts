@@ -1,6 +1,6 @@
 import { createLocalFileIo, FileWriteStatus } from "../../../file-io";
 import { logger } from "../../../logger";
-import { wc3FileIoNatives } from "../../../wc3-def/wc3-file-io-natives";
+import { wc3FileNatives } from "@shared/wc3-def";
 import { Subscription } from "../../index";
 import { ProbeFunctions, probe } from "../metrics";
 import { Fields, formatRecord, resultPages, resultValue } from "../results";
@@ -36,7 +36,7 @@ export function wc3Probes(): ProbeFunctions {
 }
 
 export class Output {
-    public readonly files = createLocalFileIo(wc3FileIoNatives);
+    public readonly files = createLocalFileIo(wc3FileNatives);
     public readonly functions = wc3Probes();
     public readonly capabilities = probe(this.functions);
 

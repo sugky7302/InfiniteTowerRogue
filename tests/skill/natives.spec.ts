@@ -1,7 +1,7 @@
 import { strict as assert } from "node:assert";
 import { test } from "node:test";
-import { createWc3SkillNatives } from "../../src/shared/wc3-def/wc3-skill-natives";
-import { wc3FrameNatives } from "../../src/shared/wc3-def/wc3-frame-natives";
+import { createWc3SkillNatives } from "../../src/app/wc3-skill-natives";
+import { wc3TimerNatives } from "@shared/wc3-def";
 
 function withGlobals(values: Record<string, unknown>, run: () => void): void {
     const scope = globalThis as unknown as Record<string, unknown>;
@@ -48,7 +48,7 @@ test("S0 正式幀介面使用週期原生計時器並完整銷毀", () => {
         },
         () => {
             let count = 0;
-            const stop = wc3FrameNatives.start(1 / 32, () => {
+            const stop = wc3TimerNatives.start(1 / 32, () => {
                 count++;
             });
             action!();
@@ -180,7 +180,7 @@ test("S2 目標死亡與移除均視為失效，骰值使用同步原生函式",
 });
 
 test("S3 命令原生註冊三種事件，快照保留目標與座標", () => {
-    const { wc3EventNatives } = require("../../src/shared/wc3-def/wc3-natives");
+    const { wc3EventNatives } = require("@shared/wc3-def");
     const target = {} as widget,
         ordered = {} as unit,
         trigger = {} as trigger;

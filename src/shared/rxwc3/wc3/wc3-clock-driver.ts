@@ -59,10 +59,15 @@ export class Wc3ClockDriver implements ClockDriver {
     }
 }
 
+let installed: { world: Wc3ClockDriver; ui: Wc3ClockDriver } | undefined;
+
+/** 可重複呼叫。多個範例或功能都可以呼叫；第二次以後傳回第一次安裝的驅動器。 */
 export function installWc3ClockDrivers(): { world: Wc3ClockDriver; ui: Wc3ClockDriver } {
+    if (installed !== undefined) return installed;
     const world = new Wc3ClockDriver();
     const ui = new Wc3ClockDriver();
     installClockDriver(worldClock, world);
     installClockDriver(uiClock, ui);
-    return { world, ui };
+    installed = { world, ui };
+    return installed;
 }

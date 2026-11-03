@@ -1,7 +1,6 @@
 import { FileReadStatus } from "../../../file-io";
 import { logger } from "../../../logger";
-import { EventNatives } from "../../../wc3-def/natives";
-import { wc3EventNatives } from "../../../wc3-def/wc3-natives";
+import { EventNatives, wc3EventNatives } from "@shared/wc3-def";
 import { createWc3Events, Subscription } from "../../index";
 import { attempt, median, observationalGoal, ratio, readNumber } from "../metrics";
 import { parseRecords, resultValue } from "../results";

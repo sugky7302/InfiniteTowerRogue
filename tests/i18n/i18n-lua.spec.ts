@@ -3,7 +3,7 @@ import { createI18n } from "../../src/shared/i18n/translation";
 import { createObjectText } from "../../src/shared/i18n/object-text";
 import { localComputed, localEffect } from "../../src/shared/rxwc3/signal";
 import { fakeNatives, fixtureData } from "./fake-natives";
-export { wc3I18nNatives as natives } from "../../src/shared/wc3-def/wc3-i18n-natives";
+export { wc3I18nNatives as natives } from "../../src/shared/i18n/natives";
 export { t, getI18n } from "../../src/shared/i18n/translation";
 
 function check(value: boolean, message: string): void {

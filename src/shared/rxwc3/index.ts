@@ -11,11 +11,11 @@ export { Subject } from "./core/subject";
 export { BehaviorSubject } from "./core/behavior-subject";
 export { pipe, UnaryFunction } from "./core/pipe";
 export { config } from "./core/config";
-export { syncChunked, ChunkedSyncOptions } from "./sync/sync-chunked";
-export { FragmentReceiver, fragmentNumber } from "./sync/fragments";
 export { Sync, Local, SyncKind, CombinedKind } from "./sync/types";
 export { forLocalPlayer } from "./sync/for-local-player";
 export { sync, SyncOptions } from "./sync/sync";
+export { syncChunked, ChunkedSyncOptions } from "./sync/sync-chunked";
+export { FragmentReceiver, fragmentNumber } from "./sync/fragments";
 export { MAX_SYNC_DATA_BYTES, MAX_SYNC_PREFIX_BYTES } from "./sync/limits";
 export { of } from "./sources/of";
 export { from } from "./sources/from";
@@ -36,6 +36,15 @@ export { share } from "./operators/share";
 export { finalize } from "./operators/finalize";
 export * from "./signal";
 export { Phase } from "./scheduler/phase";
+export {
+    TICKS_PER_SECOND,
+    MAX_SECONDS,
+    MAX_TICKS,
+    toTicks,
+    checkTicks,
+    addTicks,
+    durationTicks,
+} from "./scheduler/time";
 export { Scheduler, ScheduledTask } from "./scheduler/scheduler";
 export { Clock, ClockDriver, installClockDriver, MAX_TASKS_PER_WAKE } from "./scheduler/clock";
 export { worldClock, uiClock, TimeOptions } from "./scheduler/clocks";
@@ -47,10 +56,23 @@ export { throttleTime, ThrottleTimeOptions } from "./operators/throttle-time";
 export { debounceTime } from "./operators/debounce-time";
 export { Wc3ClockDriver, installWc3ClockDrivers } from "./wc3/wc3-clock-driver";
 export { fromTrigger } from "./wc3/from-trigger";
-// WC3 定義放在 `@shared/wc3-def/`。此處重新匯出，保持既有 API。
-export * from "@shared/wc3-def/events";
-export * from "@shared/wc3-def/inputs";
-export * from "@shared/wc3-def/natives";
+// WC3 定義放在 `@shared/wc3-def`。此處重新匯出事件、輸入與觸發器介面，保持既有 API。
+export {
+    UnitEventKind,
+    UnitOrderEvent,
+    DamageEvent,
+    DamagingEvent,
+    SpellEvent,
+    DeathEvent,
+    ChatEvent,
+    UnitInput,
+    PlayerInput,
+    unwrapUnit,
+    unwrapPlayer,
+    TriggerNatives,
+    EventNatives,
+    SyncNatives,
+} from "@shared/wc3-def";
 export {
     createWc3Events,
     onDamaging,
