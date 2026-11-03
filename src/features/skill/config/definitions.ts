@@ -9,6 +9,7 @@ export interface SkillDefinition {
     readonly radiusYards: number;
     readonly baseDamage: number;
     readonly coefficient: number;
+    readonly damageTag: string;
     readonly knowledge: number;
     readonly mana: number;
     readonly cooldown: number;
@@ -38,6 +39,7 @@ export const fireball: SkillDefinition = {
     radiusYards: 3,
     baseDamage: 10,
     coefficient: 0,
+    damageTag: "fire",
     knowledge: 4,
     mana: 15,
     cooldown: 4,
@@ -55,6 +57,7 @@ export const frostbolt: SkillDefinition = {
     radiusYards: 0,
     baseDamage: 10,
     coefficient: 0.8,
+    damageTag: "frost",
     knowledge: 3,
     mana: 10,
     cooldown: 0,

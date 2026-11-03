@@ -50,15 +50,32 @@ description: 新增或修改技能、施法流程、投射物、傷害套用、�
 ## 其他做法
 
 - 投射物共用 `frames()`，以 `deltaSeconds` 更新位置，不為每個投射物建立 `interval`。
-- 傷害先以純規則結算，再以 `UnitDamageTarget` 送出；傷害觸發器只把本系統標記的事件固定為結算值，避免 WC3 護甲再次減傷。
+- C4 範例把技能結算結果交給戰鬥者登錄，直接更新內部生命與血條。舊介面仍可透過 `UnitDamageTarget` 送出固定傷害。
 - 浮動文字使用非永久、有存活時間的 texttag。顯示數值時處理負零。
 - 暫停期間正在施法的單位：圖示不變灰，冷卻動畫照常轉動；恢復時以快照校正數值。
+
+## C1 純傷害接線
+
+- 直接傷害與燃燒使用 `@entities/combat` 的 `settleDamage`。事件使用法術輸出、法防通道與技能的 `damageTag`。燃燒使用火焰標籤。
+- `CombatStats.damageTarget` 與 `damageAttacker` 可提供完整修正。C4 新增 `commitDamage`，提交完整結算結果。既有技能測試的傷害預期值保持相同。
+- 燃燒以 `snapshotDamageOffense` 鎖定輸出，另複製穿透修正。每次週期讀取目前目標狀態。刷新時建立新快照並清除舊排程。
+- `resolveDamage` 是相容包裝，也使用新結算。技能既有預期值由原有測試保護。
+- C1 至 C4 的規格與實作記錄見 `docs/combat-system/implementation/PLAN.md`。驗證入口為 `npm run test:combat:lua`。C5 遊戲內驗證尚待完成。
+
+## C4 整合
+
+- `features/combat` 提供 `CombatRegistry`、`CombatRuntime`、`TacticalPause` 與 `PatrolMachine`。app 注入原生操作，並組合技能。
+- 暫停使用動作速度 0、移速 0 與停用兩個武器。動作速度由本系統保存，登錄時明確設為 1。之後透過 `TacticalPause.setTimeScale` 設定。
+- 技能減速透過 `TacticalPause.setSpeed`。暫停中的變更只更新快照。恢復時套用保存值。
+- 技能的內部停止命令透過 `TacticalPause.stop`，避免覆蓋玩家保存的命令。恢復命令使用世界時鐘的零延遲任務，讓資源轉接先啟用技能。
+- 玩家失能時才使用 `PauseUnit` 阻止命令。戰術暫停使用方法 2。原有施法資源轉接仍跳過施法中的技能。
+- 本次新增流程以明確的 catch 清理後重新拋出。TSTL 的部分 `try/finally` 轉譯會吞掉錯誤。Lua 驗證器必須用故障注入檢查失敗路徑。
 
 ## 驗證
 
 - `pnpm run test:unit`、`pnpm run test:skill:lua`、`pnpm run format:check`、`pnpm run build`。
 - 遊戲內驗證：`pnpm run test`。地圖會停在開啟地圖之後，直到使用者點擊遊戲視窗。
-- 範例指令：`-skill-status`、`-skill-move`、`-pause`、`-resume`、`-skill-stop`。
+- 範例指令包括 `-skill-status`、`-skill-move`、`-pause`、`-resume`、`-revive` 與 `-skill-stop`。
 
 ## 待觀察
 

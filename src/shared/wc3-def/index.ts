@@ -9,6 +9,8 @@ export * from "./timer/timer-natives";
 export * from "./timer/wc3-timer-natives";
 export * from "./unit/unit-natives";
 export * from "./unit/wc3-unit-natives";
+export * from "./unit/unit-action-natives";
+export * from "./unit/wc3-unit-action-natives";
 export * from "./ability/ability-natives";
 export * from "./ability/wc3-ability-natives";
 export * from "./effect/effect-natives";

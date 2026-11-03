@@ -29,6 +29,8 @@ src/
 | 組合多個功能、範例、規則的具體實作 | `app/` |
 
 - 兩個功能都需要的程式，移到 entities；不要讓功能互相 import。
+- 純生命、護盾、失能與恢復狀態放在 `entities/combat/model/`。登錄戰鬥者、停止原生行動與血條顯示放在功能或組合層。
+- 技能透過 `entities/combat` 的 `CombatStats.commitDamage` 提交結算。app 把此介面接到 `features/combat` 的登錄。兩個 features 不互相 import。
 - shared 需要遊戲規則時：在 entities 定義介面，由 app 實作並注入。例如 `CombatStats`。
 - 功能需要的原生操作組合（`Pick` + `&`），定義在功能自己的 `api/`，例如 `SkillNatives`。
 

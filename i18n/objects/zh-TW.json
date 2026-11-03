@@ -2,6 +2,7 @@
   "unit:H0SS:name": "符文學者",
   "unit:H0SS:properNames": "符文學者",
   "unit:h0SE:name": "測試敵人",
+  "unit:h0CM:name": "舊令巡檢機",
   "ability:A0SF:name": "火球術",
   "ability:A0SF:tip:1": "火球術",
   "ability:A0SF:ubertip:1": "火球術：施法 1.5 秒，法力 15，冷卻 4 秒。",

@@ -23,7 +23,9 @@
         "dev": "npm-watch",
         "build:defs": "ts-node scripts/dev",
         "test:save:lua": "node scripts/verify-save-lua.cjs",
-        "lint:fsd": "steiger ./src"
+        "lint:fsd": "steiger ./src",
+        "test:combat:lua": "node scripts/verify-combat-lua.cjs",
+        "test:combat:artifact": "ts-node --transpile-only --project tsconfig.test.json tests/combat/artifact.spec.ts"
     },
     "dependencies": {
         "w3ts": "^3.0.2"

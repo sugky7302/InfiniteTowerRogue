@@ -1,7 +1,4 @@
-import { Timer, Unit } from "w3ts";
-import { Players } from "w3ts/globals";
 import { W3TS_HOOK, addScriptHook } from "w3ts/hooks";
-import { Units } from "@objectdata/units";
 import { logger } from "@shared/logger";
 import { runSaveExample } from "./app/save-example";
 import { runSkillExample } from "./app/skill-example";
@@ -29,12 +26,6 @@ function tsMain() {
         print(`Transpiler: v${TSTL_VERSION}`);
         print(" ");
         print("Welcome to TypeScript!");
-
-        const unit = Unit.create(Players[0], FourCC(Units.Footman), 0, 0, 270)!;
-
-        Timer.create().start(1.0, true, () => {
-            unit.color = Players[math.random(0, bj_MAX_PLAYERS)].color;
-        });
     } catch (e) {
         logger.error(e);
     }

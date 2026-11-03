@@ -8,13 +8,23 @@ import {
     createWc3Events,
 } from "@shared/rxwc3";
 import {
+    DamageStat,
+    DamageKind,
+    DamageOutput,
+    DefenseChannel,
+    DamageHistory,
     Burning,
     CombatStats,
     MovementSlows,
     attributeModifier,
     checkValue,
     displayNumber,
-    resolveDamage,
+    DamageEvent,
+    DamageAttacker,
+    DamagePart,
+    DamageTarget,
+    snapshotDamageOffense,
+    settleDamage,
     rollCheck,
     spellPower,
 } from "@entities/combat";
@@ -200,23 +210,74 @@ export class SkillRuntime {
         }
     };
 
-    private deal(source: unit, target: unit, base: number, coefficient: number): void {
+    private damageTarget(target: unit): DamageTarget {
+        if (this.stats.damageTarget !== undefined) return this.stats.damageTarget(target);
+        const defense = this.stats.defense(target);
+        return {
+            life: 100000,
+            maxLife: 100000,
+            spellDefense: defense.defense,
+            shields: [{ id: "skill-shield", capacity: defense.shield }],
+            modifiers: [
+                { id: "skill-resistance", stat: DamageStat.Resistance, value: defense.resistance },
+            ],
+        };
+    }
+
+    private damageEvent(
+        source: unit,
+        target: unit,
+        skill: SkillDefinition,
+        kind: "direct" | "dot",
+        parts: readonly DamagePart[],
+    ): DamageEvent {
+        return {
+            source,
+            target,
+            skill: skill.code,
+            kind,
+            output: DamageOutput.Spell,
+            canCrit: false,
+            parts,
+        };
+    }
+
+    private deal(event: DamageEvent, attacker?: DamageAttacker): void {
         const n = this.natives;
-        const result = resolveDamage(
-            base,
-            spellPower(scholar.intelligence, scholar.spirit),
-            coefficient,
-            this.stats.defense(target),
-        );
-        this.stats.setShield(target, result.shield);
-        n.damage(source, target, result.life);
-        n.text(target, `傷害 ${displayNumber(result.life)}`);
+        const source = event.source as unit;
+        const target = event.target as unit;
+        const state = this.damageTarget(target);
+        const result = settleDamage({ event, target: state, attacker });
+        let shield = 0;
+        for (const item of result.shields) shield += item.capacity;
+        const primary = result.recipients[0];
+        const executeLoss = primary.executed ? result.trace[22].state.recipients[0].life : 0;
+        const loss = primary.lifeLoss + result.crushLifeLoss + executeLoss;
+        if (this.stats.commitDamage !== undefined) this.stats.commitDamage(source, target, result);
+        else {
+            this.stats.setShield(target, shield);
+            n.damage(source, target, loss);
+        }
+        n.text(target, `傷害 ${displayNumber(loss)}`);
     }
 
     private hit(source: unit, target: unit, skill: SkillDefinition): void {
         const n = this.natives;
         if (!n.alive(target)) return;
-        this.deal(source, target, skill.baseDamage, skill.coefficient);
+        const tag = skill.damageTag;
+        this.deal(
+            this.damageEvent(source, target, skill, DamageKind.Direct, [
+                {
+                    amount: skill.baseDamage,
+                    power: spellPower(scholar.intelligence, scholar.spirit),
+                    coefficient: skill.coefficient,
+                    tags: [tag],
+                    channel: DefenseChannel.Spell,
+                    history: DamageHistory.Base,
+                },
+            ]),
+            this.stats.damageAttacker?.(source),
+        );
         if (!n.alive(target)) return;
         let state = this.effects.get(target);
         if (state === undefined) {
@@ -231,18 +292,40 @@ export class SkillRuntime {
         }
         if (skill.burn !== undefined && this.stats.combustible(target)) {
             const burnData = skill.burn;
-            let burn = state.burns.get(source);
-            if (burn === undefined) {
-                burn = new Burning(this.clock, () => {
-                    if (!n.alive(target) || !this.stats.combustible(target)) {
-                        burn!.clear();
-                        return;
-                    }
-                    n.text(target, "燃燒");
-                    this.deal(source, target, burnData.damage, 0);
-                });
-                state.burns.set(source, burn);
-            }
+            state.burns.get(source)?.clear();
+            const event = this.damageEvent(source, target, skill, DamageKind.Dot, [
+                {
+                    amount: burnData.damage,
+                    tags: ["fire"],
+                    channel: DefenseChannel.Spell,
+                    history: DamageHistory.Base,
+                },
+            ]);
+            const attacker = this.stats.damageAttacker?.(source);
+            const parts = snapshotDamageOffense({
+                event,
+                target: this.damageTarget(target),
+                attacker,
+            });
+            const penetration: DamageAttacker = {
+                modifiers: attacker?.modifiers
+                    ?.filter(
+                        (item) =>
+                            item.stat === DamageStat.Penetration ||
+                            item.stat === DamageStat.FlatPenetration ||
+                            item.stat === DamageStat.ElementPenetration,
+                    )
+                    .map((item) => ({ ...item })),
+            };
+            const burn = new Burning(this.clock, () => {
+                if (!n.alive(target) || !this.stats.combustible(target)) {
+                    burn.clear();
+                    return;
+                }
+                n.text(target, "燃燒");
+                this.deal({ ...event, parts }, penetration);
+            });
+            state.burns.set(source, burn);
             burn.refresh(burnData.delay, burnData.period, burnData.duration);
             n.text(target, `燃燒：${burnData.duration} 秒`);
         }

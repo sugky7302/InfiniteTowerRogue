@@ -1,1 +1,1 @@
-export { scholar, testEnemy } from "./model/roles";
+export { scholar, testEnemy, patrolMachine } from "./model/roles";

@@ -12,3 +12,8 @@ import "./save/codec.spec";
 import "./rxwc3/sync-chunked.spec";
 import "./save/chat.spec";
 import "./file-io/readable.spec";
+import "./combat/combat.spec";
+import "./combat/skill-integration.spec";
+import "./combat/melee-reach.spec";
+import "./combat/objects.spec";
+import "./combat/integration.spec";
