@@ -56,4 +56,7 @@ export type TowerState = (typeof TowerState)[keyof typeof TowerState];
 - TSTL 把 `for (let i = ...; ...; ...)` 轉譯為共用一個變數的 `while` 迴圈。每次迴圈不會建立新的 `i`。
     - 閉包（回呼、訂閱、計時器）在迴圈結束後讀取 `i` 時，會讀到最後的值。
     - 閉包需要迴圈變數時，請在迴圈內複製到 `const`。例如：`const id = index;`。
+- Lua 中只有 `nil` 與 `false` 是假值。空字串 `""` 與 `0` 是真值（2026-11-04 在遊戲中確認）。
+    - TSTL 把 `a || b` 轉譯為 `a or b`。`"" || "無"` 在遊戲中得到 `""`，`0 || 預設值` 得到 `0`。
+    - 需要「空字串或 0 時使用預設值」時，請明確比較，例如 `text.length > 0 ? text : "無"`。
 - 會在 WC3 中執行的程式，完成後必須在測試地圖（`pnpm run test`）中驗證。

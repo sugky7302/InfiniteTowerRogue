@@ -103,7 +103,10 @@ function itemText(item: ItemInstance): string {
                   : " 個百分點";
         return `${definition.name} +${entry.value}${unit}`;
     });
-    return `編號 ${item.id}，${base.name}，普通階；固定屬性：${fixed.join("、") || "無"}；詞綴：${affixes.join("、") || "無"}`;
+    // Lua 的空字串為真值，`|| "無"` 不會生效，所以檢查長度。
+    const fixedText = fixed.length > 0 ? fixed.join("、") : "無";
+    const affixText = affixes.length > 0 ? affixes.join("、") : "無";
+    return `編號 ${item.id}，${base.name}，普通階；固定屬性：${fixedText}；詞綴：${affixText}`;
 }
 
 /** app 組合英雄、裝備與戰鬥。持有清單只供範例使用。 */
