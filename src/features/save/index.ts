@@ -4,3 +4,4 @@ export * from "./model/codec";
 export * from "./model/demo";
 export * from "./model/manual-input";
 export * from "./model/chat";
+export * from "./model/participant";

@@ -43,12 +43,12 @@ export class SaveRegistry {
         const names = new Set<string>();
         let bits = 8;
         for (const section of format.sections) {
-            if (!section.name || names.has(section.name))
+            if (section.name.length === 0 || names.has(section.name))
                 throw new Error("存檔區段名稱無效或重複。");
             names.add(section.name);
             const fields = new Set<string>();
             for (const field of section.fields) {
-                if (!field.name || fields.has(field.name))
+                if (field.name.length === 0 || fields.has(field.name))
                     throw new Error("存檔欄位名稱無效或重複。");
                 fields.add(field.name);
                 if (

@@ -62,7 +62,8 @@ export function verifySkillArtifact(): number {
     );
     assert.ok(!/2\s*\^\s*1024/.test(script));
     assert.equal(
-        (script.match(/addScriptHook\(W3TS_HOOK.MAIN_AFTER, runSkillExample\)/g) ?? []).length,
+        // 組合入口呼叫技能範例一次，再把傳回的英雄交給存檔範例。
+        (script.match(/= runSkillExample\(\)\s+runSaveExample\(/g) ?? []).length,
         1,
     );
     assert.equal(

@@ -7,6 +7,8 @@ description: 新增存檔欄位、修改存檔碼格式、密鑰、`-save`／`-l
 
 規格：`docs/save-system/PLAN.md`（已完成，2026-11-03）。實作細節與驗證：`docs/save-system/implementation/PLAN.md`。
 
+英雄存檔規格：`docs/hero-save/PLAN.md`。S1 至 S3 的實作與工具驗證見 `docs/hero-save/implementation/PLAN.md`。S4 遊戲內驗證尚未執行。
+
 ## 結構
 
 | 位置 | 內容 |
@@ -17,6 +19,8 @@ description: 新增存檔欄位、修改存檔碼格式、密鑰、`-save`／`-l
 | `src/features/save/model/codec.ts` | 驗證碼、混淆、Crockford Base32、分組 |
 | `src/features/save/model/chat.ts`、`manual-input.ts` | `-save`、`-load`、手動分段輸入；`SaveNatives` |
 | `src/features/save/model/demo.ts`、`src/app/save-example.ts` | 範例資料與範例地圖 |
+| `src/features/save/model/participant.ts` | 通用 `SaveParticipant`。存檔功能不得依賴英雄、物品或裝備模組 |
+| `src/app/hero-save.ts` | 英雄與裝備目錄、純編碼與解碼、兩個參與者 |
 | `src/shared/rxwc3/sync/sync-chunked.ts` | 分段同步 `syncChunked` |
 | `src/shared/file-io/` | `write`／`read`（存檔檔案）、`writeReadable`（可閱讀的指令檔） |
 
@@ -26,6 +30,16 @@ description: 新增存檔欄位、修改存檔碼格式、密鑰、`-save`／`-l
 - 欄位種類：無號整數、布林、固定長度整數清單。整數範圍 0 至 16777215。
 - 格式改變時登錄新版本，並在前一版本提供 `migrate`。解碼時依序轉換到目前版本。不得修改已發布版本的欄位。
 - 物件（物品等）以目錄索引保存，不保存 32 位元物件代碼。
+
+## 版本 3 與參與者
+
+- `installSaveChat` 第八個參數為參與者清單，第七個參數仍為可選編碼器。沒有參與者時保留版本 2，既有呼叫與碼值不變。
+- 有參與者時由 `createDemoCodec(participants)` 建立版本 3。先登錄 demo，再依清單順序登錄參與者區段。版本 1、2 的欄位不變；版本 2 的 migrate 為各參與者補入 empty 的副本。
+- `empty` 必須是常數。版本轉換不得呼叫 collect 或讀取遊戲狀態。
+- 共同流程執行 collect。讀檔時先解碼並執行全部 prepare，成功後才執行全部套用函式，最後更新 demo。prepare 不得修改遊戲狀態。
+- 英雄參與者先驗證並暫存英雄純資料；裝備參與者使用此資料驗證穿戴，並產生恢復函式。必須使用 `createHeroSaveParticipants` 傳回的順序。
+- 版本 2 轉換後 `hero.present` 為 false。只恢復 demo，不改英雄與裝備。只有玩家 1 收集英雄資料。
+- 版本 3 碼長固定為 265 字元，包含分組；移除連字號後為 221 字元。手動輸入使用指令檔的三段指令。
 
 ## 編碼流程
 
@@ -64,5 +78,6 @@ description: 新增存檔欄位、修改存檔碼格式、密鑰、`-save`／`-l
 
 ## 驗證
 
-- `pnpm run test:unit`、`pnpm run test:save:lua`、`pnpm run build`。
-- 會在 WC3 中執行的修改，以 `pnpm run test` 在遊戲中驗證。
+- `npm run test:unit`、`npm run test:save:lua`、`npm run test:hero:lua`、`npm run build`。
+- 英雄存檔案例在 `tests/hero-save/`，由 Node 與英雄 Lua 驗證共用。Node 的 NumberAudit 檢查 int32 與 float32。
+- 會在 WC3 中執行的修改，以 `npm run test` 在遊戲中驗證。使用者要求保留遊戲驗證時，不執行此指令，並保留 S4 未完成。

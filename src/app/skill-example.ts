@@ -44,7 +44,7 @@ compiletime(({ objectData }) => {
     require(root + "/scripts/combat-objects.cjs").createCombatObjects(objectData, definitions);
 });
 
-export function runSkillExample(): void {
+export function runSkillExample(): HeroExample | undefined {
     const owner = new Subscription();
     const listeners = new Subscription();
     const units: unit[] = [];
@@ -253,8 +253,10 @@ export function runSkillExample(): void {
         logger.info(
             "戰鬥範例已啟動。火球術 F，寒冰箭 I。右鍵普通攻擊。指令 -pause、-resume、-skill-status、-skill-move、-combat-hold、-revive、-skill-stop、-hero、-hero-up、-hero-forget、-item-new <基底>、-items、-equip <編號>、-unequip <位置>。",
         );
+        return heroExample;
     } catch (error) {
         owner.unsubscribe();
         logger.error(error);
+        return undefined;
     }
 }

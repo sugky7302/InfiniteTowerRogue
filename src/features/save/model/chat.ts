@@ -14,6 +14,8 @@ import { SaveCodec, maxSaveCodeLength } from "./codec";
 import { SaveData } from "./format";
 import { createDemoCodec, initialDemoData, changeDemo } from "./demo";
 import { loadCommands, ManualSaveInput } from "./manual-input";
+import { SaveParticipant } from "./participant";
+import { logger } from "@shared/logger";
 
 /** 存檔流程需要的玩家原生操作。 */
 export type SaveNatives = Pick<PlayerNatives, "playerName" | "display">;
@@ -34,8 +36,10 @@ export function installSaveChat(
     natives: SaveNatives,
     network: SyncNatives,
     clock: Clock,
-    codec: SaveCodec = createDemoCodec(),
+    codec: SaveCodec | undefined = undefined,
+    participants: readonly SaveParticipant[] = [],
 ) {
+    const saveCodec = codec ?? createDemoCodec(participants);
     const owner = new Subscription();
     const states = new Map<player, SaveData>();
     for (let index = 0; index < players.length; index++) {
@@ -61,11 +65,33 @@ export function installSaveChat(
         );
         owner.add(() => manual.reset());
         const apply = (code: string, automatic: boolean): void => {
-            const data = codec.decode(code, natives.playerName(player));
+            const data = saveCodec.decode(code, natives.playerName(player));
             if (data === undefined) {
-                messages.next(automatic ? "存檔碼無效。請改用 -load <存檔碼>。" : "存檔碼無效。");
+                messages.next(
+                    automatic && participants.length === 0
+                        ? "存檔碼無效。請改用 -load <存檔碼>。"
+                        : "存檔碼無效。",
+                );
                 return;
             }
+            const actions: ((this: void) => void)[] = [];
+            try {
+                for (const participant of participants) {
+                    const values = data[participant.section.name];
+                    const action =
+                        values === undefined ? undefined : participant.prepare(player, values);
+                    if (action === undefined) {
+                        invalid();
+                        return;
+                    }
+                    actions.push(action);
+                }
+            } catch (error) {
+                logger.error(error);
+                invalid();
+                return;
+            }
+            for (const action of actions) action();
             states.set(player, data);
             messages.next("存檔已載入。");
         };
@@ -130,7 +156,22 @@ export function installSaveChat(
             chat.pipe(filter((event) => event.player === player)).subscribe((event) => {
                 const message = event.message.trim();
                 if (message === "-save") {
-                    const code = codec.encode(states.get(player)!, natives.playerName(player));
+                    const data: SaveData = { ...states.get(player)! };
+                    try {
+                        for (const participant of participants) {
+                            const values = participant.collect(player);
+                            if (values === undefined) {
+                                invalid();
+                                return;
+                            }
+                            data[participant.section.name] = values;
+                        }
+                    } catch (error) {
+                        logger.error(error);
+                        invalid();
+                        return;
+                    }
+                    const code = saveCodec.encode(data, natives.playerName(player));
                     if (code === undefined) invalid();
                     else saves.next(code);
                 } else if (message === "-load") {

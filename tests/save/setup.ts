@@ -1,12 +1,15 @@
 import { Subject, Clock } from "../../src/shared/rxwc3";
 import { ChatEvent } from "@shared/wc3-def";
 import { createLocalFileIo } from "../../src/shared/file-io";
-import { installSaveChat, SaveCodec } from "@features/save";
+import { installSaveChat, SaveCodec, SaveParticipant } from "@features/save";
 import { FakeSyncNetwork } from "../rxwc3/fake-sync-natives";
 import { FakeClockDriver } from "../rxwc3/fake-clock-driver";
 import { fakeFileIo } from "../file-io/fake-file-io";
 
-export function setupSave(codec?: SaveCodec) {
+export function setupSave(
+    codec?: SaveCodec,
+    participants?: (this: void, owner: player, client: number) => readonly SaveParticipant[],
+) {
     const network = new FakeSyncNetwork();
     const chat = new Subject<ChatEvent>();
     const files = [fakeFileIo(), fakeFileIo()];
@@ -30,6 +33,7 @@ export function setupSave(codec?: SaveCodec) {
             network.client(client),
             new Clock(drivers[client]),
             codec,
+            participants?.(network.players[0], client),
         ),
     );
     return {

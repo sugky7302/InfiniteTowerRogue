@@ -2,6 +2,7 @@ import { W3TS_HOOK, addScriptHook } from "w3ts/hooks";
 import { logger } from "@shared/logger";
 import { runSaveExample } from "./app/save-example";
 import { runSkillExample } from "./app/skill-example";
+import { createHeroSaveParticipants } from "./app/hero-save";
 
 const BUILD_DATE = compiletime(() => new Date().toUTCString());
 const TS_VERSION = compiletime(() => require("typescript").version);
@@ -32,5 +33,7 @@ function tsMain() {
 }
 
 addScriptHook(W3TS_HOOK.MAIN_AFTER, tsMain);
-addScriptHook(W3TS_HOOK.MAIN_AFTER, runSkillExample);
-addScriptHook(W3TS_HOOK.MAIN_AFTER, runSaveExample);
+addScriptHook(W3TS_HOOK.MAIN_AFTER, () => {
+    const hero = runSkillExample();
+    runSaveExample(createHeroSaveParticipants(Player(0)!, hero));
+});

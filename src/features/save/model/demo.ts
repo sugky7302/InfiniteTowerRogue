@@ -1,11 +1,12 @@
 import { SaveData, SaveRegistry } from "./format";
 import { SaveCodec } from "./codec";
+import { SaveParticipant } from "./participant";
 
 /** 目錄索引固定，已發行的索引不得改指向其他物品。0 表示空格。 */
 export const demoItemCatalog = ["", "ratf", "rst1", "rde1"] as const;
 export const demoSaveVersion = 2;
 
-export function createDemoRegistry(): SaveRegistry {
+export function createDemoRegistry(participants: readonly SaveParticipant[] = []): SaveRegistry {
     const registry = new SaveRegistry();
     registry.register({
         version: 1,
@@ -23,6 +24,22 @@ export function createDemoRegistry(): SaveRegistry {
             demo: { ...data.demo, items: [...(data.demo.items as number[]), 0, 0, 0] },
         }),
     });
+    const demoSections = [
+        {
+            name: "demo",
+            fields: [
+                { name: "level", kind: "uint" as const, min: 1, max: 100 },
+                { name: "gold", kind: "uint" as const, min: 0, max: 1000000 },
+                {
+                    name: "items",
+                    kind: "list" as const,
+                    min: 0,
+                    max: demoItemCatalog.length - 1,
+                    length: 6,
+                },
+            ],
+        },
+    ];
     registry.register({
         version: demoSaveVersion,
         sections: [
@@ -41,12 +58,35 @@ export function createDemoRegistry(): SaveRegistry {
                 ],
             },
         ],
+        migrate:
+            participants.length === 0
+                ? undefined
+                : (data) => {
+                      const next: SaveData = { demo: data.demo };
+                      for (const participant of participants) {
+                          const values: SaveData[string] = {};
+                          for (const key of Object.keys(participant.empty)) {
+                              const value = participant.empty[key];
+                              values[key] = Array.isArray(value) ? [...value] : value;
+                          }
+                          next[participant.section.name] = values;
+                      }
+                      return next;
+                  },
     });
+    if (participants.length > 0)
+        registry.register({
+            version: 3,
+            sections: [...demoSections, ...participants.map((participant) => participant.section)],
+        });
     return registry;
 }
 
-export function createDemoCodec(): SaveCodec {
-    return new SaveCodec(createDemoRegistry(), demoSaveVersion);
+export function createDemoCodec(participants: readonly SaveParticipant[] = []): SaveCodec {
+    return new SaveCodec(
+        createDemoRegistry(participants),
+        participants.length > 0 ? 3 : demoSaveVersion,
+    );
 }
 
 export function initialDemoData(): SaveData {

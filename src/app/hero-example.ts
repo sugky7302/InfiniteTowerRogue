@@ -23,7 +23,18 @@ import {
     RandomInt,
     AffixValueType,
 } from "@entities/item";
+import type { HeroSnapshot } from "./hero-save";
 
+function copyItem(item: ItemInstance, id = item.id): ItemInstance {
+    return { ...item, id, affixes: item.affixes.map((entry) => ({ ...entry })) };
+}
+
+const slotOrder: readonly EquipSlot[] = [
+    EquipSlot.MainHand,
+    EquipSlot.OffHand,
+    EquipSlot.Armor,
+    EquipSlot.Tool,
+];
 const slots: Record<EquipSlot, string> = {
     [EquipSlot.MainHand]: "主武器",
     [EquipSlot.OffHand]: "副手",
@@ -141,6 +152,39 @@ export class HeroExample {
     }
     public get items(): readonly ItemInstance[] {
         return this.held;
+    }
+    public snapshot(): HeroSnapshot {
+        const worn = { ...emptyEquipment() };
+        for (const slot of Object.values(EquipSlot)) {
+            const item = this.worn[slot];
+            if (item !== undefined) worn[slot] = copyItem(item);
+        }
+        return {
+            hero: {
+                attributes: { ...this.currentHero.attributes },
+                classes: this.currentHero.classes.map((entry) => ({ ...entry })),
+                knowledge: [...this.currentHero.knowledge],
+            },
+            worn,
+            held: this.held.map((item) => copyItem(item)),
+        };
+    }
+    public restore(hero: HeroState, worn: EquipmentState, held: readonly ItemInstance[]): void {
+        this.currentHero = {
+            attributes: { ...hero.attributes },
+            classes: hero.classes.map((entry) => ({ ...entry })),
+            knowledge: [...hero.knowledge],
+        };
+        const restored = { ...emptyEquipment() };
+        this.nextId = 1;
+        // Lua 的物件列舉順序不固定。編號依固定位置順序指定。
+        for (const slot of slotOrder) {
+            const item = worn[slot];
+            if (item !== undefined) restored[slot] = copyItem(item, this.nextId++);
+        }
+        this.worn = restored;
+        this.held = held.map((item) => copyItem(item, this.nextId++));
+        this.refresh();
     }
     private create(baseId: string): ItemInstance {
         if (this.nextId >= 2147483520) throw new Error("物品編號已達上限。");
