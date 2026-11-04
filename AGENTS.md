@@ -22,6 +22,14 @@ export const TowerState = {
 export type TowerState = (typeof TowerState)[keyof typeof TowerState];
 ```
 
+## 開發流程
+
+1. 由我與 Claude 討論，擬定出設計稿，放置在 `docs/<開發項目>/PLAN.md` 裡。
+2. Claude 根據 `PLAN.md` 切割出一個個任務，放到 `docs/<開發項目>/TASK.md`。
+3. Claude 會調用 Codex 以 TDD 原則，設計出測試項目。
+4. 由我本人實作，**AI Agents** 只能提供建議，不得直接修改。Claude 會要求我回覆是否完成，若是我回答完成，Claude 調用 Codex 進行驗證、檢查，確認符合測試。
+5. 檢查後，若是符合，則進行下一個任務，循環往復。若是不符合測試，則重複執行 4.。
+
 # 分層規則（Feature-Sliced Design）
 
 `src/` 分為四層，層名使用 FSD 標準名稱（複數）。上層可以 import 下層，下層不得 import 上層：

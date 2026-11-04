@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(pnpm run test:unit 2>&1 | Select-String -Pattern \"ℹ \\(tests|pass|fail\\)\"; pnpm run format:check 2>&1 | Select-Object -Last 1; pnpm run lint:fsd 2>&1 | Select-Object -Last 6; foreach \\($t in \"save\",\"skill\",\"i18n\",\"benchmark\",\"combat\"\\) { $o = pnpm run \"test:${t}:lua\" 2>&1; \"$t exit=$LASTEXITCODE :: \" + \\($o | Select-Object -Last 1\\) }; pnpm run build 2>&1 | Select-Object -Last 1; \\(Select-String -Path dist/map.w3x/war3map.lua -Pattern \"2 ^ 1024\" -SimpleMatch | Measure-Object\\).Count; git status --short)",
+      "PowerShell(git stash push --keep-index --include-untracked -m \"hero-wip\" 2>&1 | Select-Object -Last 1; npx tsc --noEmit -p tsconfig.test.json 2>&1 | Select-Object -Last 3; \"tsc exit=$LASTEXITCODE\"; pnpm run lint:fsd 2>&1 | Select-Object -Last 1; pnpm run test:unit 2>&1 | Select-String -Pattern \"ℹ \\(pass|fail\\)\"; git stash pop 2>&1 | Select-Object -Last 1; git status --short | Measure-Object | Select-Object -ExpandProperty Count)"
+    ]
+  }
+}
