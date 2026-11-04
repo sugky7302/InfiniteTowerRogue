@@ -7,7 +7,7 @@ description: 新增或修改英雄狀態、職業升級、物品基底、詞綴�
 
 規格：`docs/hero-item-attributes/PLAN.md`（已完成，2026-11-04）。實作與驗證記錄：`docs/hero-item-attributes/implementation/PLAN.md`。
 
-英雄存檔：`docs/hero-save/PLAN.md`；S1 至 S3 實作記錄：`docs/hero-save/implementation/PLAN.md`。S4 遊戲內驗證尚未執行。
+英雄存檔：`docs/hero-save/PLAN.md`；實作記錄：`docs/hero-save/implementation/PLAN.md`（已完成，2026-11-04）。存檔細節見 `.github/skills/save-system`。
 
 ## 結構
 
@@ -63,5 +63,4 @@ description: 新增或修改英雄狀態、職業升級、物品基底、詞綴�
 
 ## 尚未接入
 
-- 英雄存檔的 S4 遊戲內驗證尚未執行。
 - 法力容量與恢復不隨智力變化。

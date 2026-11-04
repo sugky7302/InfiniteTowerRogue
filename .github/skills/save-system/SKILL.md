@@ -7,7 +7,7 @@ description: 新增存檔欄位、修改存檔碼格式、密鑰、`-save`／`-l
 
 規格：`docs/save-system/PLAN.md`（已完成，2026-11-03）。實作細節與驗證：`docs/save-system/implementation/PLAN.md`。
 
-英雄存檔規格：`docs/hero-save/PLAN.md`。S1 至 S3 的實作與工具驗證見 `docs/hero-save/implementation/PLAN.md`。S4 遊戲內驗證尚未執行。
+英雄存檔規格：`docs/hero-save/PLAN.md`。實作與驗證見 `docs/hero-save/implementation/PLAN.md`（已完成，2026-11-04）。
 
 ## 結構
 
@@ -70,6 +70,17 @@ description: 新增存檔欄位、修改存檔碼格式、密鑰、`-save`／`-l
 - `syncChunked`：每片預設 200 位元組，最多 64 片、4096 位元組。允許亂序與重複；新序號覆蓋舊序號；15 秒逾時。prefix 與一般 `sync` 共用登錄表，不得重複。
 - 手動分段：每片最多 80 字元（指令最長 92 字元），等待 60 秒。
 
+## 存檔檔案（file-io）
+
+- 檔案框架 `ITF1|長度|資料|檢查碼` 每 96 字元一段。每段寫入一個技能的第 0 級：`A0IO`、`AF01`～`AF42`（最多 43 段）。技能代碼在 `src/shared/file-io/codec.ts` 與 `scripts/file-io.cjs`，兩處必須相同。
+- 遊戲內確認（2026-11-04）：Preloader 執行時，`BlzGetAbilityTooltip(...)+` 串接不生效；第 1 級以上的提示也不能獨立保存（讀回時每級都是第 0 級的內容）。不得改回這兩種寫法。
+- 假原生介面不支援串接與多級，與遊戲行為一致。Node 與 Fengari 無法證明 Preloader 的行為，修改後必須在遊戲中驗證超過 96 字元的存檔。
+- 自動讀檔失敗時，本地顯示讀取結果（沒有檔案、內容錯誤與讀回字元數、讀取失敗、過長）。
+
+## 遊戲內結果（2026-11-04，版本 3）
+
+- 英雄存檔：自動讀檔、手動分段、竄改偵測、版本 2 轉換全部通過。
+
 ## 遊戲內結果（2026-11-03，單人）
 
 - 存檔、重新開啟地圖、`-load` 自動讀檔、手動完整輸入、分段輸入、竄改偵測、檔案遺失提示：全部通過。
@@ -80,4 +91,4 @@ description: 新增存檔欄位、修改存檔碼格式、密鑰、`-save`／`-l
 
 - `npm run test:unit`、`npm run test:save:lua`、`npm run test:hero:lua`、`npm run build`。
 - 英雄存檔案例在 `tests/hero-save/`，由 Node 與英雄 Lua 驗證共用。Node 的 NumberAudit 檢查 int32 與 float32。
-- 會在 WC3 中執行的修改，以 `npm run test` 在遊戲中驗證。使用者要求保留遊戲驗證時，不執行此指令，並保留 S4 未完成。
+- 會在 WC3 中執行的修改，以 `npm run test` 在遊戲中驗證。使用者要求保留遊戲驗證時，不執行此指令。
