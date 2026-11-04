@@ -25,7 +25,8 @@
 - 最後一行只呼叫一次 `BlzSetAbilityIcon(1097690227,o)`。數字由 TS 的字元碼計算，不呼叫檔案內的 FourCC。
 
 ## 與設計稿的差異
-n- 檢查時加入：`wc3FileNatives.load` 在 `Preloader` 後還原全域 `Preload` 與 `PreloadEnd`。w3ts 的參考實作沒有還原，讀檔後同一局的寫檔（例如自動讀檔後 `-save`）會被累加函式吞掉。
+
+- 檢查時加入：`wc3FileNatives.load` 在 `Preloader` 後還原全域 `Preload` 與 `PreloadEnd`。w3ts 的參考實作沒有還原，讀檔後同一局的寫檔（例如自動讀檔後 `-save`）會被累加函式吞掉。
 
 寫出格式與方案 B 相同。反跳脫改為單次掃描：w3ts 的兩次取代會把原始 ESC 加 q 的文字誤轉成 ESC 加雙引號，單次掃描可完整還原。舊檔沒有改動圖示時回傳 Missing，符合本次任務允許的結果。F2 尚未執行，上層 PLAN.md 的是否完成保持 false。
 
@@ -42,26 +43,26 @@ n- 檢查時加入：`wc3FileNatives.load` 在 `Preloader` 後還原全域 `Prel
 
 F1 已完成。F2 尚未執行。上層規格的是否完成保持 false。
 
-| 指令 | 結果 |
-|---|---|
-| `npm run test:unit` | 866 項通過，0 項失敗 |
-| `npm run format:check` | 通過 |
-| Prettier `--debug-check` | 通過，結束代碼 0 |
-| `npm run lint:fsd` | 0 個問題，未加入豁免 |
-| `npm run build` | 通過，已封裝 dist/bin/map.w3x；未發生檔案占用 |
-| `npm run test:save:lua` | 15 組通過 |
-| `npm run test:skill:lua` | 16 組通過 |
-| `npm run test:i18n:lua` | 多語言 11 組、檔案 33 組通過 |
-| `npm run test:benchmark:lua` | 18 組通過 |
-| `npm run test:combat:lua` | 113 組通過 |
-| `npm run test:hero:lua` | 124 組通過 |
-| `npm run test:save:artifact` | 12 組通過 |
-| `npm run test:skill:artifact` | 5 組通過 |
-| `npm run test:i18n:artifact` | 8 組通過 |
-| `npm run test:benchmark:artifact` | 4 組通過 |
-| `npm run test:combat:artifact` | 7 組通過 |
-| `npm run test:hero:artifact` | 6 組通過 |
-| `git diff --check` | 通過 |
+| 指令                              | 結果                                          |
+| --------------------------------- | --------------------------------------------- |
+| `npm run test:unit`               | 866 項通過，0 項失敗                          |
+| `npm run format:check`            | 通過                                          |
+| Prettier `--debug-check`          | 通過，結束代碼 0                              |
+| `npm run lint:fsd`                | 0 個問題，未加入豁免                          |
+| `npm run build`                   | 通過，已封裝 dist/bin/map.w3x；未發生檔案占用 |
+| `npm run test:save:lua`           | 15 組通過                                     |
+| `npm run test:skill:lua`          | 16 組通過                                     |
+| `npm run test:i18n:lua`           | 多語言 11 組、檔案 33 組通過                  |
+| `npm run test:benchmark:lua`      | 18 組通過                                     |
+| `npm run test:combat:lua`         | 113 組通過                                    |
+| `npm run test:hero:lua`           | 124 組通過                                    |
+| `npm run test:save:artifact`      | 12 組通過                                     |
+| `npm run test:skill:artifact`     | 5 組通過                                      |
+| `npm run test:i18n:artifact`      | 8 組通過                                      |
+| `npm run test:benchmark:artifact` | 4 組通過                                      |
+| `npm run test:combat:artifact`    | 7 組通過                                      |
+| `npm run test:hero:artifact`      | 6 組通過                                      |
+| `git diff --check`                | 通過                                          |
 
 - Lua 合計 430 組通過；地圖產物合計 42 組通過。
 - `war3map.lua` 與封裝腳本一致。`2 ^ 1024` 為 0 筆。

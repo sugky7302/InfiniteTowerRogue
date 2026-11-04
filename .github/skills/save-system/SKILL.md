@@ -11,18 +11,18 @@ description: 新增存檔欄位、修改存檔碼格式、密鑰、`-save`／`-l
 
 ## 結構
 
-| 位置 | 內容 |
-|---|---|
-| `src/features/save/model/format.ts` | 資料格式登錄（`SaveRegistry`、`SaveSection`）、位元打包、版本轉換 |
-| `src/features/save/lib/hash.ts` | SHA-256 與 HMAC（16 位元半字運算） |
-| `src/features/save/config/keys.ts` | 密鑰與密鑰版本（唯一位置，不從 `index.ts` 匯出） |
-| `src/features/save/model/codec.ts` | 驗證碼、混淆、Crockford Base32、分組 |
-| `src/features/save/model/chat.ts`、`manual-input.ts` | `-save`、`-load`、手動分段輸入；`SaveNatives` |
-| `src/features/save/model/demo.ts`、`src/app/save-example.ts` | 範例資料與範例地圖 |
-| `src/features/save/model/participant.ts` | 通用 `SaveParticipant`。存檔功能不得依賴英雄、物品或裝備模組 |
-| `src/app/hero-save.ts` | 英雄與裝備目錄、純編碼與解碼、兩個參與者 |
-| `src/shared/rxwc3/sync/sync-chunked.ts` | 分段同步 `syncChunked` |
-| `src/shared/file-io/` | `write`／`read`（存檔檔案）、`writeReadable`（可閱讀的指令檔） |
+| 位置                                                         | 內容                                                              |
+| ------------------------------------------------------------ | ----------------------------------------------------------------- |
+| `src/features/save/model/format.ts`                          | 資料格式登錄（`SaveRegistry`、`SaveSection`）、位元打包、版本轉換 |
+| `src/features/save/lib/hash.ts`                              | SHA-256 與 HMAC（16 位元半字運算）                                |
+| `src/features/save/config/keys.ts`                           | 密鑰與密鑰版本（唯一位置，不從 `index.ts` 匯出）                  |
+| `src/features/save/model/codec.ts`                           | 驗證碼、混淆、Crockford Base32、分組                              |
+| `src/features/save/model/chat.ts`、`manual-input.ts`         | `-save`、`-load`、手動分段輸入；`SaveNatives`                     |
+| `src/features/save/model/demo.ts`、`src/app/save-example.ts` | 範例資料與範例地圖                                                |
+| `src/features/save/model/participant.ts`                     | 通用 `SaveParticipant`。存檔功能不得依賴英雄、物品或裝備模組      |
+| `src/app/hero-save.ts`                                       | 英雄與裝備目錄、純編碼與解碼、兩個參與者                          |
+| `src/shared/rxwc3/sync/sync-chunked.ts`                      | 分段同步 `syncChunked`                                            |
+| `src/shared/file-io/`                                        | `write`／`read`（存檔檔案）、`writeReadable`（可閱讀的指令檔）    |
 
 ## 新增存檔欄位
 
@@ -64,13 +64,13 @@ description: 新增存檔欄位、修改存檔碼格式、密鑰、`-save`／`-l
 
 ## 同步規則
 
-| 操作 | 執行位置 |
-|---|---|
-| `-save` 收集與編碼 | 共同流程 |
-| 寫入 `save.pld`、`save-commands.pld`、顯示存檔碼 | 只在擁有者本地 |
-| `-load` 讀檔 | 只在擁有者本地，再以 `syncChunked` 送給全部用戶端 |
-| 解碼、驗證、套用 | 全部用戶端（同步） |
-| `-load <存檔碼>`、`-load 1/2 <片段>` | 聊天事件已同步，直接解碼，不經 sync |
+| 操作                                             | 執行位置                                          |
+| ------------------------------------------------ | ------------------------------------------------- |
+| `-save` 收集與編碼                               | 共同流程                                          |
+| 寫入 `save.pld`、`save-commands.pld`、顯示存檔碼 | 只在擁有者本地                                    |
+| `-load` 讀檔                                     | 只在擁有者本地，再以 `syncChunked` 送給全部用戶端 |
+| 解碼、驗證、套用                                 | 全部用戶端（同步）                                |
+| `-load <存檔碼>`、`-load 1/2 <片段>`             | 聊天事件已同步，直接解碼，不經 sync               |
 
 - `syncChunked`：每片預設 200 位元組，最多 64 片、4096 位元組。允許亂序與重複；新序號覆蓋舊序號；15 秒逾時。prefix 與一般 `sync` 共用登錄表，不得重複。
 - 存檔範例使用預設 200，不再指定 20。最壞存檔含請求序號最多 1405 位元組，需 8 片，仍在通道上限內。
