@@ -19,11 +19,18 @@ const resourceFields = [
     "globalSequences",
 ] as const;
 let count = 0;
+let failures = 0;
 
 function verify(name: string, action: () => void): void {
-    action();
-    count++;
-    console.log(`通過。${name}`);
+    try {
+        action();
+        count++;
+        console.log(`通過。${name}`);
+    } catch (error) {
+        failures++;
+        console.error(`失敗。${name}`);
+        console.error(error);
+    }
 }
 
 function fixture(withEffects: boolean): Model {
@@ -287,4 +294,78 @@ verify("無效果模型的內容保持不變。", () => {
     );
     assert.deepEqual(cleanModel.saveMdx(), bytes, "無效果時，全部 MDX 位元組應保持不變。");
 });
-console.log(`英雄預覽 T1 測試共 ${count} 組通過，0 組失敗。`);
+
+function errorSnapshot(model: Model) {
+    return {
+        nodes: [...retainedFields, ...effectFields].map((field) =>
+            model[field].map((node) => ({
+                name: node.name,
+                objectId: node.objectId,
+                parentId: node.parentId,
+            })),
+        ),
+        effects: effectFields.map((field) => model[field].length),
+        pivots: model.pivotPoints.map((pivot) => Array.from(pivot)),
+        matrixIndices: model.geosets.map((geoset) => Array.from(geoset.matrixIndices)),
+        matrixGroups: model.geosets.map((geoset) => Array.from(geoset.matrixGroups)),
+        bytes: new Uint8Array(model.saveMdx()),
+    };
+}
+
+for (const scenario of [
+    { name: "不存在的節點", oldId: 999999 },
+    { name: "要移除的粒子發射器", oldId: fixture(true).particleEmitters[0].objectId },
+]) {
+    const geosetIndex = 1;
+    const itemIndex = 2;
+    function invalidModel(): Model {
+        const result = fixture(true);
+        // 第二個幾何使用獨立資料，讓測試可以發現第一個幾何已被部分改寫。
+        result.geosets.push(fixture(true).geosets[0]);
+        result.geosets[geosetIndex].matrixIndices[itemIndex] = scenario.oldId;
+        return result;
+    }
+
+    verify(`矩陣編號指向${scenario.name}時丟出錯誤。`, () => {
+        assert.throws(
+            () => stripEffects(invalidModel()),
+            Error,
+            `矩陣編號 ${scenario.oldId} 沒有對應的保留節點時，應丟出錯誤。`,
+        );
+    });
+
+    verify(`矩陣編號指向${scenario.name}時，錯誤發生後模型完全不變。`, () => {
+        const result = invalidModel();
+        const original = errorSnapshot(result);
+        assert.throws(() => stripEffects(result), Error, "應丟出矩陣編號錯誤。");
+        assert.deepEqual(
+            errorSnapshot(result),
+            original,
+            "丟出錯誤時，全部節點、效果數量、pivot、各幾何矩陣與 MDX 位元組應保持不變。",
+        );
+    });
+
+    verify(`矩陣編號指向${scenario.name}時，錯誤訊息包含位置與舊編號。`, () => {
+        assert.throws(
+            () => stripEffects(invalidModel()),
+            (error: unknown) => {
+                assert.ok(error instanceof Error, "應丟出 Error 物件。");
+                // 幾何與項目索引從 0 開始。只檢查三個完整數字，不限制其他訊息文字。
+                const numbers: string[] = error.message.match(/\d+/g) ?? [];
+                for (const value of [geosetIndex, itemIndex, scenario.oldId]) {
+                    assert.ok(
+                        numbers.includes(String(value)),
+                        `錯誤訊息應包含幾何索引 ${geosetIndex}、項目索引 ${itemIndex} 與舊編號 ${scenario.oldId}。收到「${error.message}」。`,
+                    );
+                }
+                return true;
+            },
+            "應丟出包含位置與舊編號的錯誤。",
+        );
+    });
+}
+
+console.log(`英雄預覽 T1 測試共 ${count} 組通過，${failures} 組失敗。`);
+if (failures > 0) {
+    process.exitCode = 1;
+}
