@@ -43,6 +43,17 @@
   - `assets/models/hero-archmage.mdx` 存在時，輸出 `ui/itr-hero-archmage-unshaded.mdx`，包裝模型的附件 `Path` 為 `ui\itr-hero-archmage-unshaded.mdx`。
   - 檔案不存在時，附件 `Path` 使用遊戲內建 `units\human\HeroArchMage\HeroArchMage.mdx`，並以建置記錄顯示警告。建置不失敗。
 - 暫時的實驗切換：環境變數 `ITR_PREVIEW_UNSHADED`。值為 `0` 時 `unshaded: false`（E2），其他值或未設定時為 `true`（E3）。
+- 為了測試，`writePreviewModels` 的介面改為 `writePreviewModels(uiFolder, heroModel, options = {})`：
+
+  | 選項 | 預設值 | 用途 |
+  |---|---|---|
+  | `source` | `assets/models/hero-archmage.mdx`（相對於目前工作資料夾） | 複本的來源檔案 |
+  | `unshaded` | `process.env.ITR_PREVIEW_UNSHADED !== "0"` | 是否呼叫 `makeUnshaded` |
+  | `warn` | `console.warn` | 沒有來源檔案時輸出警告的函式 |
+
+  - 回傳包裝模型實際使用的附件路徑（字串）。
+  - `scripts/utils.ts` 的呼叫方式不變（只傳前兩個參數）。
+  - 來源檔案存在但無法解析時，丟出錯誤（建置失敗），不得改用遊戲內建模型。
 
 完成條件：測試通過；`npm run build` 成功；`npm run test:ui:artifact` 通過。
 
@@ -73,7 +84,7 @@
 |---|---|---|---|
 | T1 | 完成 | 完成 | 完成 |
 | T2 | 完成 | 完成 | 完成 |
-| T3 | 未開始 | 未開始 | 未開始 |
+| T3 | 完成 | 未開始 | 未開始 |
 | T4 | 未開始 | 未開始 | 未開始 |
 | T5 | — | — | 未開始 |
 | T6 | — | 未開始 | 未開始 |
