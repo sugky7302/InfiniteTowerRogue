@@ -1,4 +1,5 @@
 import { FileNatives } from "@shared/wc3-def";
+import { fileSegmentAbilities } from "../../src/shared/file-io/codec";
 
 /** 模擬預載檔的技能資料通道，不模擬遊戲的磁碟權限或快取。 */
 export function fakeFileIo() {
@@ -6,7 +7,7 @@ export function fakeFileIo() {
     const files = new Map<string, string>();
     const outputs = new Map<string, string[]>();
     const lines: string[] = [];
-    const tooltips: string[] = ["原始提示"];
+    const tooltips = new Map<string, string>();
     let prepares = 0;
     let writes = 0;
     let failRead = false;
@@ -15,9 +16,9 @@ export function fakeFileIo() {
         prepare: () => {
             prepares++;
         },
-        getTooltip: (level) => tooltips[level] ?? "",
-        setTooltip: (value, level) => {
-            tooltips[level] = value;
+        getTooltip: (ability) => tooltips.get(ability) ?? "原始提示",
+        setTooltip: (value, ability) => {
+            tooltips.set(ability, value);
         },
         clear: () => {
             lines.length = 0;
@@ -28,20 +29,19 @@ export function fakeFileIo() {
         },
         finish(path) {
             if (failWrite) throw new Error("測試寫入錯誤。");
-            // 模擬 Preloader：每行只設定指定等級，不支援串接。
+            // 模擬 Preloader：每行設定一個技能，不支援串接。
             const parts: string[] = [];
             for (const line of lines) {
                 // Lua 轉譯不支援正規表示式，所以逐段尋找。
-                const head = "BlzSetAbilityTooltip('A0IO',\"";
+                const head = "BlzSetAbilityTooltip('";
                 const start = line.indexOf(head);
                 if (start < 0) continue;
-                const textEnd = line.indexOf('",', start + head.length);
-                const levelEnd = line.indexOf(")", textEnd + 2);
-                if (textEnd < 0 || levelEnd < 0) continue;
-                parts[Number(line.slice(textEnd + 2, levelEnd))] = line.slice(
-                    start + head.length,
-                    textEnd,
-                );
+                const code = line.slice(start + head.length, start + head.length + 4);
+                const textStart = start + head.length + 7;
+                const textEnd = line.indexOf('",0)', textStart);
+                const segment = fileSegmentAbilities.indexOf(code);
+                if (textEnd < 0 || segment < 0) continue;
+                parts[segment] = line.slice(textStart, textEnd);
             }
             files.set(path, parts.join(""));
             outputs.set(path, [...lines]);
@@ -52,7 +52,7 @@ export function fakeFileIo() {
             const value = files.get(path);
             if (value === undefined) return;
             for (let index = 0; index * 96 < value.length; index++)
-                tooltips[index] = value.slice(index * 96, index * 96 + 96);
+                tooltips.set(fileSegmentAbilities[index], value.slice(index * 96, index * 96 + 96));
         },
     };
     return {
@@ -60,7 +60,7 @@ export function fakeFileIo() {
         files,
         outputs,
         lines,
-        getTooltip: () => tooltips[0],
+        getTooltip: () => tooltips.get("A0IO") ?? "原始提示",
         prepares: () => prepares,
         writes: () => writes,
         failRead: (value: boolean) => {

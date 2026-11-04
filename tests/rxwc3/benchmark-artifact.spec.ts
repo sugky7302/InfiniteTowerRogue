@@ -19,8 +19,9 @@ export function verifyBenchmarkArtifact(): void {
     const { loadObjectData } = require("war3-transformer/dist/objectdata");
     const data = loadObjectData(directory);
     assert.ok(data.abilities.has("A0IO"));
-    // 每段檔案資料使用一個等級（fileSegmentCount）。
-    assert.equal(data.abilities.get("A0IO").levels, 43);
+    // 每段檔案資料使用一個技能的第 0 級：A0IO、AF01～AF42。
+    assert.equal(data.abilities.get("A0IO").levels, 1);
+    assert.ok(data.abilities.has("AF01") && data.abilities.has("AF42"));
 }
 
 if (require.main === module) {

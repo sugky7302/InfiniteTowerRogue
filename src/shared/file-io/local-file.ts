@@ -1,5 +1,5 @@
 import { FileNatives } from "@shared/wc3-def";
-import { decodeFileData, encodeFileData, fileSegmentCount, fileSegmentLength } from "./codec";
+import { decodeFileData, encodeFileData, fileSegmentAbilities, fileSegmentLength } from "./codec";
 
 export const FileReadStatus = {
     Read: "已讀取",
@@ -44,26 +44,26 @@ function safePath(path: string): boolean {
 
 /** 建立時須在共同流程預載資源。回傳的方法只供本地顯示資料使用。 */
 export function createLocalFileIo(natives: FileNatives) {
-    natives.prepare();
+    natives.prepare(fileSegmentAbilities);
     return {
         read(path: string): FileRead {
             if (!safePath(path)) return { status: FileReadStatus.InvalidPath };
             const saved: string[] = [];
             try {
-                for (let level = 0; level < fileSegmentCount; level++)
-                    saved.push(natives.getTooltip(level));
+                for (const ability of fileSegmentAbilities) saved.push(natives.getTooltip(ability));
             } catch {
                 return { status: FileReadStatus.Failed };
             }
             let result: FileRead;
             try {
-                natives.setTooltip("ITF-MISSING", 0);
-                for (let level = 1; level < fileSegmentCount; level++)
-                    natives.setTooltip("ITF-END", level);
+                // 每段在不同技能。第一段的標記表示沒有檔案；其他段的標記表示資料結束。
+                fileSegmentAbilities.forEach((ability, index) =>
+                    natives.setTooltip(index === 0 ? "ITF-MISSING" : "ITF-END", ability),
+                );
                 natives.load(path);
                 let raw = "";
-                for (let level = 0; level < fileSegmentCount; level++) {
-                    const part = natives.getTooltip(level);
+                for (const ability of fileSegmentAbilities) {
+                    const part = natives.getTooltip(ability);
                     if (part === "ITF-END") break;
                     raw += part;
                 }
@@ -78,8 +78,9 @@ export function createLocalFileIo(natives: FileNatives) {
                 result = { status: FileReadStatus.Failed };
             }
             try {
-                for (let level = 0; level < fileSegmentCount; level++)
-                    natives.setTooltip(saved[level], level);
+                fileSegmentAbilities.forEach((ability, index) =>
+                    natives.setTooltip(saved[index], ability),
+                );
             } catch {
                 return { status: FileReadStatus.Failed };
             }
@@ -93,19 +94,18 @@ export function createLocalFileIo(natives: FileNatives) {
             try {
                 natives.clear();
                 natives.start();
-                // 每段最多 96 個 ASCII 字元，寫入自己的等級。連同注入語句仍小於 200 個位元組。
-                // Preloader 執行時，BlzGetAbilityTooltip 串接不會生效，所以不串接。
-                // 等級使用整數計數。Lua 的除法得到浮點數，轉成文字是 1.0，JASS 不接受。
-                let level = 0;
+                // 每段最多 96 個 ASCII 字元，寫入自己技能的第 0 級。連同注入語句仍小於 200 個位元組。
+                // Preloader 執行時，串接與第 1 級以上的提示都不生效，所以每段使用不同技能。
+                let segment = 0;
                 for (let index = 0; index < encoded.length; index += fileSegmentLength) {
                     natives.emit(
-                        "\")\ncall BlzSetAbilityTooltip('A0IO',\"" +
+                        "\")\ncall BlzSetAbilityTooltip('" +
+                            fileSegmentAbilities[segment] +
+                            "',\"" +
                             encoded.slice(index, index + fileSegmentLength) +
-                            '",' +
-                            level +
-                            ")\n//",
+                            '",0)\n//',
                     );
-                    level++;
+                    segment++;
                 }
                 natives.emit('\")\nendfunction\nfunction a takes nothing returns nothing\n//');
                 natives.finish(path);

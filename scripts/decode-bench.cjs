@@ -10,10 +10,10 @@ const { parseRecords } = require("../src/shared/rxwc3/benchmark/results.ts");
 
 function decodePld(filename) {
     const text = fs.readFileSync(filename, "utf8");
-    // 舊格式以第 0 級串接；新格式每段一個等級。兩者都依出現順序接回。
+    // 舊格式以 A0IO 串接；新格式每段一個技能。兩者都依出現順序接回。
     const chunks = [
         ...text.matchAll(
-            /BlzSetAbilityTooltip\('A0IO',(?:BlzGetAbilityTooltip\('A0IO',0\)\+)?"((?:[^"\\]|\\.)*)",\d+\)/g,
+            /BlzSetAbilityTooltip\('(?:A0IO|AF\d\d)',(?:BlzGetAbilityTooltip\('A0IO',0\)\+)?"((?:[^"\\]|\\.)*)",\d+\)/g,
         ),
     ];
     const frame = chunks.map((match) => JSON.parse(`"${match[1]}"`)).join("");

@@ -45,32 +45,33 @@ const checks = `
 debug = nil
 local validation = (function(...) ${bundle} end)()
 assert(validation.verifyFileIo() == 10, '檔案共用流程的組數錯誤')
-local created, removed, tooltip, emitted = 0, 0, '原始提示', {}
-local expected = {hpea = 1752196449, A0IO = 1093683535}
-FourCC = function(code) assert(expected[code], '技能或單位代碼錯誤'); return expected[code] end
+local created, removed, emitted, added = 0, 0, {}, 0
+local abilities = {A0IO = true}
+for index = 1, 42 do abilities[string.format('AF%02d', index)] = true end
+-- 技能代碼直接當成識別值。每個技能只使用第 0 級。
+FourCC = function(code) assert(code == 'hpea' or abilities[code], '技能或單位代碼錯誤'); return code end
 PLAYER_NEUTRAL_PASSIVE = 27
 local player, carrier = {}, {}
 Player = function(id) assert(id == 27); return player end
 CreateUnit = function(...)
   local p, id, x, y, facing = ...
-  assert(select('#', ...) == 5 and p == player and id == expected.hpea and x == 0 and y == 0 and facing == 0)
+  assert(select('#', ...) == 5 and p == player and id == 'hpea' and x == 0 and y == 0 and facing == 0)
   created = created + 1
   return carrier
 end
 ShowUnit = function(target, show) assert(target == carrier and show == false) end
-UnitAddAbility = function(target, id) assert(target == carrier and id == expected.A0IO); return true end
+UnitAddAbility = function(target, id) assert(target == carrier and abilities[id]); added = added + 1; return true end
 RemoveUnit = function(target) assert(target == carrier); removed = removed + 1 end
-local levels = {}
+local tooltips = {}
 BlzGetAbilityTooltip = function(...)
   local id, level = ...
-  assert(select('#', ...) == 2 and id == expected.A0IO and math.type(level) == 'integer' and level >= 0 and level < 43, '讀取技能收到額外 self')
-  if level == 0 then return tooltip end
-  return levels[level] or '原始提示'
+  assert(select('#', ...) == 2 and abilities[id] and level == 0, '讀取技能收到額外 self 或等級錯誤')
+  return tooltips[id] or '原始提示'
 end
 BlzSetAbilityTooltip = function(...)
   local id, text, level = ...
-  assert(select('#', ...) == 3 and id == expected.A0IO and math.type(level) == 'integer' and level >= 0 and level < 43, '設定技能收到額外 self')
-  if level == 0 then tooltip = text else levels[level] = text end
+  assert(select('#', ...) == 3 and abilities[id] and level == 0, '設定技能收到額外 self 或等級錯誤')
+  tooltips[id] = text
 end
 PreloadGenClear = function(...) assert(select('#', ...) == 0) end
 PreloadGenStart = function(...) assert(select('#', ...) == 0) end
@@ -82,19 +83,19 @@ end
 PreloadGenEnd = function(...) assert(select('#', ...) == 1 and (...) == 'slot.pld') end
 Preloader = function(...) assert(select('#', ...) == 1 and (...) == 'slot.pld') end
 local files = validation.createLocalFileIo(validation.natives)
-assert(created == 1 and removed == 1, '未在共同流程預先載入技能')
+assert(created == 1 and removed == 1 and added == 43, '未在共同流程預先載入技能')
 CreateUnit = function() error('本地讀寫建立單位') end
 CreateTrigger = function() error('本地讀寫建立觸發器') end
 CreateGroup = function() error('本地讀寫建立群組') end
 UnitAddAbility = function() error('本地讀寫建立技能資源') end
-assert(files:read('slot.pld').status == '沒有檔案或無法讀取' and tooltip == 'ITF-IDLE', '正式讀取或恢復錯誤')
-assert(levels[1] == '原始提示' and levels[42] == '原始提示', '其他等級沒有還原')
+assert(files:read('slot.pld').status == '沒有檔案或無法讀取' and tooltips.A0IO == 'ITF-IDLE', '正式讀取或恢復錯誤')
+assert(tooltips.AF01 == 'ITF-IDLE' and tooltips.AF42 == 'ITF-IDLE', '其他技能沒有還原')
 assert(files:write('slot.pld', 'ABC').status == '已送出，尚未確認磁碟寫入', '正式寫入錯誤')
 assert(#emitted == 2 and string.find(emitted[1], 'ITF1|', 1, true), '預載檔語句錯誤')
 emitted = {}
 assert(files:write('slot.pld', string.rep('A', 200)).status == '已送出，尚未確認磁碟寫入', '多段寫入錯誤')
--- 等級必須是整數文字。Lua 的除法得到 1.0，JASS 不接受。
-assert(#emitted == 4 and string.find(emitted[2], '",1)', 1, true) and string.find(emitted[3], '",2)', 1, true), '多段等級文字錯誤')
+-- 每段使用不同技能的第 0 級。
+assert(#emitted == 4 and string.find(emitted[1], "('A0IO',", 1, true) and string.find(emitted[2], "('AF01',", 1, true) and string.find(emitted[3], "('AF02',", 1, true) and string.find(emitted[3], '",0)', 1, true), '多段技能代碼錯誤')
 `;
 const state = lauxlib.luaL_newstate();
 lualib.luaL_openlibs(state);

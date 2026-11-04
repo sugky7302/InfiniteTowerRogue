@@ -17,7 +17,7 @@ import { Subject } from "../../src/shared/rxwc3/core/subject";
 import { ChatEvent, wc3FileNatives } from "@shared/wc3-def";
 import { FakeSyncNetwork } from "../rxwc3/fake-sync-natives";
 import { fakeFileIo } from "./fake-file-io";
-import { fileSegmentCount } from "../../src/shared/file-io/codec";
+import { fileSegmentAbilities, fileSegmentCount } from "../../src/shared/file-io/codec";
 import { verifyFileIo } from "./file-io-lua.spec";
 
 test("本地檔案在 Node 執行十組 Lua 共用流程", () => assert.equal(verifyFileIo(), 10));
@@ -206,20 +206,22 @@ test("正式介面只在 prepare 建立載入資源，讀寫只呼叫預載與�
     const saved = names.map((name) => Object.getOwnPropertyDescriptor(globalThis, name));
     const globals = globalThis as any;
     try {
-        const tooltips = new Map<number, string>();
+        const tooltips = new Map<unknown, string>();
         for (const name of names)
             globals[name] = (...args: unknown[]) => {
                 calls.push([name, args]);
                 return {};
             };
         globals.PLAYER_NEUTRAL_PASSIVE = 27;
+        // 每段一個技能，所以 FourCC 必須區分代碼。
+        globals.FourCC = (code: string) => code;
         globals.BlzGetAbilityTooltip = (...args: unknown[]) => {
             calls.push(["BlzGetAbilityTooltip", args]);
-            return tooltips.get(args[1] as number) ?? "原始提示";
+            return tooltips.get(args[0]) ?? "原始提示";
         };
         globals.BlzSetAbilityTooltip = (...args: unknown[]) => {
             calls.push(["BlzSetAbilityTooltip", args]);
-            tooltips.set(args[2] as number, args[1] as string);
+            tooltips.set(args[0], args[1] as string);
         };
         const files = createLocalFileIo(wc3FileNatives);
         assert.equal(calls.filter(([name]) => name === "CreateUnit").length, 1);
@@ -243,17 +245,12 @@ test("正式介面只在 prepare 建立載入資源，讀寫只呼叫預載與�
         assert(
             calls
                 .filter(([name]) => name === "BlzSetAbilityTooltip")
-                .every(
-                    ([, args]) =>
-                        args.length === 3 &&
-                        Number.isInteger(args[2]) &&
-                        (args[2] as number) >= 0 &&
-                        (args[2] as number) < fileSegmentCount,
-                ),
+                .every(([, args]) => args.length === 3 && args[2] === 0),
         );
-        // 讀取後還原每個等級的原值。
-        assert.equal(tooltips.get(0), "ITF-IDLE");
-        assert.equal(tooltips.get(1), "原始提示");
+        // 每段一個技能。讀取後還原每個技能的原值。
+        assert.equal(tooltips.get("A0IO"), "ITF-IDLE");
+        assert.equal(tooltips.get("AF42"), "ITF-IDLE");
+        assert.equal(fileSegmentAbilities.length, fileSegmentCount);
     } finally {
         names.forEach((name, index) => {
             const descriptor = saved[index];

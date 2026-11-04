@@ -1,9 +1,20 @@
 const alphabet =
     " !#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~";
 export const maxFileDataLength = 4096;
-/** 每段 96 字元。框架最長 4128 字元，所以最多 43 段。必須與 A0IO 的等級數相同。 */
+/** 每段 96 字元。框架最長 4128 字元，所以最多 43 段。 */
 export const fileSegmentLength = 96;
 export const fileSegmentCount = 43;
+
+/**
+ * 每段使用一個技能的第 0 級：A0IO、AF01～AF42。必須與 scripts/file-io.cjs 相同。
+ * 遊戲內確認（2026-11-04）：Preloader 中的串接不生效，第 1 級以上的提示也不能獨立保存。
+ */
+export const fileSegmentAbilities: readonly string[] = (() => {
+    const codes = ["A0IO"];
+    for (let index = 1; index < fileSegmentCount; index++)
+        codes.push(index < 10 ? `AF0${index}` : `AF${index}`);
+    return codes;
+})();
 
 /** 限制為可直接放入 JASS 字串的 ASCII。中文等資料須先由呼叫者編碼。 */
 function safeData(value: string): boolean {
