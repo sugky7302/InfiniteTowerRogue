@@ -305,8 +305,8 @@ export function runUiExperiment(
                 const sources = [
                     modelPath,
                     "units\\human\\Footman\\Footman.mdl",
-                    "ui\\itr-hero-preview-nocam.mdl",
-                    "ui\\itr-hero-preview.mdl",
+                    "ui\\itr-hero-preview-00.mdl",
+                    "ui\\itr-hero-preview-inv.mdl",
                 ];
                 for (let index = 0; index < sources.length; index++) {
                     const slot = index;
@@ -336,6 +336,57 @@ export function runUiExperiment(
                     frames.setModel(sprite, sources[slot], 0);
                     tell(player, "第 " + (slot + 1) + " 個：" + sources[slot]);
                 }
+                return;
+            }
+            case "-ui-turn": {
+                // 每次建立新的 SPRITE。角度模型由 scripts/ui-models.cjs 建置。
+                const key = parts[1];
+                const index = Number(key);
+                const scale = parts.length === 3 ? Number(parts[2]) : 0.0004;
+                const valid =
+                    key === "inv" || (Number.isInteger(index) && index >= 0 && index < 16);
+                if (
+                    panel === undefined ||
+                    parts.length < 2 ||
+                    parts.length > 3 ||
+                    !valid ||
+                    !Number.isFinite(scale) ||
+                    scale <= 0 ||
+                    scale > 5
+                ) {
+                    error(player, "請先 -ui-show。用法：-ui-turn <0～15|inv> [縮放]。");
+                    return;
+                }
+                const file =
+                    "ui\\itr-hero-preview-" +
+                    (key === "inv" ? "inv" : (index < 10 ? "0" : "") + index) +
+                    ".mdl";
+                for (const frame of grid) frames.setVisible(frame, false);
+                gridCount++;
+                const sprite = frames.createType(
+                    "ItrTurnSprite" + gridCount,
+                    panel,
+                    500 + gridCount,
+                    "SPRITE",
+                    "",
+                );
+                if (sprite === undefined) {
+                    error(player, "SPRITE 建立失敗。");
+                    return;
+                }
+                grid.push(sprite);
+                frames.setSize(sprite, 0.001, 0.001);
+                frames.setScale(sprite, scale);
+                frames.setPoint(
+                    sprite,
+                    FRAMEPOINT_BOTTOMLEFT,
+                    panel,
+                    FRAMEPOINT_BOTTOMLEFT,
+                    0.4 / scale,
+                    0.03 / scale,
+                );
+                frames.setModel(sprite, file, 0);
+                tell(player, "模型：" + file + "；縮放 " + scale + "。");
                 return;
             }
             case "-ui-file": {
@@ -468,7 +519,7 @@ export function runUiExperiment(
                 );
             }
             logger.info(
-                "I3 框架實驗已啟動。指令：-ui-toc、-ui-show、-ui-hide、-ui-model <x> <y> <scale>、-ui-file <模型路徑> [鏡頭]、-ui-grid [縮放]、-ui-anim <stand|birth|death|morph|alternate>、-ui-select、-ui-stop。",
+                "I3 框架實驗已啟動。指令：-ui-toc、-ui-show、-ui-hide、-ui-model <x> <y> <scale>、-ui-file <模型路徑> [鏡頭]、-ui-grid [縮放]、-ui-turn <0～15|inv> [縮放]、-ui-anim <stand|birth|death|morph|alternate>、-ui-select、-ui-stop。",
             );
         } catch (caught) {
             logger.error(caught);
