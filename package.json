@@ -29,7 +29,8 @@
         "test:hero:lua": "node scripts/verify-hero-lua.cjs",
         "test:hero:artifact": "ts-node --transpile-only --project tsconfig.test.json tests/hero/artifact.spec.ts",
         "test:combat:artifact": "ts-node --transpile-only --project tsconfig.test.json tests/combat/artifact.spec.ts",
-        "test:ui:artifact": "ts-node --transpile-only --project tsconfig.test.json tests/ui/artifact.spec.ts"
+        "test:ui:artifact": "ts-node --transpile-only --project tsconfig.test.json tests/ui/artifact.spec.ts",
+        "test:preview-model": "ts-node --transpile-only --project tsconfig.test.json tests/ui/preview-model.spec.ts"
     },
     "dependencies": {
         "w3ts": "^3.0.2"
