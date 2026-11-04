@@ -58,6 +58,33 @@
 7. 圖示使用 `BACKDROP` 放在 `BUTTON` 內，`BlzFrameSetAllPoints` 對齊，`BlzFrameSetTexture(frame, path, 0, true)`。
 8. 工具提示（`BlzFrameSetTooltip`）只在本地顯示。
 
+## 重大發現：3.0 內建裝備欄與背包（2026-11-04）
+
+使用者提供參考地圖（`humanre01.files/`，不納入版本控制）。分析結果：
+
+- 參考畫面的紙娃娃、背包格子與數值清單不是自訂框架。地圖腳本只用少量框架函式。
+- 遊戲 3.0（使用者為 3.0.1.24371）的 `common.j` 有內建裝備欄與背包：
+  - 9 個裝備位置：`EQUIPMENT_LOADOUT_SLOT_HEAD`、`CHEST`、`GLOVES`、`BOOTS`、`PRIMARY`、`OFFHAND`、`RING`、`RINGALT`、`TRINKET`。
+  - 物品類別 `ITEM_TYPE_EQUIPMENT`、`GetItemEquipmentType`、`ConvertEquipmentType`。
+  - `UnitEquipItem`、`UnitUnequipItem`、`UnitItemInEquipmentSlot`、`UnitItemInBagSlot`、`UnitExtendedInventorySize`、`IsItemInBag`。
+  - 事件 `EVENT_PLAYER_UNIT_EQUIP_ITEM`、`EVENT_PLAYER_UNIT_UNEQUIP_ITEM`。
+- 參考地圖以撿起物品 `ttal` 開啟天賦，以 `ebtf`、`ecgb` 等內建裝備物品示範裝備。
+- 專案型別為 war3-types-strict 1.33.0，沒有這些宣告。套件內有 3.0.0 版。
+
+影響：若內建系統可用，背包、丟棄、撿起、紙娃娃與數值清單都由遊戲提供，下列「決策」中的自訂框架部分須重新評估。Codex 的自訂背包實作已暫停（`git stash`：「wip: Codex 物品欄 I1/I2」）。
+
+實驗指令（`src/app/native-equipment-experiment.ts`，確認後移除）：
+
+| 指令 | 作用 |
+|---|---|
+| `-ne-info` | 顯示物品欄大小、延伸物品欄大小、9 個裝備位置與背包內容 |
+| `-ne-give` | 在英雄旁建立 `ebtf`、`ecgb`、`eclg`、`ecgh`、`ecss`、`ttal` |
+| `-ne-equip` | 對背包與物品欄中的物品呼叫 `UnitEquipItem` |
+
+穿脫事件會輸出「內建裝備事件」。
+
+待確認：英雄是否自動有背包與裝備欄；開啟介面的方式；背包格數能否改為 90；自訂物品能否設為裝備類別；天賦介面能否改為知識內容；內建數值清單能否顯示本系統的數值。
+
 ## 決策
 
 使用者決定（2026-11-04）：
