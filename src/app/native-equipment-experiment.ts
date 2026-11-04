@@ -70,6 +70,13 @@ export function nativeEquipmentCommand(hero: unit, message: string): readonly st
         lines.push(`背包：${bag.length > 0 ? bag.join("，") : "空"}`);
         return lines;
     }
+    if (message === "-ne-inv") {
+        // 英雄沒有物品欄技能時無法撿起物品。測試內建英雄物品欄 AInv 是否帶有背包。
+        const added = UnitAddAbility(hero, FourCC("AInv"));
+        return [
+            `加入 AInv：${added}。物品欄 ${UnitInventorySize(hero)}，延伸物品欄 ${UnitExtendedInventorySize(hero)}`,
+        ];
+    }
     if (message === "-ne-give") {
         const lines: string[] = [];
         for (const code of sampleItems) {
