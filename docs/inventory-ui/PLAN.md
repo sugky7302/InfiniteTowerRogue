@@ -126,6 +126,23 @@
 - 範例的分段同步每片 20 位元組，最多 64 片。版本 4 的最長存檔超過此限制，改用預設的 200 位元組。
 - 手動分段輸入的段數增加（最壞約 17 段）。自動讀檔仍是主要方式。
 
+## 框架函式庫：w3ts `Frame`
+
+使用者指定參考 [w3ts Frame](https://cipherxof.github.io/w3ts/docs/api/classes/frame)。專案已安裝 w3ts 3.0.2（`node_modules/w3ts/handles/frame.d.ts`）。
+
+- 建立：`Frame.create`（FDF 樣板）、`Frame.createType`（以類型建立，例如 `BACKDROP`、`GLUEBUTTON`、`TEXT`、`SPRITE`）、`Frame.createSimple`。失敗時傳回 `undefined`，必須檢查。
+- 取得：`Frame.fromOrigin`、`Frame.fromName`、`Frame.fromHandle`、`Frame.fromEvent`。
+- 版面：`setPoint`、`setAbsPoint`、`setAllPoints`、`clearPoints`、`setSize`、`setLevel`、`setScale`。
+- 內容：`setTexture`、`setText`、`setFont`、`setTextColor`、`setTooltip`、`setVisible`、`setEnabled`、`setFocus`。
+- 模型預覽：`setModel(modelFile, cameraIndex)`、`setSpriteAnimate(primaryProp, flags)`（I3 實驗 3）。
+- 樣板：`Frame.loadTOC(filename)`（I3 實驗 1、2）。
+- 文件沒有事件登錄介面。點擊與滑鼠移入仍使用 `BlzTriggerRegisterFrameEvent`，事件中以 `Frame.fromEvent`、`Frame.getEventHandle` 讀取。
+
+使用規則：
+
+- w3ts `Frame` 只在 `src/shared/wc3-def/frame/` 的 WC3 實作中使用。features 只依賴 `FrameNatives` 介面，所以 Node 測試不需要 w3ts。
+- 「框架規則」一節的同步規則仍適用：`Frame.fromName`、`Frame.fromOrigin` 不得第一次在 `GetLocalPlayer` 區塊內呼叫。
+
 ## 模組位置
 
 | 位置 | 內容 |
