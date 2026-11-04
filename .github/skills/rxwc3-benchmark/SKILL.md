@@ -18,6 +18,9 @@ description: 在 WC3 中量測 RxWC3 效能的方法、執行步驟、已知陷�
 
 自動模式：建置時讀取環境變數 `BENCH_AUTO`，地圖啟動 3 秒後自動執行該指令，完成後寫入 `bench-auto-done.pld`。未設定時不影響一般建置。
 
+- 結果檔改用 file-io 的內嵌 Lua 格式。decode-bench.cjs 只讀取開始與結束的 beginusercode 區塊之間的 Preload 資料，接回後反跳脫並驗證 ITF1。舊 A0IO／AFxx 格式不再支援。
+- F2 須在遊戲中確認基準結果與 bench-auto-done.pld 的讀寫，再用 bench:decode 解碼。Node 與 Lua 的通過結果不能代替此驗證。
+
 ## 已知陷阱
 
 | 陷阱 | 處理 |

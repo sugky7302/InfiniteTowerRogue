@@ -44,58 +44,66 @@ const checks = `
 -- 遊戲沒有 debug。此驗證也不能依賴它。
 debug = nil
 local validation = (function(...) ${bundle} end)()
-assert(validation.verifyFileIo() == 10, '檔案共用流程的組數錯誤')
-local created, removed, emitted, added = 0, 0, {}, 0
-local abilities = {A0IO = true}
-for index = 1, 42 do abilities[string.format('AF%02d', index)] = true end
--- 技能代碼直接當成識別值。每個技能只使用第 0 級。
-FourCC = function(code) assert(code == 'hpea' or abilities[code], '技能或單位代碼錯誤'); return code end
-PLAYER_NEUTRAL_PASSIVE = 27
-local player, carrier = {}, {}
-Player = function(id) assert(id == 27); return player end
-CreateUnit = function(...)
-  local p, id, x, y, facing = ...
-  assert(select('#', ...) == 5 and p == player and id == 'hpea' and x == 0 and y == 0 and facing == 0)
-  created = created + 1
-  return carrier
+assert(validation.verifyFileIo() == 28, '檔案共用流程的組數錯誤')
+local icon, emitted = '原始圖示', {}
+local stored
+BlzGetAbilityIcon = function(...)
+  assert(select('#', ...) == 1 and (...) == 1097690227, '讀取圖示收到額外 self 或技能錯誤')
+  return icon
 end
-ShowUnit = function(target, show) assert(target == carrier and show == false) end
-UnitAddAbility = function(target, id) assert(target == carrier and abilities[id]); added = added + 1; return true end
-RemoveUnit = function(target) assert(target == carrier); removed = removed + 1 end
-local tooltips = {}
-BlzGetAbilityTooltip = function(...)
-  local id, level = ...
-  assert(select('#', ...) == 2 and abilities[id] and level == 0, '讀取技能收到額外 self 或等級錯誤')
-  return tooltips[id] or '原始提示'
-end
-BlzSetAbilityTooltip = function(...)
-  local id, text, level = ...
-  assert(select('#', ...) == 3 and abilities[id] and level == 0, '設定技能收到額外 self 或等級錯誤')
-  tooltips[id] = text
+BlzSetAbilityIcon = function(...)
+  local id, text = ...
+  assert(select('#', ...) == 2 and id == 1097690227, '設定圖示收到額外 self 或技能錯誤')
+  icon = text
 end
 PreloadGenClear = function(...) assert(select('#', ...) == 0) end
-PreloadGenStart = function(...) assert(select('#', ...) == 0) end
+PreloadGenStart = function(...) assert(select('#', ...) == 0); emitted = {} end
 Preload = function(...)
   local line = ...
-  assert(select('#', ...) == 1 and #line < 200)
+  assert(select('#', ...) == 1 and #line <= 259, 'emit 長度或參數錯誤')
   emitted[#emitted + 1] = line
 end
-PreloadGenEnd = function(...) assert(select('#', ...) == 1 and (...) == 'slot.pld') end
-Preloader = function(...) assert(select('#', ...) == 1 and (...) == 'slot.pld') end
-local files = validation.createLocalFileIo(validation.natives)
-assert(created == 1 and removed == 1 and added == 43, '未在共同流程預先載入技能')
+PreloadEnd = function() end
+PreloadGenEnd = function(...)
+  assert(select('#', ...) == 1 and (...) == 'slot.pld')
+  stored = {}
+  -- 合併內嵌 Lua 與資料呼叫，交給真正的 Lua 解析器執行。
+  for _, line in ipairs(emitted) do
+    local head = string.find(line, '//! beginusercode', 1, true)
+    if head then
+      local tail = assert(string.find(line, '//!endusercode', head, true))
+      stored[#stored + 1] = string.sub(line, head + #'//! beginusercode', tail - 1)
+    else
+      stored[#stored + 1] = 'Preload("' .. line .. '")'
+    end
+  end
+end
+Preloader = function(...)
+  assert(select('#', ...) == 1 and (...) == 'slot.pld')
+  if stored then
+    local savedPreload, savedEnd = Preload, PreloadEnd
+    assert(load(table.concat(stored, string.char(10))))()
+    Preload, PreloadEnd = savedPreload, savedEnd
+  end
+end
 CreateUnit = function() error('本地讀寫建立單位') end
 CreateTrigger = function() error('本地讀寫建立觸發器') end
 CreateGroup = function() error('本地讀寫建立群組') end
 UnitAddAbility = function() error('本地讀寫建立技能資源') end
-assert(files:read('slot.pld').status == '沒有檔案或無法讀取' and tooltips.A0IO == 'ITF-IDLE', '正式讀取或恢復錯誤')
-assert(tooltips.AF01 == 'ITF-IDLE' and tooltips.AF42 == 'ITF-IDLE', '其他技能沒有還原')
-assert(files:write('slot.pld', 'ABC').status == '已送出，尚未確認磁碟寫入', '正式寫入錯誤')
-assert(#emitted == 2 and string.find(emitted[1], 'ITF1|', 1, true), '預載檔語句錯誤')
-emitted = {}
-assert(files:write('slot.pld', string.rep('A', 200)).status == '已送出，尚未確認磁碟寫入', '多段寫入錯誤')
--- 每段使用不同技能的第 0 級。
-assert(#emitted == 4 and string.find(emitted[1], "('A0IO',", 1, true) and string.find(emitted[2], "('AF01',", 1, true) and string.find(emitted[3], "('AF02',", 1, true) and string.find(emitted[3], '",0)', 1, true), '多段技能代碼錯誤')
+local files = validation.createLocalFileIo(validation.natives)
+assert(files:read('slot.pld').status == '沒有檔案或無法讀取' and icon == '原始圖示', '正式遺失或還原錯誤')
+assert(files:write('slot.pld', 'ABC').status == '已送出，尚未確認磁碟寫入' and #emitted == 3, '正式寫入錯誤')
+assert(files:read('slot.pld').data == 'ABC' and icon == '原始圖示', '內嵌 Lua 讀回或還原錯誤')
+assert(files:write('slot.pld', string.rep('A', 4096)).status == '已送出，尚未確認磁碟寫入' and #emitted == 18, '4096 字元分段錯誤')
+assert(files:read('slot.pld').data == string.rep('A', 4096) and icon == '原始圖示', '4096 字元內嵌 Lua 讀回錯誤')
+local special = string.char(27) .. 'q"' .. string.char(27, 27) .. '"'
+local escaped = validation.escapeFileData(special)
+local savedPreload, savedEnd = Preload, PreloadEnd
+local actual
+BlzSetAbilityIcon = function(id, text) assert(id == 1097690227); actual = text end
+assert(load(stored[1] .. 'Preload("' .. escaped .. '")' .. stored[#stored]))()
+Preload, PreloadEnd = savedPreload, savedEnd
+assert(validation.unescapeFileData(actual) == special, 'ESC 與雙引號內嵌 Lua 往返錯誤')
 `;
 const state = lauxlib.luaL_newstate();
 lualib.luaL_openlibs(state);
@@ -105,7 +113,7 @@ if (status !== lua.LUA_OK) {
     process.exitCode = 1;
 } else {
     process.stdout.write(
-        "本地檔案 Lua 5.3 驗證：13 組通過，0 組失敗（共用流程 10 組、共同資源 1 組、正式本地原生介面 2 組）。\n",
+        "本地檔案 Lua 5.3 驗證：33 組通過，0 組失敗（共用流程 28 組、正式介面與內嵌 Lua 5 組）。\n",
     );
     process.stdout.write("假原生函式不能證明遊戲磁碟讀寫、預載檔快取或多人安全性。\n");
 }

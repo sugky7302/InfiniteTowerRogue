@@ -276,7 +276,7 @@ export const inventoryCases: { name: string; run: (this: void) => void }[] = [
             const setup = setupSave(codec);
             try {
                 const name = setup.names.get(setup.network.players[0])!;
-                setup.files[0].files.set(saveFilePath, encodeFileData(codec.encode(data, name)!)!);
+                setup.files[0].setData(saveFilePath, encodeFileData(codec.encode(data, name)!)!);
                 setup.command("-load");
                 check(
                     setup.network.packets.length === Math.ceil(code.length / 200) &&

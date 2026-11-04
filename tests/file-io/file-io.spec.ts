@@ -17,10 +17,10 @@ import { Subject } from "../../src/shared/rxwc3/core/subject";
 import { ChatEvent, wc3FileNatives } from "@shared/wc3-def";
 import { FakeSyncNetwork } from "../rxwc3/fake-sync-natives";
 import { fakeFileIo } from "./fake-file-io";
-import { fileSegmentAbilities, fileSegmentCount } from "../../src/shared/file-io/codec";
+import { fileAbility, filePreloadStart, filePreloadEnd } from "../../src/shared/file-io";
 import { verifyFileIo } from "./file-io-lua.spec";
 
-test("本地檔案在 Node 執行十組 Lua 共用流程", () => assert.equal(verifyFileIo(), 10));
+test("本地檔案在 Node 執行二十八組 Lua 共用流程", () => assert.equal(verifyFileIo(), 28));
 test("三種偏好語言均可編碼與解碼", () => {
     for (const code of ["zh-TW", "zh-CN", "en-US"] as const)
         assert.equal(decodeLanguagePreference(encodeLanguagePreference(code)), code);
@@ -81,24 +81,23 @@ test("不存在的偏好使用用戶端語言，其他語言使用正體", () =>
 });
 test("有效檔案框架內的錯誤偏好使用用戶端語言", () => {
     const fake = fakeFileIo();
-    fake.files.set(languagePreferencePath, encodeFileData("ITR-LANG-1:frFR")!);
+    fake.setData(languagePreferencePath, encodeFileData("ITR-LANG-1:frFR")!);
     const service = createI18n({ getLocale: () => "zhCN" }, createLocalFileIo(fake.natives));
     assert.equal(service.language(), "zh-CN");
     assert.equal(service.preference?.result.status, "內容錯誤");
 });
-test("讀取成功、損壞與例外均恢復技能提示，不重新建立資源", () => {
+test("讀取成功、損壞與例外均恢復技能圖示", () => {
     const fake = fakeFileIo(),
         files = createLocalFileIo(fake.natives);
-    fake.files.set("test.pld", encodeFileData("ABC")!);
+    fake.setData("test.pld", encodeFileData("ABC")!);
     assert.deepEqual(files.read("test.pld"), { status: "已讀取", data: "ABC" });
-    fake.files.set("test.pld", "錯誤");
+    fake.setData("test.pld", "錯誤");
     assert.equal(files.read("test.pld").status, "內容錯誤");
     fake.failRead(true);
     assert.equal(files.read("test.pld").status, "讀取失敗");
-    assert.equal(fake.getTooltip(), "原始提示");
-    assert.equal(fake.prepares(), 1);
+    assert.equal(fake.getIcon(), "原始圖示");
 });
-test("寫入最長資料時每段低於 200 位元組且使用合法 JASS 結尾", () => {
+test("寫入最長資料時每段至多 259 字元且使用內嵌 Lua", () => {
     const fake = fakeFileIo();
     const emitted: string[] = [];
     const emit = fake.natives.emit;
@@ -109,9 +108,9 @@ test("寫入最長資料時每段低於 200 位元組且使用合法 JASS 結尾
     const files = createLocalFileIo(fake.natives);
     const payload = "A".repeat(maxFileDataLength);
     assert.equal(files.write("slot.pld", payload).status, "已送出，尚未確認磁碟寫入");
-    assert(emitted.every((line) => Buffer.byteLength(line) < 200));
-    assert(emitted[0].includes("call BlzSetAbilityTooltip('A0IO',\"ITF1|"));
-    assert(emitted.at(-1)!.includes("endfunction\nfunction a takes nothing returns nothing"));
+    assert(emitted.every((line) => Buffer.byteLength(line) <= 259));
+    assert.equal(emitted[0], filePreloadStart);
+    assert.equal(emitted.at(-1), filePreloadEnd);
     assert.deepEqual(files.read("slot.pld"), { status: "已讀取", data: payload });
     assert.equal(fake.lines.length, 0);
 });
@@ -172,7 +171,6 @@ test("聊天只在輸入者的用戶端寫檔且不傳送同步封包", () => {
         chat.next({ player: network.players[1], message: "-lang invalid" });
         assert.equal(fakes[1].writes(), 0);
         assert.equal(network.packets.length, 0);
-        assert(fakes.every((fake) => fake.prepares() === 1));
     } finally {
         owners.forEach((owner) => owner.unsubscribe());
     }
@@ -185,72 +183,58 @@ test("寫檔失敗仍套用本地語言並輸出結果", () => {
     assert.equal(service.selectLanguage("en-US")?.status, "寫入失敗");
     assert.equal(service.language(), "en-US");
 });
-test("正式介面只在 prepare 建立載入資源，讀寫只呼叫預載與文字原生函式", () => {
+test("正式介面只呼叫圖示與預載原生函式", () => {
     const calls: [string, unknown[]][] = [];
     const names = [
-        "CreateUnit",
-        "Player",
-        "FourCC",
-        "ShowUnit",
-        "UnitAddAbility",
-        "RemoveUnit",
-        "BlzGetAbilityTooltip",
-        "BlzSetAbilityTooltip",
+        "BlzGetAbilityIcon",
+        "BlzSetAbilityIcon",
         "PreloadGenClear",
         "PreloadGenStart",
         "Preload",
         "PreloadGenEnd",
         "Preloader",
-        "PLAYER_NEUTRAL_PASSIVE",
+        "CreateUnit",
+        "UnitAddAbility",
     ];
     const saved = names.map((name) => Object.getOwnPropertyDescriptor(globalThis, name));
     const globals = globalThis as any;
+    let icon = "原始圖示";
     try {
-        const tooltips = new Map<unknown, string>();
         for (const name of names)
             globals[name] = (...args: unknown[]) => {
                 calls.push([name, args]);
-                return {};
             };
-        globals.PLAYER_NEUTRAL_PASSIVE = 27;
-        // 每段一個技能，所以 FourCC 必須區分代碼。
-        globals.FourCC = (code: string) => code;
-        globals.BlzGetAbilityTooltip = (...args: unknown[]) => {
-            calls.push(["BlzGetAbilityTooltip", args]);
-            return tooltips.get(args[0]) ?? "原始提示";
+        globals.BlzGetAbilityIcon = (...args: unknown[]) => {
+            calls.push(["BlzGetAbilityIcon", args]);
+            return icon;
         };
-        globals.BlzSetAbilityTooltip = (...args: unknown[]) => {
-            calls.push(["BlzSetAbilityTooltip", args]);
-            tooltips.set(args[0], args[1] as string);
+        globals.BlzSetAbilityIcon = (...args: unknown[]) => {
+            calls.push(["BlzSetAbilityIcon", args]);
+            icon = args[1] as string;
         };
         const files = createLocalFileIo(wc3FileNatives);
-        assert.equal(calls.filter(([name]) => name === "CreateUnit").length, 1);
-        assert.equal(calls.filter(([name]) => name === "RemoveUnit").length, 1);
-        calls.length = 0;
-        files.read("slot.pld");
+        assert.equal(calls.length, 0);
+        assert.equal(files.read("slot.pld").status, "沒有檔案或無法讀取");
         files.write("slot.pld", "ABC");
+        assert.equal(icon, "原始圖示");
         assert(!calls.some(([name]) => name === "CreateUnit" || name === "UnitAddAbility"));
+        for (const name of ["Preloader", "PreloadGenEnd"])
+            assert(
+                calls.some(
+                    ([called, args]) =>
+                        called === name && args.length === 1 && args[0] === "slot.pld",
+                ),
+            );
         assert(
-            calls.some(
-                ([name, args]) =>
-                    name === "Preloader" && args.length === 1 && args[0] === "slot.pld",
-            ),
-        );
-        assert(
-            calls.some(
-                ([name, args]) =>
-                    name === "PreloadGenEnd" && args.length === 1 && args[0] === "slot.pld",
-            ),
+            calls
+                .filter(([name]) => name === "BlzGetAbilityIcon")
+                .every(([, args]) => args.length === 1 && args[0] === fileAbility),
         );
         assert(
             calls
-                .filter(([name]) => name === "BlzSetAbilityTooltip")
-                .every(([, args]) => args.length === 3 && args[2] === 0),
+                .filter(([name]) => name === "BlzSetAbilityIcon")
+                .every(([, args]) => args.length === 2 && args[0] === fileAbility),
         );
-        // 每段一個技能。讀取後還原每個技能的原值。
-        assert.equal(tooltips.get("A0IO"), "ITF-IDLE");
-        assert.equal(tooltips.get("AF42"), "ITF-IDLE");
-        assert.equal(fileSegmentAbilities.length, fileSegmentCount);
     } finally {
         names.forEach((name, index) => {
             const descriptor = saved[index];

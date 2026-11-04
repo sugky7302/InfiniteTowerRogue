@@ -1,5 +1,14 @@
 import { FileNatives } from "@shared/wc3-def";
-import { decodeFileData, encodeFileData, fileSegmentAbilities, fileSegmentLength } from "./codec";
+import { logger } from "@shared/logger";
+import { decodeFileData, encodeFileData } from "./codec";
+import {
+    escapeFileData,
+    unescapeFileData,
+    fileAbility,
+    filePreloadLimit,
+    filePreloadStart,
+    filePreloadEnd,
+} from "./preload";
 
 export const FileReadStatus = {
     Read: "已讀取",
@@ -42,49 +51,47 @@ function safePath(path: string): boolean {
     return true;
 }
 
-/** 建立時須在共同流程預載資源。回傳的方法只供本地顯示資料使用。 */
+/** 回傳的方法只供本地資料使用，不建立原生資源。 */
 export function createLocalFileIo(natives: FileNatives) {
-    natives.prepare(fileSegmentAbilities);
     return {
         read(path: string): FileRead {
             if (!safePath(path)) return { status: FileReadStatus.InvalidPath };
-            const saved: string[] = [];
+            let saved: string | undefined;
             try {
-                for (const ability of fileSegmentAbilities) saved.push(natives.getTooltip(ability));
-            } catch {
+                saved = natives.getIcon(fileAbility);
+            } catch (error) {
+                logger.error(error);
                 return { status: FileReadStatus.Failed };
             }
-            let result: FileRead;
+            if (saved === undefined) return { status: FileReadStatus.Missing };
+            let raw: string | undefined;
+            let failed = false;
             try {
-                // 每段在不同技能。第一段的標記表示沒有檔案；其他段的標記表示資料結束。
-                fileSegmentAbilities.forEach((ability, index) =>
-                    natives.setTooltip(index === 0 ? "ITF-MISSING" : "ITF-END", ability),
-                );
+                natives.setIcon("ITF-MISSING", fileAbility);
                 natives.load(path);
-                let raw = "";
-                for (const ability of fileSegmentAbilities) {
-                    const part = natives.getTooltip(ability);
-                    if (part === "ITF-END") break;
-                    raw += part;
-                }
-                const data = decodeFileData(raw);
-                result =
-                    raw === "ITF-MISSING"
-                        ? { status: FileReadStatus.Missing }
-                        : data === undefined
-                          ? { status: FileReadStatus.InvalidData, rawLength: raw.length }
-                          : { status: FileReadStatus.Read, data };
-            } catch {
-                result = { status: FileReadStatus.Failed };
+                raw = natives.getIcon(fileAbility);
+            } catch (error) {
+                logger.error(error);
+                failed = true;
             }
             try {
-                fileSegmentAbilities.forEach((ability, index) =>
-                    natives.setTooltip(saved[index], ability),
-                );
-            } catch {
+                natives.setIcon(saved, fileAbility);
+            } catch (error) {
+                logger.error(error);
                 return { status: FileReadStatus.Failed };
             }
-            return result;
+            if (failed) return { status: FileReadStatus.Failed };
+            if (raw === undefined || raw === "ITF-MISSING")
+                return { status: FileReadStatus.Missing };
+            try {
+                const data = decodeFileData(unescapeFileData(raw));
+                return data === undefined
+                    ? { status: FileReadStatus.InvalidData, rawLength: raw.length }
+                    : { status: FileReadStatus.Read, data };
+            } catch (error) {
+                logger.error(error);
+                return { status: FileReadStatus.Failed };
+            }
         },
         write(path: string, data: string): FileWrite {
             if (!safePath(path)) return { status: FileWriteStatus.InvalidPath };
@@ -94,28 +101,21 @@ export function createLocalFileIo(natives: FileNatives) {
             try {
                 natives.clear();
                 natives.start();
-                // 每段最多 96 個 ASCII 字元，寫入自己技能的第 0 級。連同注入語句仍小於 200 個位元組。
-                // Preloader 執行時，串接與第 1 級以上的提示都不生效，所以每段使用不同技能。
-                let segment = 0;
-                for (let index = 0; index < encoded.length; index += fileSegmentLength) {
-                    natives.emit(
-                        "\")\ncall BlzSetAbilityTooltip('" +
-                            fileSegmentAbilities[segment] +
-                            "',\"" +
-                            encoded.slice(index, index + fileSegmentLength) +
-                            '",0)\n//',
-                    );
-                    segment++;
-                }
-                natives.emit('\")\nendfunction\nfunction a takes nothing returns nothing\n//');
+                natives.emit(filePreloadStart);
+                const escaped = escapeFileData(encoded);
+                for (let index = 0; index < escaped.length; index += filePreloadLimit)
+                    natives.emit(escaped.slice(index, index + filePreloadLimit));
+                natives.emit(filePreloadEnd);
                 natives.finish(path);
                 result = { status: FileWriteStatus.Issued };
-            } catch {
+            } catch (error) {
+                logger.error(error);
                 result = { status: FileWriteStatus.Failed };
             }
             try {
                 natives.clear();
-            } catch {
+            } catch (error) {
+                logger.error(error);
                 return { status: FileWriteStatus.Failed };
             }
             return result;
@@ -137,12 +137,14 @@ export function createLocalFileIo(natives: FileNatives) {
                 for (const line of lines) natives.emit('\")\n// ' + line + "\n//");
                 natives.finish(path);
                 result = { status: FileWriteStatus.Issued };
-            } catch {
+            } catch (error) {
+                logger.error(error);
                 result = { status: FileWriteStatus.Failed };
             }
             try {
                 natives.clear();
-            } catch {
+            } catch (error) {
+                logger.error(error);
                 return { status: FileWriteStatus.Failed };
             }
             return result;

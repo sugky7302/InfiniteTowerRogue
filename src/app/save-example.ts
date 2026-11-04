@@ -4,20 +4,6 @@ import { wc3FileNatives, wc3PlayerNatives, wc3SyncNatives } from "@shared/wc3-de
 import { logger } from "@shared/logger";
 import { installSaveChat, SaveParticipant } from "@features/save";
 
-declare function compiletime<T>(
-    this: void,
-    callback: (
-        this: void,
-        context: { objectData: import("war3-objectdata-th/dist/cjs").ObjectData },
-    ) => T,
-): T;
-
-// 相依模組先建立檔案通道。main 的既有回呼會儲存全部物件。
-compiletime(({ objectData }) => {
-    const root = require("process").cwd();
-    require(root + "/scripts/file-io.cjs").createFileIoAbility(objectData);
-});
-
 export function runSaveExample(participants: readonly SaveParticipant[] = []): void {
     try {
         installWc3ClockDrivers();

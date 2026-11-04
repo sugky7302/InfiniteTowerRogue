@@ -278,25 +278,6 @@ test("B5 在暖身期間停止時仍保存未完成標記並清理資源", () =>
     }
 });
 
-test("檔案通道可在同一次建置重複預留，但拒絕覆蓋其他來源的技能", () => {
-    const { createFileIoAbility } = require("../../scripts/file-io.cjs");
-    const copied = new Set<string>();
-    const data = {
-        abilities: {
-            has: (code: string) => copied.has(code),
-            copy: (_base: string, code: string) => {
-                copied.add(code);
-                return { levels: 0 };
-            },
-        },
-    };
-    createFileIoAbility(data);
-    createFileIoAbility(data);
-    // 每段一個技能：A0IO、AF01～AF42。
-    assert.equal(copied.size, 43);
-    assert.throws(() => createFileIoAbility({ abilities: { has: () => true } }));
-});
-
 test("B5 沒有量測介面且在暖身停止時，不輸出假的零成本", () => {
     const fixture = stressFixture(false);
     const owner = new Subscription();

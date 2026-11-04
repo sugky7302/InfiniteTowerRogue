@@ -1,24 +1,68 @@
 import { FileNatives } from "@shared/wc3-def";
-import { fileSegmentAbilities } from "../../src/shared/file-io/codec";
+import {
+    escapeFileData,
+    fileAbility,
+    filePreloadEnd,
+    filePreloadLimit,
+    filePreloadStart,
+    unescapeFileData,
+} from "../../src/shared/file-io";
 
-/** 模擬預載檔的技能資料通道，不模擬遊戲的磁碟權限或快取。 */
+/** 模擬 PreloadGenEnd 的文字包裝。注入行會產生內嵌 Lua 區塊。 */
+export function preloadFile(lines: readonly string[]): string {
+    return (
+        "function PreloadFiles takes nothing returns nothing\n" +
+        lines.map((line) => '    call Preload( "' + line + '" )').join("\n") +
+        "\n    call PreloadEnd( 0.0 )\nendfunction\n"
+    );
+}
+
+/** 測試資料也使用新檔案格式。傳入未跳脫的框架，可包含損壞內容。 */
+export function framedFile(raw: string): string {
+    const escaped = escapeFileData(raw);
+    const lines = [filePreloadStart];
+    for (let index = 0; index < escaped.length; index += filePreloadLimit)
+        lines.push(escaped.slice(index, index + filePreloadLimit));
+    lines.push(filePreloadEnd);
+    return preloadFile(lines);
+}
+
+/** 只模擬本模組的內嵌 Lua，不執行任意程式。不得使用正規表示式。 */
+export function loadedIcon(source: string): string | undefined {
+    let accumulating = false;
+    let userCode = false;
+    let output = "";
+    for (const physical of source.split("\n")) {
+        const line = physical.trim();
+        if (line === "//! beginusercode") userCode = true;
+        else if (line === "//!endusercode") userCode = false;
+        else if (userCode && line === "local o=''") output = "";
+        else if (userCode && line === "Preload=function(s)o=o..s end") accumulating = true;
+        else if (userCode && line === `BlzSetAbilityIcon(${fileAbility},o)` && accumulating)
+            return output;
+        else if (!userCode && accumulating) {
+            const head = 'call Preload( "';
+            const tail = '" )';
+            if (line.indexOf(head) === 0 && line.slice(-tail.length) === tail)
+                output += line.slice(head.length, line.length - tail.length);
+        }
+    }
+    return undefined;
+}
+
+/** 模擬新格式的累加與圖示寫入，不模擬磁碟權限或遊戲快取。 */
 export function fakeFileIo() {
-    /** 檔案內容以接回後的框架保存。讀取時再依每段 96 字元放入各等級。 */
     const files = new Map<string, string>();
     const outputs = new Map<string, string[]>();
     const lines: string[] = [];
-    const tooltips = new Map<string, string>();
-    let prepares = 0;
+    const icons = new Map<number, string>();
     let writes = 0;
     let failRead = false;
     let failWrite = false;
     const natives: FileNatives = {
-        prepare: () => {
-            prepares++;
-        },
-        getTooltip: (ability) => tooltips.get(ability) ?? "原始提示",
-        setTooltip: (value, ability) => {
-            tooltips.set(ability, value);
+        getIcon: (ability) => icons.get(ability) ?? "原始圖示",
+        setIcon: (value, ability) => {
+            icons.set(ability, value);
         },
         clear: () => {
             lines.length = 0;
@@ -29,30 +73,16 @@ export function fakeFileIo() {
         },
         finish(path) {
             if (failWrite) throw new Error("測試寫入錯誤。");
-            // 模擬 Preloader：每行設定一個技能，不支援串接。
-            const parts: string[] = [];
-            for (const line of lines) {
-                // Lua 轉譯不支援正規表示式，所以逐段尋找。
-                const head = "BlzSetAbilityTooltip('";
-                const start = line.indexOf(head);
-                if (start < 0) continue;
-                const code = line.slice(start + head.length, start + head.length + 4);
-                const textStart = start + head.length + 7;
-                const textEnd = line.indexOf('",0)', textStart);
-                const segment = fileSegmentAbilities.indexOf(code);
-                if (textEnd < 0 || segment < 0) continue;
-                parts[segment] = line.slice(textStart, textEnd);
-            }
-            files.set(path, parts.join(""));
+            files.set(path, preloadFile(lines));
             outputs.set(path, [...lines]);
             writes++;
         },
         load(path) {
             if (failRead) throw new Error("測試讀取錯誤。");
-            const value = files.get(path);
-            if (value === undefined) return;
-            for (let index = 0; index * 96 < value.length; index++)
-                tooltips.set(fileSegmentAbilities[index], value.slice(index * 96, index * 96 + 96));
+            const source = files.get(path);
+            if (source === undefined) return;
+            const value = loadedIcon(source);
+            if (value !== undefined) icons.set(fileAbility, value);
         },
     };
     return {
@@ -60,8 +90,15 @@ export function fakeFileIo() {
         files,
         outputs,
         lines,
-        getTooltip: () => tooltips.get("A0IO") ?? "原始提示",
-        prepares: () => prepares,
+        setData: (path: string, raw: string) => {
+            files.set(path, framedFile(raw));
+        },
+        getData: (path: string) => {
+            const source = files.get(path);
+            const value = source === undefined ? undefined : loadedIcon(source);
+            return value === undefined ? undefined : unescapeFileData(value);
+        },
+        getIcon: () => natives.getIcon(fileAbility),
         writes: () => writes,
         failRead: (value: boolean) => {
             failRead = value;

@@ -26,8 +26,7 @@ test("存檔收集同步資料，只在擁有者寫入兩份檔案與顯示結�
         setup.command("-save");
         assert.equal(setup.files[0].writes(), 2);
         assert.equal(setup.files[1].writes(), 0);
-        assert(setup.files.every((file) => file.prepares() === 1));
-        const code = decodeFileData(setup.files[0].files.get(saveFilePath)!)!;
+        const code = decodeFileData(setup.files[0].getData(saveFilePath)!)!;
         assert.deepEqual(
             createDemoCodec().decode(code, setup.names.get(setup.network.players[0])!),
             { demo: { level: 10, gold: 500, items: [2, 0, 0, 0, 0, 0] } },
@@ -158,12 +157,11 @@ for (const mode of ["不存在", "框架損壞", "碼無效", "讀取例外", "�
     test(`自動讀檔處理${mode}，保留原資料並提示手動輸入`, () => {
         const setup = setupSave();
         try {
-            if (mode === "框架損壞") setup.files[0].files.set(saveFilePath, "損壞");
-            if (mode === "碼無效")
-                setup.files[0].files.set(saveFilePath, encodeFileData("INVALID")!);
+            if (mode === "框架損壞") setup.files[0].setData(saveFilePath, "損壞");
+            if (mode === "碼無效") setup.files[0].setData(saveFilePath, encodeFileData("INVALID")!);
             if (mode === "讀取例外") setup.files[0].failRead(true);
             if (mode === "超長檔案")
-                setup.files[0].files.set(saveFilePath, encodeFileData("A".repeat(2000))!);
+                setup.files[0].setData(saveFilePath, encodeFileData("A".repeat(2000))!);
             setup.command("-save-demo level 80");
             setup.command("-load");
             setup.network.flush();
@@ -303,7 +301,7 @@ test("同一玩家連續自動讀檔以新傳輸覆蓋舊傳輸", () => {
     const codec = createDemoCodec();
     const name = setup.names.get(setup.network.players[0])!;
     try {
-        setup.files[0].files.set(
+        setup.files[0].setData(
             saveFilePath,
             encodeFileData(
                 codec.encode({ demo: { ...initialDemoData().demo, level: 10 } }, name)!,
@@ -311,7 +309,7 @@ test("同一玩家連續自動讀檔以新傳輸覆蓋舊傳輸", () => {
         );
         setup.command("-load");
         const old = setup.network.packets.splice(0);
-        setup.files[0].files.set(
+        setup.files[0].setData(
             saveFilePath,
             encodeFileData(
                 codec.encode({ demo: { ...initialDemoData().demo, level: 90 } }, name)!,

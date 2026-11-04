@@ -43,9 +43,10 @@ description: 新增或修改顯示文字、翻譯、物件編輯器文字、語�
 
 ## 本地檔案讀寫（file-io）
 
-- 位置：`src/shared/file-io/`。以 `Preload` 系列函式寫入 `CustomMapData`，以 `Preloader` 與技能說明讀回。存檔系統也使用此模組。
+- 位置：`src/shared/file-io/`。以 `Preload` 系列函式寫入 `CustomMapData`，以 `Preloader` 與內建 `Amls` 的圖示欄位讀回。存檔系統也使用此模組。
 - 上限 4096 個受限 ASCII 字元。寫入只能回報「已送出」，無法確認磁碟寫入成功。
-- 讀取需要專用技能 `A0IO`，在共同流程中預先載入。
+- 使用內嵌 Lua 累加 Preload 資料，每次最多 259 字元，最後一次設定圖示。讀取前保存圖示，讀取後還原。不建立專用技能或預載單位。
+- 新格式 F1 已實作；F2 語言偏好重開驗證仍待執行。舊 A0IO／AFxx 檔案不再支援，會使用用戶端語言作為後備。
 - 語言偏好：`CustomMapData\InfiniteTowerRogue\language.pld`。讀寫只在本地執行，不需要 `sync`。
 
 ## 陷阱（已在遊戲中確認）

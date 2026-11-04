@@ -15,12 +15,6 @@ declare function compiletime<T>(
     ) => T,
 ): T;
 
-// 在主程式儲存物件前預留通道。不依賴未掛載的 i18n 範例之轉譯順序。
-compiletime(({ objectData }) => {
-    require(require("process").cwd() + "/scripts/file-io.cjs").createFileIoAbility(objectData);
-    objectData.save();
-});
-
 // 自動模式：建置時設定環境變數 BENCH_AUTO（例如 "-bench-stress rx"），地圖啟動後自動執行該指令。
 // 完成後寫入 bench-auto-done.pld，讓建置端偵測並讀取結果。未設定時為空字串，不影響一般建置。
 const AUTO_COMMAND: string = compiletime(() => require("process").env.BENCH_AUTO ?? "");

@@ -27,7 +27,6 @@ declare function compiletime<T>(
 compiletime(({ objectData }) => {
     const root = require("process").cwd();
     require(root + "/scripts/i18n-objects.cjs").createExample(objectData, root);
-    require(root + "/scripts/file-io.cjs").createFileIoAbility(objectData);
 });
 // scripts/utils.ts 在 Lua 模組初始化前寫入此表，不需要執行時檔案讀取。
 declare const __i18nObjectData: ObjectTextData;

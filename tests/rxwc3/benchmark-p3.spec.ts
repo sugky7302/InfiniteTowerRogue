@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import * as path from "node:path";
 import { test } from "node:test";
 import { verifyBenchmarkP3 } from "./benchmark-p3-lua.spec";
+import { framedFile } from "../file-io/fake-file-io";
 import { encodeFileData } from "../../src/shared/file-io/codec";
 import { resultPages } from "../../src/shared/rxwc3/benchmark/results";
 import { Measurement } from "../../src/shared/rxwc3/benchmark/measurement";
@@ -14,13 +15,7 @@ const { decodeBenchmark, decodePld } = require("../../scripts/decode-bench.cjs")
 const { options, run } = require("../../scripts/run-bench.cjs");
 
 function pld(value: string): string {
-    const encoded = encodeFileData(value)!;
-    const parts: string[] = [];
-    for (let index = 0; index < encoded.length; index += 96)
-        parts.push(
-            `call BlzSetAbilityTooltip('A0IO',${index === 0 ? "" : "BlzGetAbilityTooltip('A0IO',0)+"}"${encoded.slice(index, index + 96)}",0)`,
-        );
-    return parts.join("\n");
+    return framedFile(encodeFileData(value)!);
 }
 
 test("P3 的 Node 與 Lua 共用流程通過七組檢查", () => {
@@ -112,6 +107,27 @@ test("解碼依頁數讀取，驗證框架，忽略舊尾檔", () => {
         writeFileSync(first, readFileSync(first, "utf8").replace("value=123", "value=999"));
         assert.throws(() => decodePld(first), /檢查碼/);
         assert.throws(() => decodeBenchmark(directory, "../bench-p1"), /前綴/);
+    } finally {
+        rmSync(directory, { recursive: true, force: true });
+    }
+});
+
+test("基準解碼器讀回 4096 字元，並拒絕舊格式與不完整區塊", () => {
+    const directory = mkdtempSync(path.join(tmpdir(), "rxwc3-format-"));
+    const filename = path.join(directory, "bench-p1.pld");
+    try {
+        const payload = "A".repeat(4096);
+        const source = pld(payload);
+        writeFileSync(filename, source.replaceAll("\n", "\r\n"));
+        assert.equal(decodePld(filename), payload);
+        for (const invalid of [
+            source.replace("BlzSetAbilityIcon(1097690227,o)", ""),
+            source.replace("//! beginusercode", "// 無區塊"),
+            "call BlzSetAbilityTooltip('A0IO',\"" + encodeFileData("ABC") + '",0)',
+        ]) {
+            writeFileSync(filename, invalid);
+            assert.throws(() => decodePld(filename), /檢查碼/);
+        }
     } finally {
         rmSync(directory, { recursive: true, force: true });
     }

@@ -6,17 +6,32 @@ require("ts-node").register({
     transpileOnly: true,
 });
 const { decodeFileData } = require("../src/shared/file-io/codec.ts");
+const { unescapeFileData, fileAbility } = require("../src/shared/file-io/preload.ts");
 const { parseRecords } = require("../src/shared/rxwc3/benchmark/results.ts");
 
 function decodePld(filename) {
     const text = fs.readFileSync(filename, "utf8");
-    // 舊格式以 A0IO 串接；新格式每段一個技能。兩者都依出現順序接回。
-    const chunks = [
-        ...text.matchAll(
-            /BlzSetAbilityTooltip\('(?:A0IO|AF\d\d)',(?:BlzGetAbilityTooltip\('A0IO',0\)\+)?"((?:[^"\\]|\\.)*)",\d+\)/g,
-        ),
-    ];
-    const frame = chunks.map((match) => JSON.parse(`"${match[1]}"`)).join("");
+    let userCode = false;
+    let accumulating = false;
+    let complete = false;
+    let escaped = "";
+    for (const physical of text.split("\n")) {
+        const line = physical.trim();
+        if (line === "//! beginusercode") userCode = true;
+        else if (line === "//!endusercode") userCode = false;
+        else if (userCode && line === "local o=''") escaped = "";
+        else if (userCode && line === "Preload=function(s)o=o..s end") accumulating = true;
+        else if (userCode && line === `BlzSetAbilityIcon(${fileAbility},o)` && accumulating) {
+            complete = true;
+            break;
+        } else if (!userCode && accumulating) {
+            const head = 'call Preload( "';
+            const tail = '" )';
+            if (line.indexOf(head) === 0 && line.slice(-tail.length) === tail)
+                escaped += line.slice(head.length, line.length - tail.length);
+        }
+    }
+    const frame = complete ? unescapeFileData(escaped) : "";
     const data = decodeFileData(frame);
     if (data === undefined) throw new Error(`資料長度或檢查碼錯誤：${filename}`);
     return data;

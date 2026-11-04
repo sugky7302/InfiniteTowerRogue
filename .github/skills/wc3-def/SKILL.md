@@ -36,7 +36,7 @@ description: 新增或使用 WC3 原生函式、handle 型別、事件資料或�
 | `item/` | `ItemNatives` | 物品文字與列舉 |
 | `player/` | `PlayerNatives` | 玩家名稱、顯示文字、用戶端語言 |
 | `random/` | `RandomNatives` | 同步亂數 |
-| `file/` | `FileNatives` | Preload 檔案讀寫 |
+| `file/` | `FileNatives` | Preload 檔案讀寫、getIcon(ability)、setIcon(text, ability) |
 
 - **檔名與介面不得使用遊戲功能名稱**（技能、存檔、i18n）。功能需要的組合在使用端定義，例如 `features/skill` 的 `SkillNatives`（以 `Pick` 與 `&` 組合）、`shared/i18n` 的 `I18nNatives`、`features/save` 的 `SaveNatives`。
 - **介面不得包含遊戲規則**（防禦、挑戰等級等）。規則查詢在上層定義介面（例如 `entities/combat` 的 `CombatStats`），由 `app/` 實作。
@@ -44,6 +44,8 @@ description: 新增或使用 WC3 原生函式、handle 型別、事件資料或�
 - 邏輯模組透過參數或建構函式接收介面，預設值使用 WC3 實作。
 - WC3 實作載入時不得呼叫原生函式。
 - 介面方法在 Lua 中會收到 `self`。把一般函式指定給介面方法時，用箭頭函式包裝，例如 `unwrapUnit: (input) => unwrapUnit(input)`。否則 TSTL 會報錯。
+
+- FileNatives 的技能參數是數字。WC3 實作只包裝 BlzGetAbilityIcon、BlzSetAbilityIcon 與 Preload 系列。沿用 w3ts 的方式，不建立預載單位，也不提供 prepare。檔案格式與載體常數由 file-io 管理。F2 遊戲驗證仍待執行。
 
 ## 其他檔案
 

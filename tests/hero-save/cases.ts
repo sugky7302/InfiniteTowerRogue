@@ -526,7 +526,7 @@ heroSaveCases.push(
             const s = heroChat();
             try {
                 s.command("-save");
-                const code = decodeFileData(s.files[0].files.get(saveFilePath)!)!;
+                const code = decodeFileData(s.files[0].getData(saveFilePath)!)!;
                 const commands = loadCommands(code);
                 check(commands.length === 3 && commands.every((command) => command.length <= 92));
                 for (const demo of s.examples) demo.command("-hero-up");
@@ -578,7 +578,7 @@ heroSaveCases.push(
             const s = heroChat();
             try {
                 s.command("-save");
-                const code = decodeFileData(s.files[0].files.get(saveFilePath)!)!;
+                const code = decodeFileData(s.files[0].getData(saveFilePath)!)!;
                 for (const demo of s.examples) demo.command("-hero-up");
                 s.command(`-load ${code}`);
                 check(s.examples.every((demo) => demo.hero.classes[0].level === 1));
@@ -656,7 +656,7 @@ heroSaveCases.push(
             try {
                 s.command("-save-demo gold 22");
                 s.command("-save");
-                const code = decodeFileData(s.files[0].files.get(saveFilePath)!)!;
+                const code = decodeFileData(s.files[0].getData(saveFilePath)!)!;
                 s.command("-save-demo gold 1");
                 s.command(`-load ${code}`);
                 check(events.join(",") === "0:first:驗證,0:last:驗證,1:first:驗證,1:last:驗證");
