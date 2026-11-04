@@ -26,6 +26,8 @@ export function runUiExperiment(
     let modelScale = 0.001;
     let currentModel = modelPath;
     let modelCamera = 0;
+    const grid: framehandle[] = [];
+    let gridCount = 0;
 
     const tell = (target: player, text: string): void => {
         DisplayTimedTextToPlayer(target, 0, 0, 15, text);
@@ -292,6 +294,50 @@ export function runUiExperiment(
                 );
                 return;
             }
+            case "-ui-grid": {
+                // 每次建立新的 SPRITE，分開「換模型」「副檔名」「鏡頭」「附件」四個原因。
+                const scale = parts.length === 2 ? Number(parts[1]) : 0.008;
+                if (panel === undefined || !Number.isFinite(scale) || scale <= 0 || scale > 5) {
+                    error(player, "請先 -ui-show。用法：-ui-grid [縮放]。");
+                    return;
+                }
+                for (const frame of grid) frames.setVisible(frame, false);
+                const sources = [
+                    modelPath,
+                    "units\\human\\Footman\\Footman.mdl",
+                    "ui\\itr-hero-preview-nocam.mdl",
+                    "ui\\itr-hero-preview.mdl",
+                ];
+                for (let index = 0; index < sources.length; index++) {
+                    const slot = index;
+                    gridCount++;
+                    const sprite = frames.createType(
+                        "ItrGridSprite" + gridCount,
+                        panel,
+                        500 + gridCount,
+                        "SPRITE",
+                        "",
+                    );
+                    if (sprite === undefined) {
+                        error(player, "第 " + (slot + 1) + " 個 SPRITE 建立失敗。");
+                        continue;
+                    }
+                    grid.push(sprite);
+                    frames.setSize(sprite, 0.001, 0.001);
+                    frames.setScale(sprite, scale);
+                    frames.setPoint(
+                        sprite,
+                        FRAMEPOINT_BOTTOMLEFT,
+                        panel,
+                        FRAMEPOINT_BOTTOMLEFT,
+                        (0.06 + slot * 0.12) / scale,
+                        0.02 / scale,
+                    );
+                    frames.setModel(sprite, sources[slot], 0);
+                    tell(player, "第 " + (slot + 1) + " 個：" + sources[slot]);
+                }
+                return;
+            }
             case "-ui-file": {
                 // 測試其他模型，例如頭像模型，比較全黑的原因。
                 if (model === undefined) {
@@ -422,7 +468,7 @@ export function runUiExperiment(
                 );
             }
             logger.info(
-                "I3 框架實驗已啟動。指令：-ui-toc、-ui-show、-ui-hide、-ui-model <x> <y> <scale>、-ui-file <模型路徑> [鏡頭]、-ui-anim <stand|birth|death|morph|alternate>、-ui-select、-ui-stop。",
+                "I3 框架實驗已啟動。指令：-ui-toc、-ui-show、-ui-hide、-ui-model <x> <y> <scale>、-ui-file <模型路徑> [鏡頭]、-ui-grid [縮放]、-ui-anim <stand|birth|death|morph|alternate>、-ui-select、-ui-stop。",
             );
         } catch (caught) {
             logger.error(caught);

@@ -6,9 +6,9 @@ const { parsers } = require("mdx-m3-viewer-th");
 
 const cameraCount = 16;
 
-function previewMdl(heroModel, withLight) {
+function previewMdl(heroModel, withLight, withCameras = true) {
     const cameras = [];
-    for (let index = 0; index < cameraCount; index++) {
+    for (let index = 0; index < (withCameras ? cameraCount : 0); index++) {
         const angle = (index / cameraCount) * Math.PI * 2;
         const x = (Math.cos(angle) * 420).toFixed(2);
         const y = (Math.sin(angle) * 420).toFixed(2);
@@ -33,12 +33,13 @@ function previewMdl(heroModel, withLight) {
 
 /** 寫入建置地圖的 ui 資料夾。 */
 function writePreviewModels(uiFolder, heroModel) {
-    for (const [name, withLight] of [
-        ["itr-hero-preview.mdx", true],
-        ["itr-hero-preview-dark.mdx", false],
+    for (const [name, withLight, withCameras] of [
+        ["itr-hero-preview.mdx", true, true],
+        ["itr-hero-preview-dark.mdx", false, true],
+        ["itr-hero-preview-nocam.mdx", true, false],
     ]) {
         const model = new parsers.mdlx.Model();
-        model.load(previewMdl(heroModel, withLight));
+        model.load(previewMdl(heroModel, withLight, withCameras));
         fs.writeFileSync(path.join(uiFolder, name), Buffer.from(model.saveMdx()));
     }
 }
