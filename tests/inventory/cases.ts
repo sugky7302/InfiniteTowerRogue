@@ -413,8 +413,11 @@ export const inventoryCases: { name: string; run: (this: void) => void }[] = [
                     !f.native.byId(3).carried &&
                     f.carriers.size === 93,
             );
-            check(f.demo.command("-item-new 訓練短劍")![0] === "背包已滿");
             check(f.demo.command("-unequip 主武器")![0] === "背包已滿" && f.carriers.size === 93);
+            const created = f.demo.command("-item-new 訓練短劍")!;
+            check(created[1] === "背包已滿，物品放在地面。" && f.carriers.size === 94);
+            const extra = f.native.byId(94);
+            check(extra.visible && !extra.carried);
             f.demo.command("-drop 1");
             f.native.pickup(handle);
             check((f.demo.items[0] as ItemInstance).id === 3 && f.full() === 1);

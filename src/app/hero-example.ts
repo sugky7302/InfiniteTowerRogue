@@ -330,7 +330,14 @@ export class HeroExample {
                 return [
                     "請指定基底：符文杖、訓練短劍、巡檢長槌、術式手冊、學徒長袍；也可使用基底 ID。",
                 ];
-            if (firstEmptySlot(this.held) === undefined) return ["背包已滿"];
+            if (firstEmptySlot(this.held) === undefined) {
+                // 背包已滿時，物品放在英雄腳下，讓玩家可以先清出空格再撿起。
+                if (this.carriers === undefined) return ["背包已滿"];
+                const dropped = this.create(baseId);
+                this.carriers.add(dropped);
+                this.carriers.drop(dropped.id);
+                return [itemText(dropped), "背包已滿，物品放在地面。"];
+            }
             const item = this.create(baseId);
             this.carriers?.add(item);
             this.held = putInBag(this.held, item)!;
