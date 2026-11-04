@@ -24,6 +24,8 @@ export function runUiExperiment(
     let modelX = 0.34;
     let modelY = 0.06;
     let modelScale = 0.001;
+    let currentModel = modelPath;
+    let modelCamera = 0;
 
     const tell = (target: player, text: string): void => {
         DisplayTimedTextToPlayer(target, 0, 0, 15, text);
@@ -104,8 +106,16 @@ export function runUiExperiment(
     const placeModel = (): void => {
         if (model === undefined || panel === undefined) return;
         frames.clearPoints(model);
-        frames.setPoint(model, FRAMEPOINT_BOTTOMLEFT, panel, FRAMEPOINT_BOTTOMLEFT, modelX, modelY);
+        // 縮放也會縮放此框架的位移，所以位移先除以縮放。模型畫在框架左下角。
         frames.setScale(model, modelScale);
+        frames.setPoint(
+            model,
+            FRAMEPOINT_BOTTOMLEFT,
+            panel,
+            FRAMEPOINT_BOTTOMLEFT,
+            modelX / modelScale,
+            modelY / modelScale,
+        );
     };
     const button = (frame: framehandle, name: string, slot?: number): void => {
         const target = listen(() => {
@@ -190,8 +200,8 @@ export function runUiExperiment(
         model = create("ItrModelPreview", panel, 400);
         if (model !== undefined) {
             placeModel();
-            if (hero !== undefined && modelPath.length > 0) {
-                frames.setModel(model, modelPath, 0);
+            if (hero !== undefined && currentModel.length > 0) {
+                frames.setModel(model, currentModel, modelCamera);
                 frames.setSpriteAnimate(model, 2, 0);
             }
         }
@@ -280,6 +290,29 @@ export function runUiExperiment(
                     player,
                     "模型相對面板左下角：" + modelX + "、" + modelY + "；縮放 " + modelScale + "。",
                 );
+                return;
+            }
+            case "-ui-file": {
+                // 測試其他模型，例如頭像模型，比較全黑的原因。
+                if (model === undefined) {
+                    error(player, "請先用 -ui-show 建立模型框架。");
+                    return;
+                }
+                const camera = parts.length === 3 ? Number(parts[2]) : 0;
+                if (
+                    parts.length < 2 ||
+                    parts.length > 3 ||
+                    !Number.isInteger(camera) ||
+                    camera < 0
+                ) {
+                    error(player, "用法：-ui-file <模型路徑> [鏡頭編號]。");
+                    return;
+                }
+                currentModel = parts[1];
+                modelCamera = camera;
+                frames.setModel(model, currentModel, modelCamera);
+                frames.setSpriteAnimate(model, 2, 0);
+                tell(player, "模型：" + currentModel + "；鏡頭 " + modelCamera + "。");
                 return;
             }
             case "-ui-anim": {
@@ -389,7 +422,7 @@ export function runUiExperiment(
                 );
             }
             logger.info(
-                "I3 框架實驗已啟動。指令：-ui-toc、-ui-show、-ui-hide、-ui-model <x> <y> <scale>、-ui-anim <stand|birth|death|morph|alternate>、-ui-select、-ui-stop。",
+                "I3 框架實驗已啟動。指令：-ui-toc、-ui-show、-ui-hide、-ui-model <x> <y> <scale>、-ui-file <模型路徑> [鏡頭]、-ui-anim <stand|birth|death|morph|alternate>、-ui-select、-ui-stop。",
             );
         } catch (caught) {
             logger.error(caught);
