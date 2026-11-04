@@ -9,7 +9,7 @@ description: 新增或修改英雄狀態、職業升級、物品基底、詞綴�
 
 英雄存檔：`docs/hero-save/PLAN.md`；實作記錄：`docs/hero-save/implementation/PLAN.md`（已完成，2026-11-04）。存檔細節見 `.github/skills/save-system`。
 
-90 格背包、版本 4 與原生載體：以 `docs/inventory-ui/PLAN.md` 為準。I1、I2 記錄見 `docs/inventory-ui/implementation/PLAN.md`。I3 結論見 `docs/inventory-ui/i3/PLAN.md`。I4 框架與 I5 遊戲內驗證步驟見 `docs/inventory-ui/i4/PLAN.md`。I5 尚未執行。
+90 格背包、版本 4 與原生載體：以 `docs/inventory-ui/PLAN.md` 為準。I1、I2 記錄見 `docs/inventory-ui/implementation/PLAN.md`。I3 結論見 `docs/inventory-ui/i3/PLAN.md`。I4 框架見 `docs/inventory-ui/i4/PLAN.md`。I5 遊戲內驗證已通過（2026-11-04）。
 
 ## 結構
 
