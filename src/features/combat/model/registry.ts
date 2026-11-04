@@ -66,6 +66,8 @@ export class CombatRegistry {
         };
         this.units.set(target, state);
         this.natives.timeScale(target, state.timeScale);
+        // 生命恢復由本系統負責。原生恢復會改變血條。
+        this.natives.disableLifeRegen(target);
         this.natives.displayLife(target, state.life.maxLife, state.life.life);
         this.registrations.next(state);
         return state;
@@ -125,6 +127,15 @@ export class CombatRegistry {
                 },
             ],
         };
+    }
+    /** 無敵擋不住負數恢復與直接寫入。原生生命與應顯示值不同時，重新寫入。 */
+    public syncLife(): void {
+        for (const state of this.units.values()) {
+            if (this.natives.unitType(state.unit) === 0) continue;
+            const expected = Math.max(1, state.life.life);
+            if (Math.abs(this.natives.life(state.unit) - expected) > 0.5)
+                this.natives.displayLife(state.unit, state.life.maxLife, state.life.life);
+        }
     }
     public require(target: unit): Combatant {
         const state = this.units.get(target);

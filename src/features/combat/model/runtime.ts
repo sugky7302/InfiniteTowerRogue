@@ -14,6 +14,8 @@ export class CombatRuntime {
     public readonly pause: TacticalPause;
     private readonly machines = new Map<unit, PatrolMachine>();
     private readonly moves = new Map<unit, { x: number; y: number }>();
+    /** 除錯用。為 true 時巡檢機停在原地，不移動也不攻擊。 */
+    public held = false;
     public constructor(
         public readonly registry: CombatRegistry,
         private readonly clock: Clock,
@@ -26,9 +28,10 @@ export class CombatRuntime {
         this.owner.add(events.onUnitOrder.subscribe((event) => this.pause.order(event)));
         this.owner.add(
             events.onDamaging.subscribe((event) => {
-                if (!event.isAttack || !registry.units.has(event.target)) return;
-                // 先清除原生傷害，再執行本系統的檢定與結算。
+                if (!registry.units.has(event.target)) return;
+                // 已登錄目標的生命只由本系統結算。全部原生傷害都清除。
                 event.setAmount(0);
+                if (!event.isAttack) return;
                 const source = event.source,
                     target = event.target;
                 if (
@@ -64,6 +67,17 @@ export class CombatRuntime {
         this.registry.natives.setWeaponEnabled(target, 0, false);
         this.registry.natives.setWeaponEnabled(target, 1, false);
     }
+    /** 除錯用。切換巡檢機是否停在原地。停住時清除預告並回到巡邏。 */
+    public hold(held: boolean): void {
+        this.held = held;
+        if (!held) return;
+        for (const [target, machine] of this.machines) {
+            this.presentation.clear(target);
+            machine.state = "patrol";
+            this.moves.delete(target);
+            this.registry.natives.stop(target);
+        }
+    }
     public moveMachine(target: unit, x: number, y: number): void {
         if (!this.registry.active(target) || this.clock.isPaused()) return;
         this.presentation.clear(target);
@@ -87,6 +101,7 @@ export class CombatRuntime {
     private step(): void {
         const registry = this.registry,
             n = registry.natives;
+        registry.syncLife();
         for (const [target, machine] of this.machines) {
             if (!registry.active(target)) {
                 this.presentation.clear(target);
@@ -94,6 +109,7 @@ export class CombatRuntime {
                 this.moves.delete(target);
                 continue;
             }
+            if (this.held) continue;
             const position = { x: n.x(target), y: n.y(target) };
             const move = this.moves.get(target);
             if (move !== undefined) {

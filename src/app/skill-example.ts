@@ -237,6 +237,10 @@ export function runSkillExample(): void {
                             `戰鬥者生命 ${displayNumber(state.life.life)}／${displayNumber(state.life.maxLife)}，護盾 ${displayNumber(state.life.shield)}，失能 ${state.life.incapacitated}，擊倒 ${state.life.knockedDown}`,
                         );
                 }
+                if (event.message === "-combat-hold") {
+                    combat!.hold(!combat!.held);
+                    logger.info(combat!.held ? "巡檢機停在原地。" : "巡檢機恢復行動。");
+                }
                 if (event.message === "-skill-move") {
                     for (let index = 1; index < units.length; index++)
                         if (registry.active(units[index]) && !worldClock.isPaused())
@@ -247,7 +251,7 @@ export function runSkillExample(): void {
         );
         SelectUnit(hero, true);
         logger.info(
-            "戰鬥範例已啟動。火球術 F，寒冰箭 I。右鍵普通攻擊。指令 -pause、-resume、-skill-status、-skill-move、-revive、-skill-stop、-hero、-hero-up、-item-new <基底>、-items、-equip <編號>、-unequip <位置>。",
+            "戰鬥範例已啟動。火球術 F，寒冰箭 I。右鍵普通攻擊。指令 -pause、-resume、-skill-status、-skill-move、-combat-hold、-revive、-skill-stop、-hero、-hero-up、-hero-forget、-item-new <基底>、-items、-equip <編號>、-unequip <位置>。",
         );
     } catch (error) {
         owner.unsubscribe();

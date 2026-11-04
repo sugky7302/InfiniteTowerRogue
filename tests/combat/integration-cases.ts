@@ -58,6 +58,7 @@ interface NativeUnit {
     weapons: boolean[];
     maximum: number;
     displayed: number;
+    regen: number;
     paused: boolean;
     invulnerable: boolean;
     flags: number;
@@ -112,6 +113,10 @@ export function combatFixture() {
             read(target).maximum = maximum;
             read(target).displayed = Math.max(1, current);
         },
+        life: (target) => read(target).displayed,
+        disableLifeRegen(target) {
+            read(target).regen = 0;
+        },
         pauseUnit(target, value) {
             read(target).paused = value;
         },
@@ -157,6 +162,7 @@ export function combatFixture() {
             weapons: [role === "player", false],
             maximum: 0,
             displayed: 0,
+            regen: 1,
             paused: false,
             invulnerable: false,
             flags: 3,
@@ -223,7 +229,66 @@ const reach = () => ({
     tolerance: 32,
 });
 
+function damaging(
+    f: ReturnType<typeof combatFixture>,
+    isAttack: boolean,
+    onSet: (this: void, value: number) => void,
+): DamagingEvent {
+    return {
+        source: f.hero,
+        target: f.enemy,
+        isAttack,
+        amount: 8,
+        attackType: {} as attacktype,
+        damageType: {} as damagetype,
+        weaponType: {} as weapontype,
+        setAmount(value) {
+            onSet(value);
+        },
+        setAttackType() {},
+        setDamageType() {},
+        setWeaponType() {},
+    };
+}
+
 export const integrationCases: { name: string; run: (this: void) => void }[] = [
+    {
+        name: "生命防護：非攻擊原生傷害歸零，且不擲 D20",
+        run() {
+            const f = combatFixture();
+            const runtime = new CombatRuntime(
+                f.registry,
+                f.clock,
+                { onDamaging: f.damages, onUnitOrder: f.orders },
+                { warning() {}, clear() {} },
+            );
+            let amount = 8;
+            f.damages.next(damaging(f, false, (value) => (amount = value)));
+            check(amount === 0 && !f.operations.includes("D20"));
+            check(f.registry.target(f.enemy).life === f.registry.require(f.enemy).life.maxLife);
+            runtime.owner.unsubscribe();
+        },
+    },
+    {
+        name: "生命防護：登錄關閉原生恢復，步進修正被改寫的原生生命",
+        run() {
+            const f = combatFixture();
+            check(f.read(f.hero).regen === 0 && f.read(f.enemy).regen === 0);
+            const runtime = new CombatRuntime(
+                f.registry,
+                f.clock,
+                { onDamaging: f.damages, onUnitOrder: f.orders },
+                { warning() {}, clear() {} },
+            );
+            const life = f.registry.require(f.hero).life.life;
+            f.read(f.hero).displayed = 0.2;
+            f.read(f.enemy).displayed = 9999;
+            f.driver.advance(50);
+            check(f.read(f.hero).displayed === Math.max(1, life));
+            check(f.read(f.enemy).displayed === f.registry.require(f.enemy).life.life);
+            runtime.owner.unsubscribe();
+        },
+    },
     {
         name: "C4 登錄保存實際生命、陣營與血條",
         run() {

@@ -168,7 +168,17 @@ export class HeroExample {
             .split(" ")
             .filter((part) => part.length > 0);
         const command = parts[0];
-        if (!["-hero", "-hero-up", "-item-new", "-items", "-equip", "-unequip"].includes(command))
+        if (
+            ![
+                "-hero",
+                "-hero-up",
+                "-hero-forget",
+                "-item-new",
+                "-items",
+                "-equip",
+                "-unequip",
+            ].includes(command)
+        )
             return undefined;
         if (command === "-hero") {
             const a = this.currentHero.attributes;
@@ -198,6 +208,11 @@ export class HeroExample {
             return [
                 `升級完成。戰鬥等級 ${this.summary.attributes.level}，最大生命 ${displayNumber(this.summary.stats.maxLife)}，法術強度 ${displayNumber(this.summary.stats.spellPower)}`,
             ];
+        }
+        if (command === "-hero-forget") {
+            // 除錯用。清空知識，以驗證缺少知識時無法穿上物品。
+            this.currentHero = { ...this.currentHero, knowledge: [] };
+            return ["已清空英雄的知識。"];
         }
         if (command === "-items") {
             return [

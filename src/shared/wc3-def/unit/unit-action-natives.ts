@@ -8,6 +8,8 @@ export interface UnitActionNatives {
     attackRange(target: unit): number;
     collision(target: unit): number;
     displayLife(target: unit, maximum: number, current: number): void;
+    life(target: unit): number;
+    disableLifeRegen(target: unit): void;
     pauseUnit(target: unit, paused: boolean): void;
     invulnerable(target: unit): boolean;
     setInvulnerable(target: unit, value: boolean): void;

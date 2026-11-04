@@ -17,6 +17,11 @@ export const wc3UnitActionNatives: UnitActionNatives = {
         // 失能與死亡動作期間保留原生單位。內部生命仍為 0。
         SetWidgetLife(target, Math.max(1, current));
     },
+    life: (target) => GetWidgetLife(target),
+    disableLifeRegen(target) {
+        if (!BlzSetUnitRealField(target, UNIT_RF_HIT_POINTS_REGENERATION_RATE, 0))
+            throw new Error("單位生命恢復欄位寫入失敗。");
+    },
     pauseUnit: (target, paused) => PauseUnit(target, paused),
     invulnerable: (target) => BlzIsUnitInvulnerable(target),
     setInvulnerable: (target, value) => SetUnitInvulnerable(target, value),
