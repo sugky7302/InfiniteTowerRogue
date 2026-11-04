@@ -143,6 +143,44 @@
 - w3ts `Frame` 只在 `src/shared/wc3-def/frame/` 的 WC3 實作中使用。features 只依賴 `FrameNatives` 介面，所以 Node 測試不需要 w3ts。
 - 「框架規則」一節的同步規則仍適用：`Frame.fromName`、`Frame.fromOrigin` 不得第一次在 `GetLocalPlayer` 區塊內呼叫。
 
+## TOC 與 FDF 樣板
+
+使用者提議（2026-11-04）：設計專案自己的 TOC 檔案。以 FDF 定義物品欄的全部樣板，程式只建立樣板的實例。
+
+### 檔案
+
+| 檔案 | 地圖內路徑 | 內容 |
+|---|---|---|
+| `assets/ui/infinite-tower-rogue.toc` | `uiinfinite-tower-rogue.toc` | 列出本專案的全部 FDF |
+| `assets/ui/inventory.fdf` | `uiinventory.fdf` | 物品欄樣板 |
+
+- 建置時把 `assets/ui/` 複製到 `dist/<地圖>/ui/`，再封裝。原始地圖資料夾不放這些檔案。
+- 遊戲開始後（共同流程）以 `Frame.loadTOC("ui\infinite-tower-rogue.toc")` 載入一次。傳回 false 時以 `logger.error` 輸出，物品欄不建立。
+- TOC 每行一個 FDF 路徑，使用 CRLF。最後一行之後必須有空行；否則最後一個 FDF 可能不會載入（社群已知問題，I3 確認）。
+- 之後的知識面板、說明框等新樣板，加入同一個 TOC，各自一個 FDF。
+
+### 樣板（`inventory.fdf`）
+
+全部名稱以 `Itr` 開頭，避免與內建樣板衝突。需要內建樣板時以 `IncludeFile` 引用後繼承。
+
+| 樣板 | 類型 | 用途 |
+|---|---|---|
+| `ItrPanel` | `BACKDROP` | 面板背景與邊框（穿戴、背包、數值、說明） |
+| `ItrSlotButton` | `GLUEBUTTON` | 物品格：圖示背景、滑鼠移入亮框、選取框、停用時的灰色圖示 |
+| `ItrTabButton` | `GLUETEXTBUTTON` | 背包分頁按鈕 |
+| `ItrActionButton` | `GLUETEXTBUTTON` | 丟棄、關閉等文字按鈕 |
+| `ItrTitleText`、`ItrBodyText` | `TEXT` | 標題與內文字型、大小、顏色、對齊 |
+| `ItrStatLine` | `FRAME`（兩個 `TEXT`） | 數值面板的一行：名稱靠左、數值靠右 |
+| `ItrModelPreview` | `SPRITE` | 英雄模型預覽 |
+
+- 格子大小、間距與面板尺寸以 FDF 為準。版面計算只決定位置（格子編號 → 行列 → 座標）。
+- 圖示由程式以 `setTexture` 設定到樣板中的子框架。子框架以 `Frame.fromName(名稱, createContext)` 取得；`createContext` 使用格子編號。
+
+### 驗證
+
+- 產物測試：地圖中有 TOC 與 FDF；TOC 列出的每個 FDF 都存在；TOC 以空行結尾。
+- I3 遊戲內實驗改為：`loadTOC` 傳回 true；每個樣板都能建立；文字有字型；SPRITE 能顯示英雄模型。
+
 ## 模組位置
 
 | 位置 | 內容 |
@@ -161,8 +199,8 @@
 
 ## 待實驗（I3 前確認）
 
-1. 以 `BlzCreateFrameByType` 建立 `TEXT` 時，不載入 TOC 是否有字型。若沒有，建置時加入 TOC 與 FDF 樣板。
-2. 工具提示或說明框的背景樣板是否需要載入 TOC。
+1. 本專案的 TOC 能載入，每個 FDF 樣板都能建立（見「TOC 與 FDF 樣板」）。
+2. TOC 結尾沒有空行時，最後一個 FDF 是否載入失敗。
 3. `SPRITE` 框架能否顯示英雄模型、播放站立動作，以及模型大小與位置。
 4. 隱藏的原生物品是否會被其他單位撿起，或被範圍效果影響。
 5. 選取英雄以外的單位時，面板是否保留或隱藏。
