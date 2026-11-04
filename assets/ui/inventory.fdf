@@ -87,26 +87,26 @@ Frame "TEXT" "ItrBodyText" {
 }
 
 Frame "FRAME" "ItrStatLine" {
-    Width 0.23,
-    Height 0.02,
+    Width 0.184,
+    Height 0.0175,
     Frame "TEXT" "ItrStatName" {
         DecorateFileNames,
-        Width 0.16,
-        Height 0.02,
+        Width 0.116,
+        Height 0.0175,
         UseActiveContext,
         SetPoint LEFT, "ItrStatLine", LEFT, 0.0, 0.0,
-        FrameFont "MasterFont", 0.011, "",
+        FrameFont "MasterFont", 0.009, "",
         FontColor 1.0 1.0 1.0 1.0,
         FontJustificationH JUSTIFYLEFT,
         FontJustificationV JUSTIFYMIDDLE,
     }
     Frame "TEXT" "ItrStatValue" {
         DecorateFileNames,
-        Width 0.07,
-        Height 0.02,
+        Width 0.062,
+        Height 0.0175,
         UseActiveContext,
         SetPoint RIGHT, "ItrStatLine", RIGHT, 0.0, 0.0,
-        FrameFont "MasterFont", 0.011, "",
+        FrameFont "MasterFont", 0.009, "",
         FontColor 0.5 1.0 0.5 1.0,
         FontJustificationH JUSTIFYRIGHT,
         FontJustificationV JUSTIFYMIDDLE,
@@ -114,6 +114,60 @@ Frame "FRAME" "ItrStatLine" {
 }
 
 Frame "SPRITE" "ItrModelPreview" {
-    Width 0.14,
-    Height 0.16,
+    Width 0.001,
+    Height 0.001,
+}
+
+Frame "FRAME" "ItrInventoryRoot" {
+    Width 0.76,
+    Height 0.40,
+}
+
+Frame "BACKDROP" "ItrHeroPanel" INHERITS "ItrPanel" {
+    Width 0.20,
+    Height 0.28,
+}
+
+Frame "BACKDROP" "ItrStatsPanel" INHERITS "ItrPanel" {
+    Width 0.21,
+    Height 0.28,
+}
+
+Frame "BACKDROP" "ItrBagPanel" INHERITS "ItrPanel" {
+    Width 0.34,
+    Height 0.28,
+}
+
+Frame "BACKDROP" "ItrDescriptionPanel" INHERITS "ItrPanel" {
+    Width 0.60,
+    Height 0.115,
+}
+
+Frame "TEXT" "ItrSectionTitle" INHERITS "ItrTitleText" {
+    Width 0.18,
+    Height 0.018,
+    FrameFont "MasterFont", 0.012, "",
+}
+
+Frame "TEXT" "ItrSlotLabel" INHERITS "ItrBodyText" {
+    Width 0.045,
+    Height 0.015,
+    FrameFont "MasterFont", 0.009, "",
+}
+
+Frame "TEXT" "ItrDescriptionText" INHERITS "ItrBodyText" {
+    Width 0.576,
+    Height 0.078,
+    FrameFont "MasterFont", 0.009, "",
+}
+
+Frame "TEXT" "ItrResultText" INHERITS "ItrBodyText" {
+    Width 0.576,
+    Height 0.018,
+    FrameFont "MasterFont", 0.009, "",
+}
+
+Frame "GLUETEXTBUTTON" "ItrTurnButton" INHERITS WITHCHILDREN "ItrActionButton" {
+    Width 0.044,
+    Height 0.022,
 }

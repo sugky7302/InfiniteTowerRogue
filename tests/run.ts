@@ -22,4 +22,5 @@ import "./hero/run";
 import "./hero-save/hero-save.spec";
 import "./inventory/inventory.spec";
 import "./inventory/objects.spec";
-import "./ui/experiment.spec";
+import "./ui/inventory.spec";
+import "./ui/frames.spec";

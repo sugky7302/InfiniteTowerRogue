@@ -18,6 +18,12 @@ import {
     EquipmentSummary,
     EquipFailure,
     EquipFailureCode,
+    InventoryPort,
+    InventorySelection,
+    InventoryEvent,
+    InventoryTransition,
+    inventoryTransition,
+    equipmentStatValue,
 } from "@features/equipment";
 import {
     createItem,
@@ -136,12 +142,13 @@ function itemText(item: ItemInstance): string {
 }
 
 /** app 組合英雄、裝備、背包與戰鬥。 */
-export class HeroExample {
+export class HeroExample implements InventoryPort {
     private currentHero: HeroState;
     private worn: EquipmentState = emptyEquipment();
     private held: BagState = createBag();
     private carriers?: NativeItemRegistry;
     private nextId = 1;
+    private readonly listeners: ((this: void) => void)[] = [];
     public summary: EquipmentSummary;
     public get nativeUnit(): unit {
         return this.unit;
@@ -172,6 +179,38 @@ export class HeroExample {
     }
     public get items(): BagState {
         return this.held;
+    }
+    public read() {
+        return { hero: this.currentHero, worn: this.worn, bag: this.held };
+    }
+    public subscribe(listener: (this: void) => void): () => void {
+        this.listeners.push(listener);
+        return () => {
+            const index = this.listeners.indexOf(listener);
+            if (index >= 0) this.listeners.splice(index, 1);
+        };
+    }
+    private notify(): void {
+        for (const listener of [...this.listeners]) listener();
+    }
+    public send(selection: InventorySelection, event: InventoryEvent): InventoryTransition {
+        const result = inventoryTransition(this.read(), selection, event);
+        if (!result.changed) return result;
+        if (
+            result.dropped !== undefined &&
+            (this.carriers === undefined || !this.carriers.drop(result.dropped.id))
+        )
+            return {
+                worn: this.worn,
+                bag: this.held,
+                selection,
+                messages: ["無法丟棄物品。"],
+                changed: false,
+            };
+        this.worn = result.worn;
+        this.held = result.bag;
+        this.refresh();
+        return result;
     }
     public snapshot(): HeroSnapshot {
         const worn = { ...emptyEquipment() };
@@ -238,6 +277,7 @@ export class HeroExample {
         const bag = putInBag(this.held, item);
         if (bag === undefined) return false;
         this.held = bag;
+        this.notify();
         return true;
     }
     private create(baseId: string): ItemInstance {
@@ -259,6 +299,7 @@ export class HeroExample {
             this.summary.damageModifiers,
         );
         this.changed(this.summary);
+        this.notify();
     }
     public command(message: string): readonly string[] | undefined {
         const parts = message
@@ -293,7 +334,7 @@ export class HeroExample {
                 `戰鬥等級 ${this.summary.attributes.level}`,
                 ...Object.entries(statNames).map(
                     ([key, name]) =>
-                        `${name} ${displayNumber(this.summary.stats[key as keyof EquipmentSummary["stats"]])}`,
+                        `${name} ${equipmentStatValue(key as keyof EquipmentSummary["stats"], this.summary.stats[key as keyof EquipmentSummary["stats"]])}`,
                 ),
                 this.summary.mainWeapon
                     ? `主武器傷害 ${displayNumber(this.summary.mainWeaponDamage)}`
@@ -312,6 +353,7 @@ export class HeroExample {
         if (command === "-hero-forget") {
             // 除錯用。清空知識，以驗證缺少知識時無法穿上物品。
             this.currentHero = { ...this.currentHero, knowledge: [] };
+            this.notify();
             return ["已清空英雄的知識。"];
         }
         if (command === "-items") {
@@ -345,6 +387,7 @@ export class HeroExample {
             const item = this.create(baseId);
             this.carriers?.add(item);
             this.held = putInBag(this.held, item)!;
+            this.notify();
             return [itemText(item)];
         }
         if (command === "-unequip") {
@@ -370,6 +413,7 @@ export class HeroExample {
                 const next = swapBagSlots(this.held, first, Number(parts[2]) - 1);
                 if (next === undefined) return ["請指定背包格子 1～90。"];
                 this.held = next;
+                this.notify();
                 return ["已交換背包格子。"];
             }
             if (parts.length !== 2) return ["請指定一個背包格子。"];
@@ -378,6 +422,7 @@ export class HeroExample {
             if (this.carriers === undefined || !this.carriers.drop(removed.item.id))
                 return ["無法丟棄物品。"];
             this.held = removed.bag;
+            this.notify();
             return ["已丟棄物品。"];
         }
         const id = Number(parts[1]);

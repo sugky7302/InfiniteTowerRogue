@@ -9,7 +9,7 @@ description: 新增或修改英雄狀態、職業升級、物品基底、詞綴�
 
 英雄存檔：`docs/hero-save/PLAN.md`；實作記錄：`docs/hero-save/implementation/PLAN.md`（已完成，2026-11-04）。存檔細節見 `.github/skills/save-system`。
 
-90 格背包、版本 4 與原生載體：以 `docs/inventory-ui/PLAN.md` 為準。I1、I2 記錄見 `docs/inventory-ui/implementation/PLAN.md`。遊戲內驗證尚未執行。
+90 格背包、版本 4 與原生載體：以 `docs/inventory-ui/PLAN.md` 為準。I1、I2 記錄見 `docs/inventory-ui/implementation/PLAN.md`。I3 結論見 `docs/inventory-ui/i3/PLAN.md`。I4 框架與 I5 遊戲內驗證步驟見 `docs/inventory-ui/i4/PLAN.md`。I5 尚未執行。
 
 ## 結構
 
@@ -21,6 +21,8 @@ description: 新增或修改英雄狀態、職業升級、物品基底、詞綴�
 | `src/features/equipment/config/native-items.ts` | 每個基底的原生代碼、圖示與名稱 |
 | `src/app/hero-example.ts` | `HeroExample`：英雄、穿戴物、固定格背包與聊天指令 |
 | `src/app/native-item-registry.ts` | 原生載體登錄、建立、隱藏、丟棄、撿起與移除 |
+| `src/features/equipment/ui/` | 純版面、點選狀態機、檢視模型與 `InventoryPort` |
+| `src/app/inventory-ui.ts` | 正式框架、同步事件、擁有者檢查與變更訂閱 |
 
 - `entities/item` 不得 import `entities/character` 或 `entities/combat`。`features/equipment` 把加成轉成二級數值與傷害修正。
 - 英雄狀態不保存穿戴物。全部規則是純函式，不修改輸入。亂數由呼叫者傳入。
@@ -55,7 +57,16 @@ description: 新增或修改英雄狀態、職業升級、物品基底、詞綴�
 - 真實資料仍是 `ItemInstance`。每個基底對應一種一般永久類別的原生物品，代碼為 `I0B1`～`I0B5`。不得使用內建裝備類別。
 - `SetItemUserData` 保存編號，app 登錄表以編號查詢資料，並比對 handle。背包與穿戴中的載體隱藏，不放在原生物品欄。
 - 英雄保留 `AInv`。拾取已登錄物品時，先 `UnitRemoveItem`，再嘗試放入背包。背包已滿時物品留在地面並顯示「背包已滿」。未登錄的一般原生物品沿用引擎行為。
-- 隱藏載體會不會被其他單位撿起或受範圍效果影響，留待 I3 實驗 4；Node 與 Lua 假原生測試不能證明此行為。
+- I3 已在遊戲中確認：隱藏載體不受其他單位或範圍效果影響。
+
+## 正式物品欄
+
+- `HeroExample` 實作 `InventoryPort`：`read`、`send`、`subscribe`。聊天建立、交換、丟棄、拾取、穿脫、升級、知識變動及讀檔都送出變更通知。不輪詢。
+- `inventoryTransition` 是純函式。背包互換、穿上與卸下都回傳新資料。失敗保留資料與選取，並回傳全部原因。同格取消；無選取時點空格不做事。
+- 卸下與被替換的裝備使用第一個空格，沿用 I2。丟棄先由 app 操作載體，成功後才提交背包變更。
+- `inventoryView`、`inventoryDescription` 只讀純資料。背包說明沿用 `compareEquipment`。數值面板與 `-hero` 共用百分比格式；迴避及施法穩定是數值，不加 `%`。
+- 全部用戶端在 0 秒計時器中建立相同框架。事件先檢查擁有者；只以 `GetLocalPlayer` 控制可見性，不讀取本地文字或可見值來操作物品。
+- 外部變更清除選取，並更新目前頁與移入說明。停止戰鬥範例時，同時移除框架、事件及訂閱。
 
 ## 陷阱
 
@@ -67,7 +78,7 @@ description: 新增或修改英雄狀態、職業升級、物品基底、詞綴�
 
 ## 範例指令
 
-`-hero`、`-hero-up`、`-item-new <基底>`、`-items`、`-equip <編號>`、`-unequip <位置>`、`-drop <格子>`、`-bag-swap <格子> <格子>`。背包格子使用 1～90。除錯：`-hero-forget` 清空知識。`-item-new` 直接放入第一個空格；`-items` 顯示穿戴物與背包中的非空格。
+`-bag`、`-hero`、`-hero-up`、`-item-new <基底>`、`-items`、`-equip <編號>`、`-unequip <位置>`、`-drop <格子>`、`-bag-swap <格子> <格子>`。背包格子使用 1～90。除錯：`-hero-forget` 清空知識。`-item-new` 直接放入第一個空格；`-items` 顯示穿戴物與背包中的非空格。I3 的 `-ui-*` 指令已移除。
 
 ## 驗證
 

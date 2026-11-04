@@ -130,7 +130,7 @@ export function compileMap(config: IProjectConfig) {
     fs.copySync(`./maps/${config.mapFolder}`, `./dist/${config.mapFolder}`);
     // 只寫入建置地圖。UI 資源不放入原始地圖。
     fs.copySync(path.resolve("assets", "ui"), path.resolve("dist", config.mapFolder, "ui"));
-    // I3 實驗的英雄預覽包裝模型。模型路徑與技能範例的英雄物件相同。
+    // 正式物品欄的英雄預覽包裝模型。模型路徑與技能範例的英雄物件相同。
     require("./ui-models.cjs").writePreviewModels(
         path.resolve("dist", config.mapFolder, "ui"),
         "units\\human\\HeroArchMage\\HeroArchMage.mdx",

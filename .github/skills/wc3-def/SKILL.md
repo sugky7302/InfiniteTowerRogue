@@ -33,7 +33,7 @@ description: 新增或使用 WC3 原生函式、handle 型別、事件資料或�
 | `unit/` | `UnitNatives`、`UnitDamageNatives`、`UnitAreaNatives` | 單位查詢與命令、固定傷害、範圍列舉 |
 | `ability/` | `AbilityNatives` | 冷卻、停用、技能說明 |
 | `effect/` | `EffectNatives` | 特效、浮動文字 |
-| `item/` | `ItemNatives` | 物品文字與列舉 |
+| `item/` | `ItemNatives`、`ItemCarrierNatives` | 物品文字、列舉與原生載體操作 |
 | `player/` | `PlayerNatives` | 玩家名稱、顯示文字、用戶端語言 |
 | `random/` | `RandomNatives` | 同步亂數 |
 | `file/` | `FileNatives` | Preload 檔案讀寫、getIcon(ability)、setIcon(text, ability) |
@@ -48,10 +48,12 @@ description: 新增或使用 WC3 原生函式、handle 型別、事件資料或�
 - 框架在遊戲時間 0 秒後由全部玩家共同建立。`fromName`、`fromOrigin` 先在共同流程取得。只用本地玩家切換可見性；不得用本地可見值改變遊戲狀態。點擊後用 `resetFocus` 停用再啟用按鈕。
 - `registerEvent` 使用 `BlzTriggerRegisterFrameEvent`。使用端持有並銷毀觸發器。銷毀父框架會清理子框架，避免重複銷毀。
 - 模型動畫使用 `setSpriteAnimate(primaryProp, flags)`，沒有按名稱播放的 w3ts 方法。SPRITE 的 birth、death、stand、morph、alternate 分別為 0～4，不能使用 `ANIM_TYPE_*` 的 handle 編號。沒有已知的 attack 屬性。來源與遊戲驗收見 I3 設計稿。
-- 專案 FDF 位於 `assets/ui/`。建置時複製到 `dist/<mapFolder>/ui/` 再封裝。主 TOC 使用 CRLF，且最後一行之後有空行。探測 TOC 刻意沒有結尾換行，供 I3 比較。執行 `npm run test:ui:artifact` 檢查產物；遊戲驗收步驟見 `docs/inventory-ui/i3/PLAN.md`。
+- I3 已確認：SPRITE 只從模型上方往下看，忽略鏡頭與光源。預覽接受全黑剪影。每次顯示或旋轉都建立新 SPRITE 並隱藏舊框架，路徑用 `.mdl`。同一框架換模型及 `.mdx` 路徑都不能顯示。
+- 預覽以 `setSize(0.001, 0.001)` 與 `setScale(0.001)` 設定。縮放也影響位移，所以 `setPoint` 的相對位移先除以 0.001。建置產生 `itr-hero-preview-00.mdx`～`15.mdx`，每格 22.5°，00 為正面。反向實驗模型已移除。
+- 專案 FDF 位於 `assets/ui/`。建置時複製到 `dist/<mapFolder>/ui/` 再封裝。主 TOC 使用 CRLF，且最後一行之後必須有空行；I3 已確認缺少空行會載入失敗。探測資源與實驗程式已移除。執行 `npm run test:ui:artifact` 檢查主 TOC、樣板與 16 個模型。I5 步驟見 `docs/inventory-ui/i4/PLAN.md`。
 - 介面方法在 Lua 中會收到 `self`。把一般函式指定給介面方法時，用箭頭函式包裝，例如 `unwrapUnit: (input) => unwrapUnit(input)`。否則 TSTL 會報錯。
 
-- FileNatives 的技能參數是數字。WC3 實作只包裝 BlzGetAbilityIcon、BlzSetAbilityIcon 與 Preload 系列。沿用 w3ts 的方式，不建立預載單位，也不提供 prepare。檔案格式與載體常數由 file-io 管理。F2 遊戲驗證仍待執行。
+- FileNatives 的技能參數是數字。WC3 實作只包裝 BlzGetAbilityIcon、BlzSetAbilityIcon 與 Preload 系列。沿用 w3ts 的方式，不建立預載單位，也不提供 prepare。檔案格式與載體常數由 file-io 管理。F2 已在 2026-11-04 通過遊戲驗證，詳見 save-system 技能。
 
 ## 其他檔案
 

@@ -24,6 +24,7 @@ import { createWc3SkillNatives } from "./wc3-skill-natives";
 import { HeroExample } from "./hero-example";
 import { NativeItemRegistry } from "./native-item-registry";
 import { wc3ItemCarrierNatives } from "@shared/wc3-def";
+import { runInventoryUi } from "./inventory-ui";
 
 declare function compiletime<T>(
     this: void,
@@ -48,12 +49,6 @@ compiletime(({ objectData }) => {
         objectData,
         require(root + "/src/features/equipment/config/native-items.ts"),
     );
-});
-
-// 從本次建置的英雄物件讀取模型，不另寫模型路徑。
-export const skillHeroModel = compiletime(({ objectData }) => {
-    const path = objectData.units.get("H0SS")!.modelFile;
-    return path.length === 0 || /\.m(?:dl|dx)$/i.test(path) ? path : path + ".mdl";
 });
 
 export function runSkillExample(): HeroExample | undefined {
@@ -174,6 +169,7 @@ export function runSkillExample(): HeroExample | undefined {
         );
         owner.add(() => carriers.destroy());
         heroExample.attachCarriers(carriers);
+        listeners.add(runInventoryUi(heroExample, GetOwningPlayer(hero)));
         SuspendHeroXP(hero, true);
         BlzSetUnitMaxMana(hero, manaCapacity(scholar.intelligence, scholar.spirit));
         SetUnitState(hero, UNIT_STATE_MANA, manaCapacity(scholar.intelligence, scholar.spirit));
@@ -271,7 +267,7 @@ export function runSkillExample(): HeroExample | undefined {
         );
         SelectUnit(hero, true);
         logger.info(
-            "戰鬥範例已啟動。火球術 F，寒冰箭 I。右鍵普通攻擊。指令 -pause、-resume、-skill-status、-skill-move、-combat-hold、-revive、-skill-stop、-hero、-hero-up、-hero-forget、-item-new <基底>、-items、-equip <編號>、-unequip <位置>、-drop <格子>、-bag-swap <格子> <格子>。",
+            "戰鬥範例已啟動。火球術 F，寒冰箭 I。右鍵普通攻擊。指令 -pause、-resume、-skill-status、-skill-move、-combat-hold、-revive、-skill-stop、-hero、-hero-up、-hero-forget、-item-new <基底>、-items、-equip <編號>、-unequip <位置>、-drop <格子>、-bag-swap <格子> <格子>、-bag。",
         );
         return heroExample;
     } catch (error) {

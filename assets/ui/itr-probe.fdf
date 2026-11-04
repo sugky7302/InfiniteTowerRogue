@@ -1,9 +1,0 @@
-Frame "TEXT" "ItrProbeText" {
-    DecorateFileNames,
-    Width 0.1,
-    Height 0.02,
-    FrameFont "MasterFont", 0.011, "",
-    FontColor 1.0 1.0 1.0 1.0,
-    FontJustificationH JUSTIFYLEFT,
-    FontJustificationV JUSTIFYMIDDLE,
-}

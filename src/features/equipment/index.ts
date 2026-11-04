@@ -4,3 +4,8 @@ export { compareEquipment, EquipmentComparison } from "./model/compare";
 export type { EquipmentRound } from "./lib/numbers";
 export * from "./model/bag";
 export * from "./config/native-items";
+export * from "./config/inventory-icons";
+export * from "./ui/layout";
+export * from "./ui/interaction";
+export * from "./ui/text";
+export * from "./ui/view";
