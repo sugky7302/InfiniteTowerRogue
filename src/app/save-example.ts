@@ -2,6 +2,7 @@ import { createLocalFileIo } from "@shared/file-io";
 import { installWc3ClockDrivers, onPlayerChat, uiClock } from "@shared/rxwc3";
 import { wc3FileNatives, wc3PlayerNatives, wc3SyncNatives } from "@shared/wc3-def";
 import { logger } from "@shared/logger";
+import { getI18n, installLanguageChat } from "@shared/i18n";
 import { installSaveChat, SaveParticipant } from "@features/save";
 
 export function runSaveExample(participants: readonly SaveParticipant[] = []): void {
@@ -20,10 +21,16 @@ export function runSaveExample(participants: readonly SaveParticipant[] = []): v
             undefined,
             participants,
         );
+        const i18n = getI18n(files);
+        installLanguageChat(i18n, onPlayerChat, players, (text) => logger.info(text));
         const local = wc3SyncNatives.getLocalPlayer();
         wc3PlayerNatives.display(
             local,
-            `存檔範例已啟動。玩家原始名稱 [${wc3PlayerNatives.playerName(local)}]。指令 -save、-load、-save-demo show。`,
+            `存檔範例已啟動。玩家原始名稱 [${wc3PlayerNatives.playerName(local)}]。指令 -save、-load、-save-demo show、-lang <語言>。`,
+        );
+        wc3PlayerNatives.display(
+            local,
+            `語言偏好讀檔結果：${i18n.preference?.result.status ?? "未讀取"}。採用語言：${i18n.language()}。`,
         );
     } catch (error) {
         logger.error(error);
