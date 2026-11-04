@@ -106,6 +106,37 @@ export function nativeEquipmentCommand(hero: unit, message: string): readonly st
         }
         return lines;
     }
+    if (message === "-ne-probe") {
+        // 參考地圖的英雄是 3.0 內建單位。列出它們的技能，找出開啟背包的技能代碼。
+        const lines: string[] = [];
+        for (const code of ["Hctl", "Hctr", "Hpal", "Hamg"]) {
+            const probe = CreateUnit(
+                GetOwningPlayer(hero),
+                FourCC(code),
+                GetUnitX(hero) - 200,
+                GetUnitY(hero),
+                0,
+            );
+            if (probe === undefined) {
+                lines.push(`${code}：無法建立`);
+                continue;
+            }
+            const ids: string[] = [];
+            for (let index = 0; index < 40; index++) {
+                const ability = BlzGetUnitAbilityByIndex(probe, index);
+                if (ability === undefined) break;
+                const id = BlzGetAbilityId(ability);
+                ids.push(
+                    `${string.char((id >>> 24) & 255, (id >>> 16) & 255, (id >>> 8) & 255, id & 255)}`,
+                );
+            }
+            lines.push(
+                `${code} ${GetUnitName(probe) ?? ""}：物品欄 ${UnitInventorySize(probe)}，延伸 ${UnitExtendedInventorySize(probe)}，技能 ${ids.join(",")}`,
+            );
+            RemoveUnit(probe);
+        }
+        return lines;
+    }
     if (message === "-ne-add") {
         // 不經過撿起命令，直接把 -ne-give 建立的物品交給英雄。
         const lines = created.map(
