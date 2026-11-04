@@ -22,10 +22,6 @@ import {
 import { skills, SkillRuntime } from "@features/skill";
 import { createWc3SkillNatives } from "./wc3-skill-natives";
 import { HeroExample } from "./hero-example";
-import {
-    installNativeEquipmentEvents,
-    nativeEquipmentCommand,
-} from "./native-equipment-experiment";
 
 declare function compiletime<T>(
     this: void,
@@ -205,15 +201,12 @@ export function runSkillExample(): HeroExample | undefined {
             (unit) => tracked.isCasting(unit),
         );
         const natives = adapter.natives;
-        installNativeEquipmentEvents(hero);
         let moveRight = true;
         listeners.add(
             onPlayerChat.subscribe((event) => {
                 if (event.player !== GetOwningPlayer(hero)) return;
                 try {
-                    const messages =
-                        heroExample.command(event.message) ??
-                        nativeEquipmentCommand(hero, event.message);
+                    const messages = heroExample.command(event.message);
                     if (messages !== undefined) {
                         for (const message of messages) logger.info(message);
                         return;
