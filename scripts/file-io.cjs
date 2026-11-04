@@ -5,7 +5,8 @@ function createFileIoAbility(data) {
     if (prepared.has(data)) return;
     if (data.abilities.has("A0IO")) throw new Error("檔案通道技能代碼已被使用：A0IO");
     const ability = data.abilities.copy("ANcl", "A0IO");
-    ability.levels = 1;
+    // 每段資料寫入一個等級。必須與 src/shared/file-io/codec.ts 的 fileSegmentCount 相同。
+    ability.levels = 43;
     prepared.add(data);
 }
 module.exports = { createFileIoAbility };

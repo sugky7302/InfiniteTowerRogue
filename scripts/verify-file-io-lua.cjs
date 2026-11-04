@@ -60,15 +60,17 @@ end
 ShowUnit = function(target, show) assert(target == carrier and show == false) end
 UnitAddAbility = function(target, id) assert(target == carrier and id == expected.A0IO); return true end
 RemoveUnit = function(target) assert(target == carrier); removed = removed + 1 end
+local levels = {}
 BlzGetAbilityTooltip = function(...)
   local id, level = ...
-  assert(select('#', ...) == 2 and id == expected.A0IO and level == 0, '讀取技能收到額外 self')
-  return tooltip
+  assert(select('#', ...) == 2 and id == expected.A0IO and math.type(level) == 'integer' and level >= 0 and level < 43, '讀取技能收到額外 self')
+  if level == 0 then return tooltip end
+  return levels[level] or '原始提示'
 end
 BlzSetAbilityTooltip = function(...)
   local id, text, level = ...
-  assert(select('#', ...) == 3 and id == expected.A0IO and level == 0, '設定技能收到額外 self')
-  tooltip = text
+  assert(select('#', ...) == 3 and id == expected.A0IO and math.type(level) == 'integer' and level >= 0 and level < 43, '設定技能收到額外 self')
+  if level == 0 then tooltip = text else levels[level] = text end
 end
 PreloadGenClear = function(...) assert(select('#', ...) == 0) end
 PreloadGenStart = function(...) assert(select('#', ...) == 0) end
@@ -86,8 +88,13 @@ CreateTrigger = function() error('本地讀寫建立觸發器') end
 CreateGroup = function() error('本地讀寫建立群組') end
 UnitAddAbility = function() error('本地讀寫建立技能資源') end
 assert(files:read('slot.pld').status == '沒有檔案或無法讀取' and tooltip == 'ITF-IDLE', '正式讀取或恢復錯誤')
+assert(levels[1] == '原始提示' and levels[42] == '原始提示', '其他等級沒有還原')
 assert(files:write('slot.pld', 'ABC').status == '已送出，尚未確認磁碟寫入', '正式寫入錯誤')
 assert(#emitted == 2 and string.find(emitted[1], 'ITF1|', 1, true), '預載檔語句錯誤')
+emitted = {}
+assert(files:write('slot.pld', string.rep('A', 200)).status == '已送出，尚未確認磁碟寫入', '多段寫入錯誤')
+-- 等級必須是整數文字。Lua 的除法得到 1.0，JASS 不接受。
+assert(#emitted == 4 and string.find(emitted[2], '",1)', 1, true) and string.find(emitted[3], '",2)', 1, true), '多段等級文字錯誤')
 `;
 const state = lauxlib.luaL_newstate();
 lualib.luaL_openlibs(state);
@@ -97,7 +104,7 @@ if (status !== lua.LUA_OK) {
     process.exitCode = 1;
 } else {
     process.stdout.write(
-        "本地檔案 Lua 5.3 驗證：12 組通過，0 組失敗（共用流程 10 組、共同資源 1 組、正式本地原生介面 1 組）。\n",
+        "本地檔案 Lua 5.3 驗證：13 組通過，0 組失敗（共用流程 10 組、共同資源 1 組、正式本地原生介面 2 組）。\n",
     );
     process.stdout.write("假原生函式不能證明遊戲磁碟讀寫、預載檔快取或多人安全性。\n");
 }

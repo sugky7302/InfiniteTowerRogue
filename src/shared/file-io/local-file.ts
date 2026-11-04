@@ -1,5 +1,5 @@
 import { FileNatives } from "@shared/wc3-def";
-import { decodeFileData, encodeFileData } from "./codec";
+import { decodeFileData, encodeFileData, fileSegmentCount, fileSegmentLength } from "./codec";
 
 export const FileReadStatus = {
     Read: "已讀取",
@@ -48,17 +48,25 @@ export function createLocalFileIo(natives: FileNatives) {
     return {
         read(path: string): FileRead {
             if (!safePath(path)) return { status: FileReadStatus.InvalidPath };
-            let saved: string;
+            const saved: string[] = [];
             try {
-                saved = natives.getTooltip();
+                for (let level = 0; level < fileSegmentCount; level++)
+                    saved.push(natives.getTooltip(level));
             } catch {
                 return { status: FileReadStatus.Failed };
             }
             let result: FileRead;
             try {
-                natives.setTooltip("ITF-MISSING");
+                natives.setTooltip("ITF-MISSING", 0);
+                for (let level = 1; level < fileSegmentCount; level++)
+                    natives.setTooltip("ITF-END", level);
                 natives.load(path);
-                const raw = natives.getTooltip();
+                let raw = "";
+                for (let level = 0; level < fileSegmentCount; level++) {
+                    const part = natives.getTooltip(level);
+                    if (part === "ITF-END") break;
+                    raw += part;
+                }
                 const data = decodeFileData(raw);
                 result =
                     raw === "ITF-MISSING"
@@ -70,7 +78,8 @@ export function createLocalFileIo(natives: FileNatives) {
                 result = { status: FileReadStatus.Failed };
             }
             try {
-                natives.setTooltip(saved);
+                for (let level = 0; level < fileSegmentCount; level++)
+                    natives.setTooltip(saved[level], level);
             } catch {
                 return { status: FileReadStatus.Failed };
             }
@@ -84,17 +93,19 @@ export function createLocalFileIo(natives: FileNatives) {
             try {
                 natives.clear();
                 natives.start();
-                // 每段最多 96 個 ASCII 字元。連同注入語句仍小於 200 個位元組。
-                for (let index = 0; index < encoded.length; index += 96) {
-                    // 第一段直接設定非空框架，不依賴引擎是否接受空提示。
-                    const before = index === 0 ? "" : "BlzGetAbilityTooltip('A0IO',0)+";
+                // 每段最多 96 個 ASCII 字元，寫入自己的等級。連同注入語句仍小於 200 個位元組。
+                // Preloader 執行時，BlzGetAbilityTooltip 串接不會生效，所以不串接。
+                // 等級使用整數計數。Lua 的除法得到浮點數，轉成文字是 1.0，JASS 不接受。
+                let level = 0;
+                for (let index = 0; index < encoded.length; index += fileSegmentLength) {
                     natives.emit(
-                        "\")\ncall BlzSetAbilityTooltip('A0IO'," +
-                            before +
-                            '"' +
-                            encoded.slice(index, index + 96) +
-                            '\",0)\n//',
+                        "\")\ncall BlzSetAbilityTooltip('A0IO',\"" +
+                            encoded.slice(index, index + fileSegmentLength) +
+                            '",' +
+                            level +
+                            ")\n//",
                     );
+                    level++;
                 }
                 natives.emit('\")\nendfunction\nfunction a takes nothing returns nothing\n//');
                 natives.finish(path);

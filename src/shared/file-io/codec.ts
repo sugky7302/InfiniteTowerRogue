@@ -1,6 +1,9 @@
 const alphabet =
     " !#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~";
 export const maxFileDataLength = 4096;
+/** 每段 96 字元。框架最長 4128 字元，所以最多 43 段。必須與 A0IO 的等級數相同。 */
+export const fileSegmentLength = 96;
+export const fileSegmentCount = 43;
 
 /** 限制為可直接放入 JASS 字串的 ASCII。中文等資料須先由呼叫者編碼。 */
 function safeData(value: string): boolean {

@@ -17,6 +17,7 @@ import { Subject } from "../../src/shared/rxwc3/core/subject";
 import { ChatEvent, wc3FileNatives } from "@shared/wc3-def";
 import { FakeSyncNetwork } from "../rxwc3/fake-sync-natives";
 import { fakeFileIo } from "./fake-file-io";
+import { fileSegmentCount } from "../../src/shared/file-io/codec";
 import { verifyFileIo } from "./file-io-lua.spec";
 
 test("本地檔案在 Node 執行十組 Lua 共用流程", () => assert.equal(verifyFileIo(), 10));
@@ -205,7 +206,7 @@ test("正式介面只在 prepare 建立載入資源，讀寫只呼叫預載與�
     const saved = names.map((name) => Object.getOwnPropertyDescriptor(globalThis, name));
     const globals = globalThis as any;
     try {
-        let tooltip = "原始提示";
+        const tooltips = new Map<number, string>();
         for (const name of names)
             globals[name] = (...args: unknown[]) => {
                 calls.push([name, args]);
@@ -214,11 +215,11 @@ test("正式介面只在 prepare 建立載入資源，讀寫只呼叫預載與�
         globals.PLAYER_NEUTRAL_PASSIVE = 27;
         globals.BlzGetAbilityTooltip = (...args: unknown[]) => {
             calls.push(["BlzGetAbilityTooltip", args]);
-            return tooltip;
+            return tooltips.get(args[1] as number) ?? "原始提示";
         };
         globals.BlzSetAbilityTooltip = (...args: unknown[]) => {
             calls.push(["BlzSetAbilityTooltip", args]);
-            tooltip = args[1] as string;
+            tooltips.set(args[2] as number, args[1] as string);
         };
         const files = createLocalFileIo(wc3FileNatives);
         assert.equal(calls.filter(([name]) => name === "CreateUnit").length, 1);
@@ -242,9 +243,17 @@ test("正式介面只在 prepare 建立載入資源，讀寫只呼叫預載與�
         assert(
             calls
                 .filter(([name]) => name === "BlzSetAbilityTooltip")
-                .every(([, args]) => args.length === 3 && args[2] === 0),
+                .every(
+                    ([, args]) =>
+                        args.length === 3 &&
+                        Number.isInteger(args[2]) &&
+                        (args[2] as number) >= 0 &&
+                        (args[2] as number) < fileSegmentCount,
+                ),
         );
-        assert.equal(tooltip, "ITF-IDLE");
+        // 讀取後還原每個等級的原值。
+        assert.equal(tooltips.get(0), "ITF-IDLE");
+        assert.equal(tooltips.get(1), "原始提示");
     } finally {
         names.forEach((name, index) => {
             const descriptor = saved[index];
