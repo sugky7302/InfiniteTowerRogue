@@ -1,7 +1,7 @@
 // 產生正式物品欄的英雄預覽包裝模型。
 // 遊戲內確認（2026-11-04）：SPRITE 從模型 +Z 方向往下看，忽略模型中的鏡頭與光源；附件的 Path 模型會顯示。
 // 所以以輔助節點轉動附件：模型的上方（+Z）朝畫面上方，正面（+X）朝玩家。SPRITE 沒有旋轉原生函式，
-// 因此每個角度產生一個模型，切換模型就等於旋轉。
+// turnRotation 保留角度參數，以便之後需要其他角度。
 const fs = require("fs");
 const path = require("path");
 const { parsers } = require("mdx-m3-viewer-th");
@@ -66,14 +66,11 @@ function previewMdl(heroModel, index) {
     );
 }
 
-/** 寫入建置地圖的 ui 資料夾：itr-hero-preview-00.mdx～15.mdx。 */
+/** 寫入建置地圖的 ui 資料夾：只產生正面的 itr-hero-preview.mdx。使用者決定不需要旋轉（2026-11-04）。 */
 function writePreviewModels(uiFolder, heroModel) {
-    for (let index = 0; index < turnCount; index++) {
-        const model = new parsers.mdlx.Model();
-        model.load(previewMdl(heroModel, index));
-        const name = `itr-hero-preview-${String(index).padStart(2, "0")}.mdx`;
-        fs.writeFileSync(path.join(uiFolder, name), Buffer.from(model.saveMdx()));
-    }
+    const model = new parsers.mdlx.Model();
+    model.load(previewMdl(heroModel, 0));
+    fs.writeFileSync(path.join(uiFolder, "itr-hero-preview.mdx"), Buffer.from(model.saveMdx()));
 }
 
 module.exports = { turnCount, turnRotation, previewMdl, writePreviewModels };

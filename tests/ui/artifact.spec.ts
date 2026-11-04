@@ -50,7 +50,6 @@ verify(() => {
         ["TEXT", "ItrSlotLabel"],
         ["TEXT", "ItrDescriptionText"],
         ["TEXT", "ItrResultText"],
-        ["GLUETEXTBUTTON", "ItrTurnButton"],
     ];
     for (const [type, name] of templates)
         assert.ok(fdf.includes('Frame "' + type + '" "' + name + '"'));
@@ -71,10 +70,9 @@ verify(() => {
 });
 verify(() => {
     const folder = path.join("dist", config.mapFolder, "ui");
-    const names = readdirSync(folder).filter((name) => name.startsWith("itr-hero-preview-"));
-    assert.equal(names.length, 16);
-    for (let index = 0; index < 16; index++) {
-        const name = "itr-hero-preview-" + String(index).padStart(2, "0") + ".mdx";
+    const names = readdirSync(folder).filter((name) => name.startsWith("itr-hero-preview"));
+    assert.deepEqual(names, ["itr-hero-preview.mdx"]);
+    for (const name of names) {
         const archive = map.archive.get("ui\\" + name);
         assert.ok(archive, "封裝缺少預覽模型：" + name);
         assert.deepEqual(Buffer.from(archive.bytes()), readFileSync(path.join(folder, name)));

@@ -167,7 +167,3 @@ Frame "TEXT" "ItrResultText" INHERITS "ItrBodyText" {
     FrameFont "MasterFont", 0.009, "",
 }
 
-Frame "GLUETEXTBUTTON" "ItrTurnButton" INHERITS WITHCHILDREN "ItrActionButton" {
-    Width 0.044,
-    Height 0.022,
-}

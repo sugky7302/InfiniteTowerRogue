@@ -175,7 +175,7 @@ test("I4 兩個用戶端建立順序相同，只依本地玩家改變可見性",
             assert.equal(s.calls.length, 0);
             s.start();
             s.chat();
-            s.event("ItrTurnButton:413");
+            s.chat();
             s.chat();
             assert.equal(s.errors.length, 0);
             assert.equal(s.calls.filter((call) => call.name === "loadTOC").length, 1);
@@ -205,7 +205,7 @@ test("I4 兩個用戶端建立順序相同，只依本地玩家改變可見性",
     assert.deepEqual(sequences[0], sequences[1]);
 });
 
-test("I4 非擁有者不能開關、分頁、選取、旋轉或丟棄", () =>
+test("I4 非擁有者不能開關、分頁、選取或丟棄", () =>
     withFixture((s) => {
         s.start();
         const before = s.calls.length;
@@ -216,7 +216,6 @@ test("I4 非擁有者不能開關、分頁、選取、旋轉或丟棄", () =>
             "ItrActionButton:410",
             "ItrActionButton:411",
             "ItrActionButton:420",
-            "ItrTurnButton:413",
         ])
             s.event(key, "click", 1);
         assert.equal(s.sends(), 0);
@@ -317,34 +316,24 @@ test("I4 外部變更立即更新圖示、說明與數值，並清除舊選取",
         );
     }));
 
-test("I4 每次顯示與旋轉建立新 SPRITE 並隱藏舊框架，縮放與位移遵守 I3", () =>
+test("I4 英雄預覽只建立一次正面 SPRITE，反覆開關不增加，縮放與位移遵守 I3", () =>
     withFixture((s) => {
         s.start();
         s.chat();
-        const old = s.handles.get("ItrModelPreview:500");
-        s.event("ItrTurnButton:413");
-        assert.notEqual(s.handles.get("ItrModelPreview:500"), old);
-        assert.ok(
-            s.calls.some(
-                (call) =>
-                    call.name === "setVisible" && call.args[0] === old && call.args[1] === false,
-            ),
-        );
-        assert.equal(
-            s.calls.filter((call) => call.name === "setModel").at(-1)!.args[1],
-            "ui\\itr-hero-preview-01.mdl",
-        );
-        s.event("ItrTurnButton:412");
-        assert.equal(
-            s.calls.filter((call) => call.name === "setModel").at(-1)!.args[1],
-            "ui\\itr-hero-preview-00.mdl",
-        );
+        const first = s.handles.get("ItrModelPreview:500");
         s.event("ItrActionButton:411");
         s.event("ItrActionButton:420");
+        s.chat();
+        s.chat();
+        assert.equal(s.handles.get("ItrModelPreview:500"), first);
         assert.equal(
             s.calls.filter((call) => call.name === "create" && call.args[0] === "ItrModelPreview")
                 .length,
-            4,
+            1,
+        );
+        assert.equal(
+            s.calls.filter((call) => call.name === "setModel").at(-1)!.args[1],
+            "ui\\itr-hero-preview.mdl",
         );
         assert.deepEqual(
             s.calls
@@ -368,7 +357,7 @@ test("I4 所有按鈕重設焦點，停止後清理訂閱、觸發器與根框�
         s.start();
         s.chat();
         const buttons = s.events.filter((event) => event.event === "click");
-        assert.equal(buttons.length, 102);
+        assert.equal(buttons.length, 100);
         for (const event of buttons) s.event((event.frame as unknown as { key: string }).key);
         assert.equal(s.calls.filter((call) => call.name === "resetFocus").length, buttons.length);
         s.stop();

@@ -10,8 +10,7 @@ import {
     inventoryDescription,
     inventorySlotView,
     inventoryView,
-    previewPath,
-    rotatePreview,
+    previewModelPath,
 } from "@features/equipment";
 import { logger } from "@shared/logger";
 import { FrameNatives, wc3FrameNatives } from "@shared/wc3-def";
@@ -26,7 +25,6 @@ export function runInventoryUi(
     let stopped = false;
     let opened = false;
     let page = 0;
-    let angle = 0;
     let selection: InventorySelection = false;
     let hovered: InventoryCell | false = false;
     let resultText = "";
@@ -111,7 +109,8 @@ export function runInventoryUi(
         if (root !== undefined) frames.setVisible(root, GetLocalPlayer() === owner && opened);
     };
     const preview = (): void => {
-        if (model !== undefined) frames.setVisible(model, false);
+        // I3 確認：不能在同一個 SPRITE 換模型。預覽只顯示正面，只建立一次。
+        if (model !== undefined) return;
         model = create("ItrModelPreview", root!, 500);
         frames.setSize(model, 0.001, 0.001);
         frames.setScale(model, 0.001);
@@ -125,7 +124,7 @@ export function runInventoryUi(
             0.1 / 0.001,
             0.195 / 0.001,
         );
-        frames.setModel(model, previewPath(angle), 0);
+        frames.setModel(model, previewModelPath, 0);
         frames.setSpriteAnimate(model, 2, 0);
     };
     const render = (): void => {
@@ -159,8 +158,6 @@ export function runInventoryUi(
     const show = (value: boolean): void => {
         opened = value;
         if (opened) {
-            // I3 確認：每次顯示必須建立新 SPRITE；不能在原框架換模型。
-            angle = 0;
             preview();
             render();
         }
@@ -243,21 +240,6 @@ export function runInventoryUi(
             button(drop, () => send({ kind: "drop" }));
             const close = text("ItrActionButton", 411, 0.123, 0.337, "關閉");
             button(close, () => show(false));
-            for (const direction of [-1, 1] as const) {
-                const turn = direction;
-                const handle = text(
-                    "ItrTurnButton",
-                    412 + (turn === -1 ? 0 : 1),
-                    turn === -1 ? 0.076 : 0.122,
-                    0.378,
-                    turn === -1 ? "左轉" : "右轉",
-                );
-                button(handle, () => {
-                    if (!opened) return;
-                    angle = rotatePreview(angle, turn);
-                    preview();
-                });
-            }
             toggle = create("ItrActionButton", origin, 420);
             place(toggle, 0.625, 0.193);
             frames.setText(toggle, "物品欄");

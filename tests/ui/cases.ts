@@ -15,8 +15,7 @@ import {
     inventoryItemText,
     equipmentStatValue,
     inventoryNumberText,
-    previewPath,
-    rotatePreview,
+    previewModelPath,
     createBag,
     emptyEquipment,
     aggregateEquipment,
@@ -103,12 +102,11 @@ export const inventoryUiCases: { name: string; run(this: void): void }[] = [
         },
     },
     {
-        name: "I4 拒絕無效座標、頁數與模型角度",
+        name: "I4 拒絕無效座標與頁數",
         run() {
             for (const value of [-1, 90, 0.5]) rejects(() => bagPosition(value));
             for (const value of [-1, 4, 0.5]) rejects(() => equipmentPosition(value));
             for (const value of [-1, 3, 0.5]) rejects(() => inventoryView(fixture(), value, false));
-            for (const value of [-1, 16, 0.5]) rejects(() => previewPath(value));
         },
     },
     {
@@ -430,15 +428,9 @@ export const inventoryUiCases: { name: string; run(this: void): void }[] = [
         },
     },
     {
-        name: "I4 16 個模型角度與左右循環",
+        name: "I4 英雄預覽只使用正面模型",
         run() {
-            check(
-                previewPath(0) === "ui\\itr-hero-preview-00.mdl" &&
-                    previewPath(15) === "ui\\itr-hero-preview-15.mdl",
-            );
-            let angle = 0;
-            for (let index = 0; index < 16; index++) angle = rotatePreview(angle, 1);
-            check(angle === 0 && rotatePreview(0, -1) === 15 && rotatePreview(15, 1) === 0);
+            check(previewModelPath === "ui\\itr-hero-preview.mdl");
         },
     },
     {

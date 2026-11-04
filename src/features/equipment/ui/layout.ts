@@ -16,12 +16,5 @@ export function equipmentPosition(index: number) {
     return { x: index % 2 === 0 ? 0.032 : 0.168, y: index < 2 ? 0.51 : 0.43 };
 }
 
-export function previewPath(angle: number): string {
-    if (!Number.isInteger(angle) || angle < 0 || angle >= 16)
-        throw new Error("預覽角度必須為 0～15。");
-    return "ui\\itr-hero-preview-" + (angle < 10 ? "0" : "") + angle + ".mdl";
-}
-
-export function rotatePreview(angle: number, direction: -1 | 1): number {
-    return (angle + direction + 16) % 16;
-}
+/** 正面的英雄預覽包裝模型。I3 確認 SPRITE 路徑須使用 .mdl。 */
+export const previewModelPath = "ui\\itr-hero-preview.mdl";
