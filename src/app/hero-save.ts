@@ -9,7 +9,14 @@ import {
     tierAffixCounts,
 } from "@entities/item";
 import { emptyEquipment, equip, EquipmentState } from "@features/equipment";
-import { SaveData, SaveParticipant, SaveSection, SaveValue } from "@features/save";
+import {
+    SaveData,
+    SaveParticipant,
+    SaveSection,
+    SaveValue,
+    SaveRecord,
+    SaveRegistry,
+} from "@features/save";
 
 /** 已發布的索引只能在尾端增加。預建英雄的索引 0 代表符文學者。 */
 export const heroPresets: readonly HeroState[] = [runeScholar];
@@ -46,7 +53,7 @@ export const heroSection: SaveSection = {
         { name: "knowledge", kind: "list", min: 0, max: 1, length: 32 },
     ],
 };
-export const equipmentSection: SaveSection = {
+export const equipmentSectionV3: SaveSection = {
     name: "equipment",
     fields: [
         { name: "bases", kind: "list", min: 0, max: 63, length: 16 },
@@ -70,10 +77,10 @@ export function emptyHeroValues(): Values {
         knowledge: zeros(32),
     };
 }
-export function emptyEquipmentValues(): Values {
+export function emptyEquipmentValuesV3(): Values {
     return { bases: zeros(16), tiers: zeros(16), affixIds: zeros(64), affixValues: zeros(64) };
 }
-export interface HeroSnapshot {
+export interface HeroSnapshotV3 {
     readonly hero: HeroState;
     readonly worn: EquipmentState;
     readonly held: readonly ItemInstance[];
@@ -81,11 +88,12 @@ export interface HeroSnapshot {
 export type DecodedHero =
     { readonly present: false } | { readonly present: true; readonly hero: HeroState };
 export type DecodedHeroSave =
-    { readonly present: false } | ({ readonly present: true } & HeroSnapshot);
+    { readonly present: false } | ({ readonly present: true } & HeroSnapshotV3);
 
 function validValues(section: SaveSection, values: Values): boolean {
     for (const field of section.fields) {
         const value = values[field.name];
+        if (field.kind === "records") return false;
         if (field.kind === "boolean") {
             if (typeof value !== "boolean") return false;
         } else {
@@ -163,11 +171,11 @@ export function decodeHeroSection(values: Values): DecodedHero | undefined {
 }
 
 /** 純函式。先驗證全部物品，再依保存的位置穿戴。 */
-export function decodeEquipmentSection(
+export function decodeEquipmentSectionV3(
     values: Values,
     decoded: DecodedHero,
 ): DecodedHeroSave | undefined {
-    if (!validValues(equipmentSection, values)) return undefined;
+    if (!validValues(equipmentSectionV3, values)) return undefined;
     const bases = values.bases as number[],
         tiers = values.tiers as number[];
     const ids = values.affixIds as number[],
@@ -224,19 +232,23 @@ export function decodeEquipmentSection(
     return { present: true, hero: decoded.hero, worn, held };
 }
 
-export function decodeHeroSave(data: SaveData): DecodedHeroSave | undefined {
+export function decodeHeroSaveV3(data: SaveData): DecodedHeroSave | undefined {
     if (data.hero === undefined || data.equipment === undefined) return undefined;
     const decoded = decodeHeroSection(data.hero);
-    return decoded === undefined ? undefined : decodeEquipmentSection(data.equipment, decoded);
+    return decoded === undefined ? undefined : decodeEquipmentSectionV3(data.equipment, decoded);
 }
 
 /** 純函式。不保存計算結果、物品編號或 WC3 狀態。 */
-export function encodeHeroSave(snapshot?: HeroSnapshot): SaveData | undefined {
+export function encodeHeroSaveV3(snapshot?: HeroSnapshot): SaveData | undefined {
     const hero = emptyHeroValues(),
-        equipment = emptyEquipmentValues();
+        equipment = emptyEquipmentValuesV3();
     if (snapshot === undefined) return { hero, equipment };
     const source = snapshot.hero;
-    if (source.classes.length > 4 || snapshot.held.length > 12) return undefined;
+    if (
+        source.classes.length > 4 ||
+        snapshot.held.slice(12).some((item) => item !== undefined && item !== false)
+    )
+        return undefined;
     hero.present = true;
     for (let index = 0; index < source.classes.length; index++) {
         const entry = source.classes[index];
@@ -254,7 +266,7 @@ export function encodeHeroSave(snapshot?: HeroSnapshot): SaveData | undefined {
     for (let position = 0; position < 16; position++) {
         const item =
             position < 4 ? snapshot.worn[heroSlots[position]] : snapshot.held[position - 4];
-        if (item === undefined) continue;
+        if (item === undefined || item === false) continue;
         const base = heroBases.indexOf(item.baseId),
             tier = heroTiers.indexOf(item.tier);
         if (base <= 0 || tier < 0 || item.affixes.length > 4) return undefined;
@@ -269,15 +281,217 @@ export function encodeHeroSave(snapshot?: HeroSnapshot): SaveData | undefined {
         }
     }
     const data = { hero, equipment };
-    return decodeHeroSave(data) === undefined ? undefined : data;
+    return decodeHeroSaveV3(data) === undefined ? undefined : data;
 }
 
-export interface HeroSaveTarget {
+export interface HeroSaveTargetV3 {
     snapshot(): HeroSnapshot;
-    restore(hero: HeroState, worn: EquipmentState, held: readonly ItemInstance[]): void;
+    restore(
+        hero: HeroState,
+        worn: EquipmentState,
+        held: readonly (ItemInstance | false | undefined)[],
+    ): void;
 }
 
 /** 必須依傳回順序登錄。暫存只保存已驗證的純資料，不修改目標。 */
+export function createHeroSaveParticipantsV3(
+    owner: player,
+    target?: HeroSaveTargetV3,
+): readonly SaveParticipant[] {
+    let staged: DecodedHero | undefined;
+    let stagedPlayer: player | undefined;
+    const collect = (player: player): SaveData | undefined =>
+        encodeHeroSaveV3(player === owner ? target?.snapshot() : undefined);
+    return [
+        {
+            section: heroSection,
+            empty: emptyHeroValues(),
+            collect: (player) => collect(player)?.hero,
+            prepare(player, values) {
+                stagedPlayer = player;
+                staged = decodeHeroSection(values);
+                if (
+                    staged === undefined ||
+                    (staged.present && (player !== owner || target === undefined))
+                )
+                    return undefined;
+                return () => {};
+            },
+        },
+        {
+            section: equipmentSectionV3,
+            empty: emptyEquipmentValuesV3(),
+            collect: (player) => collect(player)?.equipment,
+            prepare(player, values) {
+                const hero = staged;
+                staged = undefined;
+                if (hero === undefined || stagedPlayer !== player) return undefined;
+                const decoded = decodeEquipmentSectionV3(values, hero);
+                if (decoded === undefined) return undefined;
+                return () => {
+                    if (decoded.present) target!.restore(decoded.hero, decoded.worn, decoded.held);
+                };
+            },
+        },
+    ];
+}
+
+export interface HeroSnapshot {
+    readonly hero: HeroState;
+    readonly worn: EquipmentState;
+    readonly held: readonly (ItemInstance | false | undefined)[];
+}
+export type InventorySave =
+    { readonly present: false } | ({ readonly present: true } & HeroSnapshot);
+export const equipmentSection: SaveSection = {
+    name: "equipment",
+    fields: [
+        {
+            name: "items",
+            kind: "records",
+            maxLength: 94,
+            fields: [
+                { name: "slot", kind: "uint", min: 0, max: 93 },
+                { name: "base", kind: "uint", min: 0, max: 63 },
+                { name: "tier", kind: "uint", min: 0, max: 3 },
+                {
+                    name: "affixIds",
+                    kind: "dependent-list",
+                    min: 0,
+                    max: 31,
+                    lengthFrom: "tier",
+                    lengths: [1, 2, 3, 4],
+                },
+                {
+                    name: "affixValues",
+                    kind: "dependent-list",
+                    min: 0,
+                    max: 63,
+                    lengthFrom: "tier",
+                    lengths: [1, 2, 3, 4],
+                },
+            ],
+        },
+    ],
+};
+const inventoryRegistry = new SaveRegistry().register({ version: 4, sections: [equipmentSection] });
+export function emptyEquipmentValues(): Values {
+    return { items: [] };
+}
+/** 保留空格，依舊位置轉成紀錄。無效的舊資料會使整份轉換失敗。 */
+export function migrateEquipmentV3(values: Values): Values {
+    const records: SaveRecord[] = [];
+    const bases = values.bases as number[],
+        tiers = values.tiers as number[];
+    const ids = values.affixIds as number[],
+        amounts = values.affixValues as number[];
+    if (!validValues(equipmentSectionV3, values)) throw new Error("存檔碼無效。");
+    for (let slot = 0; slot < 16; slot++) {
+        const tier = heroTiers[tiers[slot]];
+        const count = tierAffixCounts[tier];
+        const affixIds = ids.slice(slot * 4, slot * 4 + count);
+        const affixValues = amounts.slice(slot * 4, slot * 4 + count);
+        for (let index = 0; index < 4; index++) {
+            if (
+                (bases[slot] === 0 || index >= count) &&
+                (ids[slot * 4 + index] !== 0 || amounts[slot * 4 + index] !== 0)
+            )
+                throw new Error("存檔碼無效。");
+        }
+        if (bases[slot] === 0) {
+            if (tiers[slot] !== 0) throw new Error("存檔碼無效。");
+            continue;
+        }
+        records.push({ slot, base: bases[slot], tier: tiers[slot], affixIds, affixValues });
+    }
+    return { items: records };
+}
+export function decodeEquipmentSection(
+    values: Values,
+    decoded: DecodedHero,
+): InventorySave | undefined {
+    if (inventoryRegistry.pack({ equipment: values }, 4) === undefined) return undefined;
+    const records = values.items as SaveRecord[];
+    if (!decoded.present) return records.length === 0 ? { present: false } : undefined;
+    const positions = new Map<number, ItemInstance>();
+    for (const record of records) {
+        const slot = record.slot as number,
+            base = heroBases[record.base as number],
+            tier = heroTiers[record.tier as number];
+        if (positions.has(slot) || base === undefined || base.length === 0 || tier === undefined)
+            return undefined;
+        const ids = record.affixIds as number[],
+            amounts = record.affixValues as number[];
+        const entries: ItemInstance["affixes"][number][] = [];
+        for (let index = 0; index < ids.length; index++) {
+            const affixId = heroAffixes[ids[index]];
+            if (affixId === undefined || affixId.length === 0) return undefined;
+            entries.push({ affixId, value: amounts[index] });
+        }
+        const item: ItemInstance = { id: slot + 1, baseId: base, tier, affixes: entries };
+        try {
+            getItemBonuses(item);
+        } catch {
+            return undefined;
+        }
+        positions.set(slot, item);
+    }
+    let worn = emptyEquipment();
+    const held: (ItemInstance | false)[] = [];
+    let nextId = 1;
+    for (let slot = 0; slot < 94; slot++) {
+        const source = positions.get(slot);
+        const item = source === undefined ? undefined : { ...source, id: nextId++ };
+        if (slot >= 4) {
+            held.push(item ?? false);
+            continue;
+        }
+        if (item === undefined) continue;
+        const result = equip(decoded.hero, worn, item, heroSlots[slot]);
+        if (!result.ok) return undefined;
+        worn = result.state;
+    }
+    return { present: true, hero: decoded.hero, worn, held };
+}
+export function decodeHeroSave(data: SaveData): InventorySave | undefined {
+    if (data.hero === undefined || data.equipment === undefined) return undefined;
+    const hero = decodeHeroSection(data.hero);
+    return hero === undefined ? undefined : decodeEquipmentSection(data.equipment, hero);
+}
+export function encodeHeroSave(snapshot?: HeroSnapshot): SaveData | undefined {
+    if (snapshot === undefined)
+        return { hero: emptyHeroValues(), equipment: emptyEquipmentValues() };
+    const legacy = encodeHeroSaveV3({ hero: snapshot.hero, worn: emptyEquipment(), held: [] });
+    if (legacy === undefined || snapshot.held.length > 90) return undefined;
+    const records: SaveRecord[] = [];
+    for (let slot = 0; slot < 94; slot++) {
+        const item = slot < 4 ? snapshot.worn[heroSlots[slot]] : snapshot.held[slot - 4];
+        if (item === undefined || item === false) continue;
+        const base = heroBases.indexOf(item.baseId),
+            tier = heroTiers.indexOf(item.tier);
+        if (base <= 0 || tier < 0 || item.affixes.length !== tierAffixCounts[item.tier])
+            return undefined;
+        const affixIds = item.affixes.map((entry) => heroAffixes.indexOf(entry.affixId));
+        if (affixIds.some((id) => id <= 0)) return undefined;
+        records.push({
+            slot,
+            base,
+            tier,
+            affixIds,
+            affixValues: item.affixes.map((entry) => entry.value),
+        });
+    }
+    const data = { hero: legacy.hero, equipment: { items: records } };
+    return decodeHeroSave(data) === undefined ? undefined : data;
+}
+export interface HeroSaveTarget {
+    snapshot(): HeroSnapshot;
+    restore(
+        hero: HeroState,
+        worn: EquipmentState,
+        held: readonly (ItemInstance | false | undefined)[],
+    ): void;
+}
 export function createHeroSaveParticipants(
     owner: player,
     target?: HeroSaveTarget,
@@ -305,6 +519,11 @@ export function createHeroSaveParticipants(
         {
             section: equipmentSection,
             empty: emptyEquipmentValues(),
+            previous: {
+                section: equipmentSectionV3,
+                empty: emptyEquipmentValuesV3(),
+                migrate: migrateEquipmentV3,
+            },
             collect: (player) => collect(player)?.equipment,
             prepare(player, values) {
                 const hero = staged;

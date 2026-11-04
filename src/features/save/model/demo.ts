@@ -65,9 +65,13 @@ export function createDemoRegistry(participants: readonly SaveParticipant[] = []
                       const next: SaveData = { demo: data.demo };
                       for (const participant of participants) {
                           const values: SaveData[string] = {};
-                          for (const key of Object.keys(participant.empty)) {
-                              const value = participant.empty[key];
-                              values[key] = Array.isArray(value) ? [...value] : value;
+                          for (const key of Object.keys(
+                              participant.previous?.empty ?? participant.empty,
+                          )) {
+                              const value = (participant.previous?.empty ?? participant.empty)[key];
+                              values[key] = Array.isArray(value)
+                                  ? ([...value] as typeof value)
+                                  : value;
                           }
                           next[participant.section.name] = values;
                       }
@@ -77,6 +81,29 @@ export function createDemoRegistry(participants: readonly SaveParticipant[] = []
     if (participants.length > 0)
         registry.register({
             version: 3,
+            sections: [
+                ...demoSections,
+                ...participants.map(
+                    (participant) => participant.previous?.section ?? participant.section,
+                ),
+            ],
+            migrate: participants.some((participant) => participant.previous !== undefined)
+                ? (data) => {
+                      const next: SaveData = { demo: data.demo };
+                      for (const participant of participants) {
+                          const values = data[participant.section.name];
+                          next[participant.section.name] =
+                              participant.previous === undefined
+                                  ? values
+                                  : participant.previous.migrate(values);
+                      }
+                      return next;
+                  }
+                : undefined,
+        });
+    if (participants.some((participant) => participant.previous !== undefined))
+        registry.register({
+            version: 4,
             sections: [...demoSections, ...participants.map((participant) => participant.section)],
         });
     return registry;
@@ -85,7 +112,11 @@ export function createDemoRegistry(participants: readonly SaveParticipant[] = []
 export function createDemoCodec(participants: readonly SaveParticipant[] = []): SaveCodec {
     return new SaveCodec(
         createDemoRegistry(participants),
-        participants.length > 0 ? 3 : demoSaveVersion,
+        participants.some((participant) => participant.previous !== undefined)
+            ? 4
+            : participants.length > 0
+              ? 3
+              : demoSaveVersion,
     );
 }
 

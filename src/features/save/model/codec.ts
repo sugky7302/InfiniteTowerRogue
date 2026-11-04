@@ -3,7 +3,7 @@ import { hmac256, NumberAudit, utf8 } from "../lib/hash";
 import { currentKeyVersion, saveKeys } from "../config/keys";
 
 export const saveAlphabet = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
-export const maxSaveCodeLength = 1100;
+export const maxSaveCodeLength = 1600;
 
 /** 只折疊 ASCII 大小寫。其他 UTF-8 位元組保留，確保 Node 與 Lua 一致。 */
 export function normalizePlayerName(name: string): string {

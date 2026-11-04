@@ -23,7 +23,7 @@
         "dev": "npm-watch",
         "build:defs": "ts-node scripts/dev",
         "test:save:lua": "node scripts/verify-save-lua.cjs",
-        "test:save:artifact": "ts-node --transpile-only --project tsconfig.test.json tests/hero-save/artifact.spec.ts",
+        "test:save:artifact": "ts-node --transpile-only --project tsconfig.test.json -r tsconfig-paths/register tests/hero-save/artifact.spec.ts",
         "lint:fsd": "steiger ./src",
         "test:combat:lua": "node scripts/verify-combat-lua.cjs",
         "test:hero:lua": "node scripts/verify-hero-lua.cjs",

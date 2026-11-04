@@ -23,3 +23,5 @@ export * from "./random/random-natives";
 export * from "./random/wc3-random-natives";
 export * from "./file/file-natives";
 export * from "./file/wc3-file-natives";
+export * from "./item/item-carrier-natives";
+export * from "./item/wc3-item-carrier-natives";

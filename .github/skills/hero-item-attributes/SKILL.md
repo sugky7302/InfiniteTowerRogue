@@ -9,14 +9,18 @@ description: 新增或修改英雄狀態、職業升級、物品基底、詞綴�
 
 英雄存檔：`docs/hero-save/PLAN.md`；實作記錄：`docs/hero-save/implementation/PLAN.md`（已完成，2026-11-04）。存檔細節見 `.github/skills/save-system`。
 
+90 格背包、版本 4 與原生載體：以 `docs/inventory-ui/PLAN.md` 為準。I1、I2 記錄見 `docs/inventory-ui/implementation/PLAN.md`。遊戲內驗證尚未執行。
+
 ## 結構
 
 | 位置 | 內容 |
 |---|---|
 | `src/entities/character/` | `HeroState`、職業資料、`levelUp`、`combatLevel`、預建 `runeScholar` |
 | `src/entities/item/` | 物品基底、詞綴表、詞綴抽取、穿戴位置。輸出中性的 `ItemBonusStat` 清單 |
-| `src/features/equipment/` | 穿戴狀態、穿脫檢查、匯總（`aggregateEquipment`）、比較（`compareEquipment`） |
-| `src/app/hero-example.ts` | `HeroExample`：英雄、穿戴物、持有清單與聊天指令 |
+| `src/features/equipment/` | 穿戴狀態、穿脫檢查、匯總（`aggregateEquipment`）、比較（`compareEquipment`）、90 格背包純規則 |
+| `src/features/equipment/config/native-items.ts` | 每個基底的原生代碼、圖示與名稱 |
+| `src/app/hero-example.ts` | `HeroExample`：英雄、穿戴物、固定格背包與聊天指令 |
+| `src/app/native-item-registry.ts` | 原生載體登錄、建立、隱藏、丟棄、撿起與移除 |
 
 - `entities/item` 不得 import `entities/character` 或 `entities/combat`。`features/equipment` 把加成轉成二級數值與傷害修正。
 - 英雄狀態不保存穿戴物。全部規則是純函式，不修改輸入。亂數由呼叫者傳入。
@@ -37,12 +41,21 @@ description: 新增或修改英雄狀態、職業升級、物品基底、詞綴�
 
 ## 存檔與恢復
 
-- `HeroExample.snapshot()` 傳回英雄、穿戴物與持有清單的副本。`restore(hero, worn, held)` 取代狀態，依主武器、副手、防具、工具、持有清單的順序重新編號，再呼叫 refresh。
+- `HeroExample.snapshot()` 傳回英雄、穿戴物與背包的副本。背包固定 90 格，以 `false` 表示空格；不得用 `undefined` 保存固定位置。`restore(hero, worn, held)` 依主武器、副手、防具、工具、背包格序重新編號，再更新載體與 refresh。
+- 讀檔先移除全部舊載體（包含地面物品），再建立新載體。建立失敗時移除已建立部分並清空物品資料，避免孤兒載體或資料。
 - `src/app/hero-save.ts` 的編碼與解碼是純函式。只保存預建索引、職業等級、知識與物品目錄欄位。讀檔從預建英雄重新執行 levelUp，不保存計算結果或原物品編號。
 - 解碼先使用 getItemBonuses 驗證詞綴，再以恢復後的知識依序 equip。任一參與者驗證失敗時，不套用英雄、裝備或 demo。
 - 目前物品目錄沒有工具類物品。合法滿裝為主武器、副手與防具，工具格留空，不得為測試變更目錄。
-- Lua 陣列尾端的 nil 不計入長度。編碼固定讀取 16 個位置，不得把含空工具格的穿戴陣列與持有清單直接合併。
+- 版本 4 固定讀取 94 個位置，只輸出有物品的紀錄。不得把含空工具格的穿戴陣列與背包直接合併。版本 3 相容函式仍固定讀取 16 個位置，供舊碼轉換測試。
 - 版本 2 存檔不含英雄資料，轉換後不改英雄與裝備。生命沿用 refresh 的規則，失能仍為 0。
+
+## 背包與原生載體
+
+- `createBag`、`firstEmptySlot`、`putInBag`、`takeFromBag`、`swapBagSlots`、`findBagSlot` 是純函式，不修改輸入。放入與卸下使用第一個空格；穿戴後取下的舊裝備也放入第一個空格。
+- 真實資料仍是 `ItemInstance`。每個基底對應一種一般永久類別的原生物品，代碼為 `I0B1`～`I0B5`。不得使用內建裝備類別。
+- `SetItemUserData` 保存編號，app 登錄表以編號查詢資料，並比對 handle。背包與穿戴中的載體隱藏，不放在原生物品欄。
+- 英雄保留 `AInv`。拾取已登錄物品時，先 `UnitRemoveItem`，再嘗試放入背包。背包已滿時物品留在地面並顯示「背包已滿」。未登錄的一般原生物品沿用引擎行為。
+- 隱藏載體會不會被其他單位撿起或受範圍效果影響，留待 I3 實驗 4；Node 與 Lua 假原生測試不能證明此行為。
 
 ## 陷阱
 
@@ -54,7 +67,7 @@ description: 新增或修改英雄狀態、職業升級、物品基底、詞綴�
 
 ## 範例指令
 
-`-hero`、`-hero-up`、`-item-new <基底>`、`-items`、`-equip <編號>`、`-unequip <位置>`。除錯：`-hero-forget` 清空知識。
+`-hero`、`-hero-up`、`-item-new <基底>`、`-items`、`-equip <編號>`、`-unequip <位置>`、`-drop <格子>`、`-bag-swap <格子> <格子>`。背包格子使用 1～90。除錯：`-hero-forget` 清空知識。`-item-new` 直接放入第一個空格；`-items` 顯示穿戴物與背包中的非空格。
 
 ## 驗證
 

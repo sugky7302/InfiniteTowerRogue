@@ -47,6 +47,7 @@ const status = lauxlib.luaL_dostring(
         `debug = nil
 local checks = (function(...) ${bundle} end)()
 assert(checks.verifySave() == 10, '存檔驗證組數錯誤。')
+assert(checks.verifyRecords() == #checks.recordsCases, '紀錄清單驗證組數錯誤。')
 local owner, displayed = {}, false
 GetPlayerName = function(...)
   assert(select('#', ...) == 1 and (...) == owner, '玩家名稱收到多餘 self。')
@@ -69,7 +70,4 @@ if (status !== lua.LUA_OK) {
     const message = lua.lua_tostring(state, -1);
     process.stderr.write((message ? to_jsstring(message) : "存檔 Lua 驗證失敗。") + "\n");
     process.exitCode = 1;
-} else
-    process.stdout.write(
-        "存檔 Lua 5.3：11 組通過，0 組失敗（共用流程 10 組，正式原生介面 1 組）。\n",
-    );
+} else process.stdout.write("存檔 Lua 5.3：15 組通過，0 組失敗（既有 11 組，紀錄清單 4 組）。\n");

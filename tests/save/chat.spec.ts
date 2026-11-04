@@ -289,7 +289,7 @@ test("手動分段拒絕超長片段、錯誤分母、衝突與非法索引", ()
     const input = new ManualSaveInput(clock, () => {
         failures++;
     });
-    for (const text of ["0/2 A", "3/2 A", "1/0 A", "1/15 A", "1/2", "1/2 " + "A".repeat(81)])
+    for (const text of ["0/2 A", "3/2 A", "1/0 A", "1/21 A", "1/2", "1/2 " + "A".repeat(81)])
         assert.equal(input.accept(text), undefined);
     assert.equal(failures, 6);
     input.accept("1/3 AAA");
@@ -339,14 +339,14 @@ test("取消整合後不再寫檔、顯示或接收聊天", () => {
     assert(setup.network.clients.every((client) => client.creates === client.destroys));
 });
 
-test("範例短碼仍送出多個片段，全部封包遺失時逾時且拒絕遲到結果", () => {
+test("範例短碼使用預設單片，封包遺失時逾時且拒絕遲到結果", () => {
     const setup = setupSave();
     try {
         setup.command("-save-demo level 50");
         setup.command("-save");
         setup.command("-save-demo level 1");
         setup.command("-load");
-        assert(setup.network.packets.length > 1);
+        assert.equal(setup.network.packets.length, 1);
         setup.drivers.forEach((driver) => driver.advance(16));
         assert(setup.displays.some((event) => event.text.includes("已逾時")));
         setup.network.flush();

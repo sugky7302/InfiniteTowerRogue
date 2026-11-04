@@ -22,10 +22,10 @@ import { loadCommands } from "@features/save";
 import { decodeFileData } from "@shared/file-io";
 import { saveFilePath } from "@features/save";
 import {
-    createHeroSaveParticipants,
-    decodeHeroSave,
-    encodeHeroSave,
-    HeroSnapshot,
+    createHeroSaveParticipantsV3 as createHeroSaveParticipants,
+    decodeHeroSaveV3 as decodeHeroSave,
+    encodeHeroSaveV3 as encodeHeroSave,
+    HeroSnapshotV3 as HeroSnapshot,
 } from "../../src/app/hero-save";
 import { HeroExample } from "../../src/app/hero-example";
 import { combatFixture } from "../combat/integration-cases";
@@ -462,17 +462,20 @@ heroSaveCases.push(
             );
             check(
                 demo.equipment[EquipSlot.MainHand]!.id === 1 &&
-                    demo.items[0].id === 4 &&
-                    demo.items[11].id === 15,
+                    (demo.items[0] as ItemInstance).id === 4 &&
+                    (demo.items[11] as ItemInstance).id === 15,
             );
             const data = encodeHeroSave(snapshot)!;
             sameData(data, { hero: saveData(true).hero, equipment: saveData(true).equipment });
             demo.restore(saved.hero, saved.worn, saved.held.slice(0, 11));
             demo.command("-item-new 訓練短劍");
-            check(demo.items[11].id === 15);
+            check((demo.items[11] as ItemInstance).id === 15);
             demo.restore(runeScholar, emptyEquipment(), []);
             demo.command("-item-new 訓練短劍");
-            check(demo.items[0].id === 1 && demo.equipment[EquipSlot.MainHand] === undefined);
+            check(
+                (demo.items[0] as ItemInstance).id === 1 &&
+                    demo.equipment[EquipSlot.MainHand] === undefined,
+            );
             check(
                 demo.summary.mainWeapon === undefined &&
                     f.registry.require(f.hero).profile.weapon === undefined,
@@ -613,7 +616,9 @@ heroSaveCases.push(
                 s.command(`-load ${code}`);
                 check(
                     s.examples.every(
-                        (demo) => demo.hero.classes[0].level === 1 && demo.items.length === 0,
+                        (demo) =>
+                            demo.hero.classes[0].level === 1 &&
+                            demo.items.every((item) => item === false),
                     ),
                 );
                 check(

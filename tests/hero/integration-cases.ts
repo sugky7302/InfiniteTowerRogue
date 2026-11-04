@@ -177,7 +177,7 @@ heroCases.push(
         name: "起始穿新裝備且持有清單為空",
         run() {
             const f = example();
-            check(f.demo.items.length === 0);
+            check(f.demo.items.every((item) => item === false));
             check(f.demo.equipment[EquipSlot.MainHand]?.baseId === ItemBaseId.RuneStaff);
             check(f.demo.equipment[EquipSlot.Armor]?.baseId === ItemBaseId.ApprenticeRobe);
             check(f.demo.equipment[EquipSlot.MainHand]!.affixes.length === 1 && f.changes() === 1);
@@ -219,13 +219,16 @@ heroCases.push(
         name: "持有上限與滿載卸下不改狀態",
         run() {
             const f = example();
-            for (let i = 0; i < 12; i++) f.demo.command("-item-new training-sword");
-            check(f.demo.items.length === 12);
+            for (let i = 0; i < 90; i++) f.demo.command("-item-new training-sword");
+            check(f.demo.items.filter((item) => item !== false).length === 90);
             check(f.demo.command("-item-new 符文杖")![0].includes("已滿"));
             check(f.demo.command("-unequip 主武器")![0].includes("已滿"));
             check(f.demo.equipment[EquipSlot.MainHand]?.id === 1);
             f.demo.command("-equip 3");
-            check(f.demo.items.length === 12 && f.demo.items.some((item) => item.id === 1));
+            check(
+                f.demo.items.filter((item) => item !== false).length === 90 &&
+                    f.demo.items.some((item) => item !== false && item.id === 1),
+            );
         },
     },
     {
@@ -236,10 +239,10 @@ heroCases.push(
             f.demo.command("-equip 3");
             f.demo.command("-item-new 巡檢長槌");
             check(f.demo.command("-equip 4")![0].includes("副手已占用"));
-            check(f.demo.items.some((item) => item.id === 4));
+            check(f.demo.items.some((item) => item !== false && item.id === 4));
             f.demo.command("-unequip 副手");
             f.demo.command("-equip 4");
-            check(f.demo.items.some((item) => item.id === 1));
+            check(f.demo.items.some((item) => item !== false && item.id === 1));
             check(f.registry.require(f.hero).profile.weapon?.base === 6);
             check(f.demo.command("-equip 3")![0].includes("雙手武器"));
         },
@@ -421,9 +424,12 @@ heroCases.push(
                 "-unequip 不存在",
             ])
                 check(f.demo.command(command)!.length > 0);
-            check(f.demo.command("-save") === undefined && f.demo.items.length === 0);
+            check(
+                f.demo.command("-save") === undefined &&
+                    f.demo.items.every((item) => item === false),
+            );
             check(f.demo.command("-hero")!.some((text) => text.includes("戰鬥等級 1")));
-            check(f.demo.command("-items")!.some((text) => text.includes("持有清單 0／12")));
+            check(f.demo.command("-items")!.some((text) => text.includes("背包 0／90")));
         },
     },
     {
@@ -535,7 +541,11 @@ export function verifyHero(): number {
         try {
             item.run();
         } catch (error) {
-            throw new Error(`${item.name}。${(error as { message: string }).message}`);
+            const message =
+                typeof error === "string"
+                    ? error
+                    : ((error as { message?: string }).message ?? "未知錯誤。");
+            throw new Error(`${item.name}。${message}`);
         }
     }
     return heroCases.length;

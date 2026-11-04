@@ -150,8 +150,6 @@ export function installSaveChat(
                                 };
                             },
                             clock,
-                            // 範例刻意使用較小片段，短存檔也能在 V4 驗證多段傳輸。
-                            chunkBytes: 20,
                         },
                         network,
                     ),

@@ -22,6 +22,8 @@ import {
 import { skills, SkillRuntime } from "@features/skill";
 import { createWc3SkillNatives } from "./wc3-skill-natives";
 import { HeroExample } from "./hero-example";
+import { NativeItemRegistry } from "./native-item-registry";
+import { wc3ItemCarrierNatives } from "@shared/wc3-def";
 
 declare function compiletime<T>(
     this: void,
@@ -42,6 +44,10 @@ compiletime(({ objectData }) => {
     );
     require(root + "/scripts/skill-objects.cjs").createSkillObjects(objectData, definitions);
     require(root + "/scripts/combat-objects.cjs").createCombatObjects(objectData, definitions);
+    require(root + "/scripts/inventory-objects.cjs").createInventoryObjects(
+        objectData,
+        require(root + "/src/features/equipment/config/native-items.ts"),
+    );
 });
 
 export function runSkillExample(): HeroExample | undefined {
@@ -154,6 +160,14 @@ export function runSkillExample(): HeroExample | undefined {
                 BlzSetUnitAttackCooldown(hero, 1.5 / (1 + summary.stats.attackSpeed), 0);
             },
         );
+        const carriers = new NativeItemRegistry(
+            wc3ItemCarrierNatives,
+            hero,
+            (item) => heroExample.acceptPickup(item),
+            () => logger.info("背包已滿"),
+        );
+        owner.add(() => carriers.destroy());
+        heroExample.attachCarriers(carriers);
         SuspendHeroXP(hero, true);
         BlzSetUnitMaxMana(hero, manaCapacity(scholar.intelligence, scholar.spirit));
         SetUnitState(hero, UNIT_STATE_MANA, manaCapacity(scholar.intelligence, scholar.spirit));
@@ -251,7 +265,7 @@ export function runSkillExample(): HeroExample | undefined {
         );
         SelectUnit(hero, true);
         logger.info(
-            "戰鬥範例已啟動。火球術 F，寒冰箭 I。右鍵普通攻擊。指令 -pause、-resume、-skill-status、-skill-move、-combat-hold、-revive、-skill-stop、-hero、-hero-up、-hero-forget、-item-new <基底>、-items、-equip <編號>、-unequip <位置>。",
+            "戰鬥範例已啟動。火球術 F，寒冰箭 I。右鍵普通攻擊。指令 -pause、-resume、-skill-status、-skill-move、-combat-hold、-revive、-skill-stop、-hero、-hero-up、-hero-forget、-item-new <基底>、-items、-equip <編號>、-unequip <位置>、-drop <格子>、-bag-swap <格子> <格子>。",
         );
         return heroExample;
     } catch (error) {

@@ -224,11 +224,14 @@ test("存檔碼及最長打包結果符合 file-io 字元與長度限制", () =>
                 fields: [
                     { name: "a", kind: "list", min: 0, max: 255, length: 256 },
                     { name: "b", kind: "list", min: 0, max: 255, length: 255 },
+                    { name: "c", kind: "list", min: 0, max: 255, length: 256 },
                 ],
             },
         ],
     });
-    const data = { s: { a: Array(256).fill(255), b: Array(255).fill(255) } };
+    const data = {
+        s: { a: Array(256).fill(255), b: Array(255).fill(255), c: Array(256).fill(255) },
+    };
     assert.equal(registry.pack(data, 1)!.length, maxPackedBytes);
     const code = new SaveCodec(registry, 1).encode(data, "Alice")!;
     assert(code.length <= maxSaveCodeLength);

@@ -13,6 +13,7 @@ import { FakeSyncNetwork } from "../rxwc3/fake-sync-natives";
 import { FakeClockDriver } from "../rxwc3/fake-clock-driver";
 import { setupSave } from "./setup";
 export { wc3PlayerNatives } from "@shared/wc3-def";
+export { recordsCases, verifyRecords } from "./records-cases";
 
 function check(condition: boolean, message: string): void {
     if (!condition) throw new Error(message);

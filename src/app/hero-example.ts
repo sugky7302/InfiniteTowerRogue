@@ -2,6 +2,13 @@ import { ClassId, HeroState, levelUp, runeScholar, getClassDefinition } from "@e
 import { displayNumber } from "@entities/combat";
 import { CombatRegistry } from "@features/combat";
 import {
+    BagState,
+    createBag,
+    firstEmptySlot,
+    putInBag,
+    takeFromBag,
+    swapBagSlots,
+    findBagSlot,
     aggregateEquipment,
     compareEquipment,
     emptyEquipment,
@@ -22,7 +29,9 @@ import {
     ItemBonusStat,
     RandomInt,
     AffixValueType,
+    ItemTier,
 } from "@entities/item";
+import type { NativeItemRegistry } from "./native-item-registry";
 import type { HeroSnapshot } from "./hero-save";
 
 function copyItem(item: ItemInstance, id = item.id): ItemInstance {
@@ -117,14 +126,21 @@ function itemText(item: ItemInstance): string {
     // Lua 的空字串為真值，`|| "無"` 不會生效，所以檢查長度。
     const fixedText = fixed.length > 0 ? fixed.join("、") : "無";
     const affixText = affixes.length > 0 ? affixes.join("、") : "無";
-    return `編號 ${item.id}，${base.name}，普通階；固定屬性：${fixedText}；詞綴：${affixText}`;
+    const tierNames: Record<ItemTier, string> = {
+        common: "普通",
+        fine: "精良",
+        masterwork: "名品",
+        legendary: "傳世",
+    };
+    return `編號 ${item.id}，${base.name}，${tierNames[item.tier]}階；固定屬性：${fixedText}；詞綴：${affixText}`;
 }
 
-/** app 組合英雄、裝備與戰鬥。持有清單只供範例使用。 */
+/** app 組合英雄、裝備、背包與戰鬥。 */
 export class HeroExample {
     private currentHero: HeroState;
     private worn: EquipmentState = emptyEquipment();
-    private held: ItemInstance[] = [];
+    private held: BagState = createBag();
+    private carriers?: NativeItemRegistry;
     private nextId = 1;
     public summary: EquipmentSummary;
     public constructor(
@@ -150,7 +166,7 @@ export class HeroExample {
     public get equipment(): EquipmentState {
         return this.worn;
     }
-    public get items(): readonly ItemInstance[] {
+    public get items(): BagState {
         return this.held;
     }
     public snapshot(): HeroSnapshot {
@@ -166,10 +182,14 @@ export class HeroExample {
                 knowledge: [...this.currentHero.knowledge],
             },
             worn,
-            held: this.held.map((item) => copyItem(item)),
+            held: this.held.map((item) => (item === false ? false : copyItem(item))),
         };
     }
-    public restore(hero: HeroState, worn: EquipmentState, held: readonly ItemInstance[]): void {
+    public restore(
+        hero: HeroState,
+        worn: EquipmentState,
+        held: readonly (ItemInstance | false | undefined)[],
+    ): void {
         this.currentHero = {
             attributes: { ...hero.attributes },
             classes: hero.classes.map((entry) => ({ ...entry })),
@@ -183,11 +203,41 @@ export class HeroExample {
             if (item !== undefined) restored[slot] = copyItem(item, this.nextId++);
         }
         this.worn = restored;
-        this.held = held.map((item) => copyItem(item, this.nextId++));
+        this.held = createBag(held).map((item) =>
+            item === false ? false : copyItem(item, this.nextId++),
+        );
+        try {
+            this.carriers?.replace(this.allItems());
+        } catch (error) {
+            // 載體建立失敗時，清除對應資料，避免留下沒有載體的物品。
+            this.worn = emptyEquipment();
+            this.held = createBag();
+            this.refresh();
+            throw error;
+        }
         this.refresh();
     }
+    private allItems(): ItemInstance[] {
+        const result: ItemInstance[] = [];
+        for (const slot of slotOrder) {
+            const item = this.worn[slot];
+            if (item !== undefined) result.push(item);
+        }
+        for (const item of this.held) if (item !== false) result.push(item);
+        return result;
+    }
+    public attachCarriers(carriers: NativeItemRegistry): void {
+        carriers.replace(this.allItems());
+        this.carriers = carriers;
+    }
+    public acceptPickup(item: ItemInstance): boolean {
+        const bag = putInBag(this.held, item);
+        if (bag === undefined) return false;
+        this.held = bag;
+        return true;
+    }
     private create(baseId: string): ItemInstance {
-        if (this.nextId >= 2147483520) throw new Error("物品編號已達上限。");
+        if (this.nextId > 16777215) throw new Error("物品編號已達上限。");
         return createItem(this.nextId++, baseId, this.random);
     }
     private refresh(): void {
@@ -221,6 +271,8 @@ export class HeroExample {
                 "-items",
                 "-equip",
                 "-unequip",
+                "-drop",
+                "-bag-swap",
             ].includes(command)
         )
             return undefined;
@@ -265,8 +317,10 @@ export class HeroExample {
                     (slot) =>
                         `${slots[slot]}：${this.worn[slot] ? itemText(this.worn[slot]!) : "空"}`,
                 ),
-                `持有清單 ${this.held.length}／12：`,
-                ...this.held.map((item) => itemText(item)),
+                `背包 ${this.held.filter((item) => item !== false).length}／90：`,
+                ...this.held.flatMap((item, index) =>
+                    item === false ? [] : [`格子 ${index + 1}：${itemText(item)}`],
+                ),
             ];
         }
         if (command === "-item-new") {
@@ -276,9 +330,10 @@ export class HeroExample {
                 return [
                     "請指定基底：符文杖、訓練短劍、巡檢長槌、術式手冊、學徒長袍；也可使用基底 ID。",
                 ];
-            if (this.held.length >= 12) return ["持有清單已滿，最多 12 件。"];
+            if (firstEmptySlot(this.held) === undefined) return ["背包已滿"];
             const item = this.create(baseId);
-            this.held.push(item);
+            this.carriers?.add(item);
+            this.held = putInBag(this.held, item)!;
             return [itemText(item)];
         }
         if (command === "-unequip") {
@@ -288,25 +343,50 @@ export class HeroExample {
             if (!slot || parts.length !== 2)
                 return ["請指定位置：主武器、副手、防具、工具；也可使用位置 ID。"];
             if (!this.worn[slot]) return ["此位置沒有裝備。"];
-            if (this.held.length >= 12) return ["持有清單已滿，無法卸下。"];
+            if (firstEmptySlot(this.held) === undefined) return ["背包已滿"];
             const result = unequip(this.worn, slot);
             this.worn = result.state;
-            this.held.push(result.removed!);
+            this.held = putInBag(this.held, result.removed!)!;
             this.refresh();
             return [`已卸下${slots[slot]}。`, ...(this.summary.mainWeapon ? [] : ["沒有武器"])];
         }
+        if (command === "-drop" || command === "-bag-swap") {
+            const first = Number(parts[1]) - 1;
+            if (!Number.isInteger(first) || first < 0 || first >= 90)
+                return ["請指定背包格子 1～90。"];
+            if (command === "-bag-swap") {
+                if (parts.length !== 3) return ["請指定兩個背包格子。"];
+                const next = swapBagSlots(this.held, first, Number(parts[2]) - 1);
+                if (next === undefined) return ["請指定背包格子 1～90。"];
+                this.held = next;
+                return ["已交換背包格子。"];
+            }
+            if (parts.length !== 2) return ["請指定一個背包格子。"];
+            const removed = takeFromBag(this.held, first);
+            if (removed === undefined) return ["此格沒有物品。"];
+            if (this.carriers === undefined || !this.carriers.drop(removed.item.id))
+                return ["無法丟棄物品。"];
+            this.held = removed.bag;
+            return ["已丟棄物品。"];
+        }
         const id = Number(parts[1]);
-        const index = this.held.findIndex((item) => item.id === id);
-        if (parts.length !== 2 || !Number.isInteger(id) || id < 1 || id > 2147483520 || index < 0)
-            return ["請指定持有清單中的物品編號。"];
-        const candidate = this.held[index];
+        const index = findBagSlot(this.held, id);
+        if (
+            parts.length !== 2 ||
+            !Number.isInteger(id) ||
+            id < 1 ||
+            id > 16777215 ||
+            index === undefined
+        )
+            return ["請指定背包中的物品編號。"];
+        const candidate = this.held[index] as ItemInstance;
         const comparison = compareEquipment(this.currentHero, this.worn, candidate);
         if (!comparison.ok) return comparison.failures.map((failure) => failureText(failure));
         const result = equip(this.currentHero, this.worn, candidate);
         if (!result.ok) return result.failures.map((failure) => failureText(failure));
         this.worn = result.state;
-        this.held.splice(index, 1);
-        if (result.removed) this.held.push(result.removed);
+        this.held = takeFromBag(this.held, index)!.bag;
+        if (result.removed) this.held = putInBag(this.held, result.removed)!;
         this.refresh();
         const changes: string[] = [];
         for (const key of Object.keys(comparison.delta) as (keyof typeof comparison.delta)[]) {

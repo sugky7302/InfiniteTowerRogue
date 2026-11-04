@@ -1,7 +1,10 @@
 import { test } from "node:test";
 import { strict as assert } from "node:assert";
 import { createDemoRegistry, SaveCodec, compactCode } from "@features/save";
-import { createHeroSaveParticipants, decodeHeroSave } from "../../src/app/hero-save";
+import {
+    createHeroSaveParticipantsV3 as createHeroSaveParticipants,
+    decodeHeroSaveV3 as decodeHeroSave,
+} from "../../src/app/hero-save";
 import { heroSaveCases, saveData } from "./cases";
 
 for (const entry of heroSaveCases) {
