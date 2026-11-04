@@ -60,26 +60,15 @@ description: 新增或修改技能、施法流程、投射物、傷害套用、�
 - `CombatStats.damageTarget` 與 `damageAttacker` 可提供完整修正。C4 新增 `commitDamage`，提交完整結算結果。既有技能測試的傷害預期值保持相同。
 - 燃燒以 `snapshotDamageOffense` 鎖定輸出，另複製穿透修正。每次週期讀取目前目標狀態。刷新時建立新快照並清除舊排程。
 - `resolveDamage` 是相容包裝，也使用新結算。技能既有預期值由原有測試保護。
-- C1 至 C4 的規格與實作記錄見 `docs/combat-system/implementation/PLAN.md`。驗證入口為 `npm run test:combat:lua`。C5 遊戲內驗證尚待完成。
+- C1 至 C4 的規格與實作記錄見 `docs/combat-system/implementation/PLAN.md`。驗證入口為 `npm run test:combat:lua`。C5 已在遊戲中通過（2026-11-04）。
 
-## C4 整合
+## 與戰鬥、英雄的接線
 
-- `features/combat` 提供 `CombatRegistry`、`CombatRuntime`、`TacticalPause` 與 `PatrolMachine`。app 注入原生操作，並組合技能。
-- 暫停使用動作速度 0、移速 0 與停用兩個武器。動作速度由本系統保存，登錄時明確設為 1。之後透過 `TacticalPause.setTimeScale` 設定。
-- 技能減速透過 `TacticalPause.setSpeed`。暫停中的變更只更新快照。恢復時套用保存值。
-- 技能的內部停止命令透過 `TacticalPause.stop`，避免覆蓋玩家保存的命令。恢復命令使用世界時鐘的零延遲任務，讓資源轉接先啟用技能。
-- 玩家失能時才使用 `PauseUnit` 阻止命令。戰術暫停使用方法 2。原有施法資源轉接仍跳過施法中的技能。
-- 本次新增流程以明確的 catch 清理後重新拋出。TSTL 的部分 `try/finally` 轉譯會吞掉錯誤。Lua 驗證器必須用故障注入檢查失敗路徑。
-
-## H4 英雄與裝備接線
-
-- 規格為 `docs/hero-item-attributes/PLAN.md`。app 的 `HeroExample` 保存英雄、穿戴物與持有清單，透過 `CombatRegistry.update` 提交匯總。features 之間不互相 import。
-- 技能完成施法時，以 `CombatStats.caster` 讀取目前戰鬥等級與智力。命中時讀取目前法術強度。不得在 runtime 讀 scholar。法力容量與恢復仍使用建置常數，此限制尚未解除。
-- 直接傷害與燃燒使用登錄的裝備修正。燃燒仍鎖定輸出快照並逐次讀取目標。分類暴擊修正只加入裝備差值，不能再加入顯示用完整分類暴擊率。
-- 最大生命增加時，目前生命補相同差值；減少時限制目前生命；失能維持 0。復起使用新上限。原生血條仍最低顯示 1。
-- 沒有主武器時，普通攻擊拒絕命令與結算，顯示「沒有武器」。法術仍可施放。
-- 起始穿上新產生的符文杖與學徒長袍。持有清單為空。新指令為 `-hero`、`-hero-up`、`-item-new <基底>`、`-items`、`-equip <編號>`、`-unequip <位置>`。既有技能、戰鬥與存檔指令保留。
-- 工具驗證不等於 H5 遊戲驗證。H5 步驟見 `docs/hero-item-attributes/implementation/PLAN.md`。
+- 戰鬥登錄、暫停與生命：見 `.github/skills/combat-system`。英雄與裝備數值：見 `.github/skills/hero-item-attributes`。
+- 技能減速透過 `TacticalPause.setSpeed`。內部停止命令透過 `TacticalPause.stop`，避免覆蓋玩家保存的命令。
+- 技能完成施法時，以 `CombatStats.caster` 讀取目前戰鬥等級與智力。命中時讀取目前法術強度。不得在 runtime 讀 scholar。法力容量與恢復仍使用建置常數。
+- 直接傷害與燃燒使用登錄的裝備修正。分類暴擊修正只加入裝備差值，不能再加入顯示用完整分類暴擊率。
+- 新增流程以明確的 catch 清理後重新拋出。TSTL 的部分 `try/finally` 轉譯會吞掉錯誤。Lua 驗證器必須用故障注入檢查失敗路徑。
 
 ## 驗證
 
