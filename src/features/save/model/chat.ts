@@ -113,6 +113,16 @@ export function installSaveChat(
             (subscriber) =>
                 reads.pipe(forLocalPlayer(player, network)).subscribe((request) => {
                     const result = files.read(saveFilePath);
+                    // 讀取失敗與存檔碼無效最後都顯示同一句。此提示只在本地說明讀取結果。
+                    if (result.status === FileReadStatus.InvalidData)
+                        natives.display(
+                            player,
+                            `存檔檔案${result.status}，讀回 ${result.rawLength ?? 0} 個字元。`,
+                        );
+                    else if (result.status !== FileReadStatus.Read)
+                        natives.display(player, `存檔檔案${result.status}。`);
+                    else if (result.data.length > maxSaveCodeLength)
+                        natives.display(player, `存檔檔案過長：${result.data.length} 個字元。`);
                     subscriber.next({
                         request,
                         code:

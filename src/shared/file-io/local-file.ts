@@ -19,7 +19,13 @@ export type FileWriteStatus = (typeof FileWriteStatus)[keyof typeof FileWriteSta
 
 export type FileRead =
     | { status: typeof FileReadStatus.Read; data: string }
-    | { status: Exclude<FileReadStatus, typeof FileReadStatus.Read> };
+    | { status: typeof FileReadStatus.InvalidData; rawLength?: number }
+    | {
+          status: Exclude<
+              FileReadStatus,
+              typeof FileReadStatus.Read | typeof FileReadStatus.InvalidData
+          >;
+      };
 export type FileWrite = {
     status: FileWriteStatus;
 };
@@ -58,7 +64,7 @@ export function createLocalFileIo(natives: FileNatives) {
                     raw === "ITF-MISSING"
                         ? { status: FileReadStatus.Missing }
                         : data === undefined
-                          ? { status: FileReadStatus.InvalidData }
+                          ? { status: FileReadStatus.InvalidData, rawLength: raw.length }
                           : { status: FileReadStatus.Read, data };
             } catch {
                 result = { status: FileReadStatus.Failed };
