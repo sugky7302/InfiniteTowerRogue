@@ -89,3 +89,6 @@ typings/
 
 # DynamoDB Local files
 .dynamodb/
+
+# 從遊戲檔案匯出的素材，不納入版本控制。匯出方式見 docs/hero-preview-color/PLAN.md。
+/assets/models/
