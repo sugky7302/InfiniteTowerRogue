@@ -47,7 +47,8 @@ function createSkillObjects(data, definitions) {
         properNames: "符文學者",
         properNamesUsed: 1,
         hero: "",
-        normal: skills.map((skill) => skill.code).join(","),
+        // AInv：英雄物品欄。3.0 的內建背包與裝備欄需要它（I3 實驗）。
+        normal: [...skills.map((skill) => skill.code), "AInv"].join(","),
         startingIntelligence: scholar.intelligence,
         intelligencePerLevel: 0,
         agilityPerLevel: 0,

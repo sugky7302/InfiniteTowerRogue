@@ -53,7 +53,7 @@ export function verifySkillArtifact(): number {
         }
     }
     assert.match(map.archive.get("war3mapMisc.txt")!.text(), /\[Misc\][\s\S]*MinUnitSpeed=0\.0/);
-    assert.equal(data.units.get("H0SS")!.normal, "A0SF,A0SI");
+    assert.equal(data.units.get("H0SS")!.normal, "A0SF,A0SI,AInv");
     assert.equal(data.units.get("h0SE")!.defenseBase, 20);
     const script = map.archive.get("war3map.lua")!.text();
     assert.equal(

@@ -24,6 +24,7 @@ declare function UnitHasAnyItemEquiped(whichUnit: unit): boolean;
 declare function UnitItemInBagSlot(whichUnit: unit, itemSlot: number): item | undefined;
 declare function UnitItemInEquipmentSlot(whichUnit: unit, itemSlot: loadoutslot): item | undefined;
 declare function UnitEquipItem(whichUnit: unit, whichItem: item): boolean;
+const created: item[] = [];
 const sampleItems = ["ebtf", "ecgb", "eclg", "ecgh", "ecss", "ttal"];
 const slots: [string, loadoutslot][] = [
     ["頭", EQUIPMENT_LOADOUT_SLOT_HEAD],
@@ -46,7 +47,22 @@ export function installNativeEquipmentEvents(hero: unit): void {
     const trigger = CreateTrigger();
     TriggerRegisterUnitEvent(trigger, hero, EVENT_UNIT_EQUIP_ITEM);
     TriggerRegisterUnitEvent(trigger, hero, EVENT_UNIT_UNEQUIP_ITEM);
+    // 撿不起物品時，確認是否收到命令與撿起事件。
+    TriggerRegisterUnitEvent(trigger, hero, EVENT_UNIT_PICKUP_ITEM);
+    TriggerRegisterUnitEvent(trigger, hero, EVENT_UNIT_ISSUED_TARGET_ORDER);
     TriggerAddAction(trigger, () => {
+        if (GetTriggerEventId() === EVENT_UNIT_PICKUP_ITEM) {
+            logger.info(`撿起事件：${itemName(GetManipulatedItem())}`);
+            return;
+        }
+        if (GetTriggerEventId() === EVENT_UNIT_ISSUED_TARGET_ORDER) {
+            const target = GetOrderTargetItem();
+            if (target !== undefined)
+                logger.info(
+                    `對物品下命令：${OrderId2String(GetIssuedOrderId()) ?? GetIssuedOrderId()}，${itemName(target)}`,
+                );
+            return;
+        }
         const equipped = GetEquippedItem();
         const unequipped = GetUnequippedItem();
         logger.info(`內建裝備事件：穿上 ${itemName(equipped)}，卸下 ${itemName(unequipped)}`);
@@ -80,14 +96,25 @@ export function nativeEquipmentCommand(hero: unit, message: string): readonly st
     if (message === "-ne-give") {
         const lines: string[] = [];
         for (const code of sampleItems) {
-            const created = CreateItem(FourCC(code), GetUnitX(hero) + 80, GetUnitY(hero));
+            const item = CreateItem(FourCC(code), GetUnitX(hero) + 80, GetUnitY(hero));
+            if (item !== undefined) created.push(item);
             lines.push(
-                created === undefined
+                item === undefined
                     ? `${code}：無法建立`
-                    : `${code}：${itemName(created)}，裝備類型 ${GetItemType(created) === ITEM_TYPE_EQUIPMENT}`,
+                    : `${code}：${itemName(item)}，裝備類型 ${GetItemType(item) === ITEM_TYPE_EQUIPMENT}`,
             );
         }
         return lines;
+    }
+    if (message === "-ne-add") {
+        // 不經過撿起命令，直接把 -ne-give 建立的物品交給英雄。
+        const lines = created.map(
+            (target) => `${itemName(target)}：UnitAddItem ${UnitAddItem(hero, target)}`,
+        );
+        lines.push(
+            `物品欄 ${UnitInventorySize(hero)}，延伸物品欄 ${UnitExtendedInventorySize(hero)}`,
+        );
+        return lines.length > 1 ? lines : ["沒有物品。先 -ne-give。"];
     }
     if (message === "-ne-equip") {
         const lines: string[] = [];

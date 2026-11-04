@@ -41,7 +41,7 @@ test("S2 英雄與敵人物件可儲存並重新載入", () => {
     loaded.load(data.save());
     const hero = loaded.units.get("H0SS")!,
         enemy = loaded.units.get("h0SE")!;
-    assert.equal(hero.normal, "A0SF,A0SI");
+    assert.equal(hero.normal, "A0SF,A0SI,AInv");
     assert.equal(hero.startingIntelligence, 16);
     assert.equal(hero.manaMaximum, 69);
     assert.equal(hero.animationCastPoint, 0);
