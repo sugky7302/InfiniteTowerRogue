@@ -7,3 +7,7 @@
 /.vscode/*.json text eol=lf
 /package.json text eol=lf
 /.prettierrc.json text eol=lf
+
+# TOC 實驗依賴實際位元組。主檔固定 CRLF，探測檔不得新增換行。
+/assets/ui/infinite-tower-rogue.toc text eol=crlf
+/assets/ui/itr-probe-no-trailing.toc -text

@@ -50,6 +50,12 @@ compiletime(({ objectData }) => {
     );
 });
 
+// 從本次建置的英雄物件讀取模型，不另寫模型路徑。
+export const skillHeroModel = compiletime(({ objectData }) => {
+    const path = objectData.units.get("H0SS")!.modelFile;
+    return path.length === 0 || /\.m(?:dl|dx)$/i.test(path) ? path : path + ".mdl";
+});
+
 export function runSkillExample(): HeroExample | undefined {
     const owner = new Subscription();
     const listeners = new Subscription();

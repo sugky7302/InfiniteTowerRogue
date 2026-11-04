@@ -37,12 +37,18 @@ description: 新增或使用 WC3 原生函式、handle 型別、事件資料或�
 | `player/` | `PlayerNatives` | 玩家名稱、顯示文字、用戶端語言 |
 | `random/` | `RandomNatives` | 同步亂數 |
 | `file/` | `FileNatives` | Preload 檔案讀寫、getIcon(ability)、setIcon(text, ability) |
+| `frame/` | `FrameNatives` | TOC、樣板與類型建立、原點與子框架、位置與外觀、模型與動畫、焦點重設、框架事件與銷毀 |
 
 - **檔名與介面不得使用遊戲功能名稱**（技能、存檔、i18n）。功能需要的組合在使用端定義，例如 `features/skill` 的 `SkillNatives`（以 `Pick` 與 `&` 組合）、`shared/i18n` 的 `I18nNatives`、`features/save` 的 `SaveNatives`。
 - **介面不得包含遊戲規則**（防禦、挑戰等級等）。規則查詢在上層定義介面（例如 `entities/combat` 的 `CombatStats`），由 `app/` 實作。
 - 需要 handle 的實作使用工廠函式，在共同流程呼叫一次，例如 `createWc3UnitDamage()`、`createWc3UnitArea()`，傳回 `{ natives, destroy }`。
 - 邏輯模組透過參數或建構函式接收介面，預設值使用 WC3 實作。
 - WC3 實作載入時不得呼叫原生函式。
+- `FrameNatives` 使用原生 `framehandle`，不向使用端公開 w3ts。只有 `frame/wc3-frame-natives.ts` 使用 w3ts `Frame`；在呼叫時載入，讓 Node 可以匯入公開 API。建立失敗傳回 `undefined`，不向外拋出。
+- 框架在遊戲時間 0 秒後由全部玩家共同建立。`fromName`、`fromOrigin` 先在共同流程取得。只用本地玩家切換可見性；不得用本地可見值改變遊戲狀態。點擊後用 `resetFocus` 停用再啟用按鈕。
+- `registerEvent` 使用 `BlzTriggerRegisterFrameEvent`。使用端持有並銷毀觸發器。銷毀父框架會清理子框架，避免重複銷毀。
+- 模型動畫使用 `setSpriteAnimate(primaryProp, flags)`，沒有按名稱播放的 w3ts 方法。SPRITE 的 birth、death、stand、morph、alternate 分別為 0～4，不能使用 `ANIM_TYPE_*` 的 handle 編號。沒有已知的 attack 屬性。來源與遊戲驗收見 I3 設計稿。
+- 專案 FDF 位於 `assets/ui/`。建置時複製到 `dist/<mapFolder>/ui/` 再封裝。主 TOC 使用 CRLF，且最後一行之後有空行。探測 TOC 刻意沒有結尾換行，供 I3 比較。執行 `npm run test:ui:artifact` 檢查產物；遊戲驗收步驟見 `docs/inventory-ui/i3/PLAN.md`。
 - 介面方法在 Lua 中會收到 `self`。把一般函式指定給介面方法時，用箭頭函式包裝，例如 `unwrapUnit: (input) => unwrapUnit(input)`。否則 TSTL 會報錯。
 
 - FileNatives 的技能參數是數字。WC3 實作只包裝 BlzGetAbilityIcon、BlzSetAbilityIcon 與 Preload 系列。沿用 w3ts 的方式，不建立預載單位，也不提供 prepare。檔案格式與載體常數由 file-io 管理。F2 遊戲驗證仍待執行。

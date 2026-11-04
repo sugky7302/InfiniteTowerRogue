@@ -1,0 +1,119 @@
+Frame "BACKDROP" "ItrPanel" {
+    Width 0.52,
+    Height 0.32,
+    BackdropBackground "UI\Widgets\ToolTips\Human\human-tooltip-background.blp",
+    BackdropEdgeFile "UI\Widgets\ToolTips\Human\human-tooltip-border.blp",
+    BackdropCornerFlags "UL|UR|BL|BR|T|L|B|R",
+    BackdropCornerSize 0.012,
+    BackdropBackgroundInsets 0.004 0.004 0.004 0.004,
+}
+
+Frame "GLUEBUTTON" "ItrSlotButton" {
+    Width 0.04,
+    Height 0.04,
+    ControlStyle "AUTOTRACK|HIGHLIGHTONMOUSEOVER",
+    ControlBackdrop "ItrSlotIcon",
+    Frame "BACKDROP" "ItrSlotIcon" {
+        BackdropBackground "ReplaceableTextures\CommandButtons\BTNSteelMelee.blp",
+    }
+    ControlDisabledBackdrop "ItrSlotDisabledIcon",
+    Frame "BACKDROP" "ItrSlotDisabledIcon" {
+        BackdropBackground "ReplaceableTextures\CommandButtonsDisabled\DISBTNSteelMelee.blp",
+    }
+    ControlMouseOverHighlight "ItrSlotHover",
+    Frame "HIGHLIGHT" "ItrSlotHover" {
+        HighlightType "FILETEXTURE",
+        HighlightAlphaFile "UI\Glues\ScoreScreen\scorescreen-tab-hilight.blp",
+        HighlightAlphaMode "ADD",
+    }
+    Frame "BACKDROP" "ItrSlotSelection" {
+        SetAllPoints,
+        BackdropEdgeFile "UI\Widgets\ToolTips\Human\human-tooltip-border.blp",
+        BackdropCornerFlags "UL|UR|BL|BR|T|L|B|R",
+        BackdropCornerSize 0.008,
+    }
+}
+
+Frame "GLUETEXTBUTTON" "ItrTabButton" {
+    Width 0.09,
+    Height 0.028,
+    ControlStyle "AUTOTRACK|HIGHLIGHTONMOUSEOVER",
+    ControlBackdrop "ItrTabBackdrop",
+    Frame "BACKDROP" "ItrTabBackdrop" {
+        BackdropBackground "UI\Widgets\ToolTips\Human\human-tooltip-background.blp",
+        BackdropEdgeFile "UI\Widgets\ToolTips\Human\human-tooltip-border.blp",
+        BackdropCornerFlags "UL|UR|BL|BR|T|L|B|R",
+        BackdropCornerSize 0.008,
+    }
+    ControlMouseOverHighlight "ItrTabHover",
+    Frame "HIGHLIGHT" "ItrTabHover" {
+        HighlightType "FILETEXTURE",
+        HighlightAlphaFile "UI\Glues\ScoreScreen\scorescreen-tab-hilight.blp",
+        HighlightAlphaMode "ADD",
+    }
+    ButtonText "ItrTabText",
+    Frame "TEXT" "ItrTabText" {
+        DecorateFileNames,
+        FrameFont "MasterFont", 0.011, "",
+        FontColor 1.0 0.85 0.45 1.0,
+        FontJustificationH JUSTIFYCENTER,
+        FontJustificationV JUSTIFYMIDDLE,
+    }
+}
+
+Frame "GLUETEXTBUTTON" "ItrActionButton" INHERITS WITHCHILDREN "ItrTabButton" {
+    Width 0.09,
+    Height 0.028,
+}
+
+Frame "TEXT" "ItrTitleText" {
+    DecorateFileNames,
+    Width 0.46,
+    Height 0.025,
+    FrameFont "MasterFont", 0.015, "",
+    FontColor 1.0 0.85 0.45 1.0,
+    FontJustificationH JUSTIFYLEFT,
+    FontJustificationV JUSTIFYMIDDLE,
+}
+
+Frame "TEXT" "ItrBodyText" {
+    DecorateFileNames,
+    Width 0.46,
+    Height 0.035,
+    FrameFont "MasterFont", 0.011, "",
+    FontColor 1.0 1.0 1.0 1.0,
+    FontJustificationH JUSTIFYLEFT,
+    FontJustificationV JUSTIFYTOP,
+}
+
+Frame "FRAME" "ItrStatLine" {
+    Width 0.23,
+    Height 0.02,
+    Frame "TEXT" "ItrStatName" {
+        DecorateFileNames,
+        Width 0.16,
+        Height 0.02,
+        UseActiveContext,
+        SetPoint LEFT, "ItrStatLine", LEFT, 0.0, 0.0,
+        FrameFont "MasterFont", 0.011, "",
+        FontColor 1.0 1.0 1.0 1.0,
+        FontJustificationH JUSTIFYLEFT,
+        FontJustificationV JUSTIFYMIDDLE,
+    }
+    Frame "TEXT" "ItrStatValue" {
+        DecorateFileNames,
+        Width 0.07,
+        Height 0.02,
+        UseActiveContext,
+        SetPoint RIGHT, "ItrStatLine", RIGHT, 0.0, 0.0,
+        FrameFont "MasterFont", 0.011, "",
+        FontColor 0.5 1.0 0.5 1.0,
+        FontJustificationH JUSTIFYRIGHT,
+        FontJustificationV JUSTIFYMIDDLE,
+    }
+}
+
+Frame "SPRITE" "ItrModelPreview" {
+    Width 0.14,
+    Height 0.16,
+}

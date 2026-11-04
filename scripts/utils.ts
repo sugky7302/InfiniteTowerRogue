@@ -128,6 +128,8 @@ export function compileMap(config: IProjectConfig) {
 
     logger.info(`正在準備地圖「${config.mapFolder}」……`);
     fs.copySync(`./maps/${config.mapFolder}`, `./dist/${config.mapFolder}`);
+    // 只寫入建置地圖。UI 資源不放入原始地圖。
+    fs.copySync(path.resolve("assets", "ui"), path.resolve("dist", config.mapFolder, "ui"));
 
     logger.info("正在更新編譯器的地圖路徑……");
     updateTSConfig(config.mapFolder);

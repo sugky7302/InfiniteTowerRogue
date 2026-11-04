@@ -143,6 +143,10 @@ export class HeroExample {
     private carriers?: NativeItemRegistry;
     private nextId = 1;
     public summary: EquipmentSummary;
+    public get nativeUnit(): unit {
+        return this.unit;
+    }
+
     public constructor(
         private readonly registry: CombatRegistry,
         private readonly unit: unit,
