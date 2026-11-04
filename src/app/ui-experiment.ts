@@ -361,6 +361,8 @@ export function runUiExperiment(
                     "ui\\itr-hero-preview-" +
                     (key === "inv" ? "inv" : (index < 10 ? "0" : "") + index) +
                     ".mdl";
+                // 隱藏第 1 輪的模型框架，只顯示角度模型。
+                if (model !== undefined) frames.setVisible(model, false);
                 for (const frame of grid) frames.setVisible(frame, false);
                 gridCount++;
                 const sprite = frames.createType(
