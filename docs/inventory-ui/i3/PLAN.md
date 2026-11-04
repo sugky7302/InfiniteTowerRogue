@@ -107,3 +107,10 @@ Lua 共 330 組通過。地圖產物共 50 組通過。所有檢查均為 0 組�
 3. `-ui-file units\human\HeroArchMage\HeroArchMage_portrait.mdx`：頭像模型是否有顏色。
 4. `-ui-file units\human\Footman\Footman.mdx`：一般單位模型是否也全黑。
 5. 回報每一項是否有顏色。
+
+## 遊戲內結果（2026-11-04，第 2 輪）
+
+- 位移修正有效。模型在面板內。合適的值：`-ui-model 0.4 0.15 0.008`。
+- 模型仍然全黑。頭像模型（`HeroArchMage_portrait.mdx`）與步兵模型（`Footman.mdx`）在同一框架中都不顯示。
+- 按鈕點擊顯示「已點擊：…」。點擊後按空白鍵或 Enter 不會再點擊。焦點重設有效。
+- 結論：SPRITE 框架可以顯示英雄模型的形狀與動作，但沒有光源，無法用程式修正。I4 的英雄預覽方式由使用者決定。
