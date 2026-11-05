@@ -24,10 +24,10 @@ export type TowerState = (typeof TowerState)[keyof typeof TowerState];
 
 ## 開發流程
 
-1. 由我與 Claude 討論，擬定出設計稿，放置在 `docs/<開發項目>/PLAN.md` 裡。
-2. Claude 根據 `PLAN.md` 切割出一個個任務，放到 `docs/<開發項目>/TASK.md`。
-3. Claude 會調用 Codex 以 TDD 原則，設計出測試項目。
-4. 由我本人實作程式碼，**AI Agents** 只能提供建議，不得直接修改。除非是 MDX 或者工具的使用，這部份需要先尋求我的同意。Claude 會要求我回覆是否完成，若是我回答完成，Claude 調用 Codex 進行驗證、檢查，確認符合測試。
+1. 由我與 Claude 討論，擬定出設計稿，由 Codex 和 Antigravity 審核以及修正，最後將討論結果放置在 `docs/<開發項目>/PLAN.md` 裡。
+2. Claude 根據 `PLAN.md`，切割出一個個任務，由 Antigravity 審核每項任務是否定義清楚，最後將結果放到 `docs/<開發項目>/TASK.md`。
+3. Claude 會調用 Codex 以 TDD 原則，設計出測試項目。Antigravity 會檢驗 Codex 提出的測試項目，並新增、更新、修改、刪除不適宜的測試項目。
+4. 由我本人實作程式碼，**AI Agents** 只能提供建議，不得直接修改。除非是 MDX 或者工具的使用，這部份需要先尋求我的同意。Claude 會要求我回覆是否完成，若是我回答完成，Claude 調用 Codex 以及 Antigravity 進行分開驗證、檢查，確認符合測試。
 5. 檢查後，若是符合，則進行下一個任務，循環往復。若是不符合測試，則重複執行 4.。
 
 # 分層規則（Feature-Sliced Design）
