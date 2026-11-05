@@ -32,20 +32,21 @@ export type TowerState = (typeof TowerState)[keyof typeof TowerState];
 
 # 分層規則（Feature-Sliced Design）
 
-`src/` 分為四層，層名使用 FSD 標準名稱（複數）。上層可以 import 下層，下層不得 import 上層：
+`src/` 分為五層，層名使用 FSD 標準名稱（複數）。上層可以 import 下層，下層不得 import 上層：
 
 | 層 | 位置 | 內容 |
 |---|---|---|
-| app | `src/app/`、`src/main.ts` | 組合各功能、範例與地圖入口 |
+| app | `src/app/`、`src/main.ts` | 所有系統、範例與地圖入口 |
+| widgets | `src/widgets/<名稱>/` | 獨立的視窗元件，例如知識面板 |
 | features | `src/features/<名稱>/` | 玩家可使用的功能，例如技能、存檔 |
 | entities | `src/entities/<名稱>/` | 遊戲領域的資料與規則，例如傷害公式、狀態效果、角色數值 |
 | shared | `src/shared/` | 與遊戲規則無關的通用模組，例如 RxWC3、wc3-def、logger、file-io |
 
-- 依賴方向只能是 app → features → entities → shared。
+- 依賴方向只能是 app → widgets → features → entities → shared。
 - 同一層的不同模組（slice）不得互相 import。兩個功能都需要的規則，移到 entities 層；組合多個功能的程式，放在 app 層。
 - 每個模組以 `index.ts` 作為公開 API。其他模組只能從 `index.ts` import，不得 import 內部檔案。
-- features 與 entities 的 slice 內，檔案放在 segment 資料夾：`model/`（狀態與規則）、`lib/`（內部工具）、`config/`（常數與資料）、`api/`（對外介面，例如原生函式組合）、`ui/`（介面）。
-- 跨層 import 使用路徑別名：`@features/<名稱>`、`@entities/<名稱>`、`@shared/<模組>`。
+- widgets、features 與 entities 的 slice 內，檔案放在 segment 資料夾：`model/`（狀態與規則）、`lib/`（內部工具）、`config/`（常數與資料）、`api/`（對外介面，例如原生函式組合）、`ui/`（介面）。
+- 跨層 import 使用路徑別名：`@widgets/<名稱>`、`@features/<名稱>`、`@entities/<名稱>`、`@shared/<模組>`。
 - shared 層不得知道任何遊戲規則。WC3 原生函式介面只包裝原生操作；需要遊戲規則的查詢，在上層定義介面並實作。
 - 以 Steiger 檢查分層：`pnpm run lint:fsd`。必須沒有錯誤。
 

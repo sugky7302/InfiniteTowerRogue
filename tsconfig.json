@@ -11,6 +11,9 @@
     ],
     "moduleResolution": "node",
     "paths": {
+      "@widgets/*": [
+        "./src/widgets/*"
+      ],
       "@features/*": [
         "./src/features/*"
       ],
