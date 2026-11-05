@@ -1,3 +1,5 @@
+const { parsers } = require("mdx-m3-viewer-th");
+
 /**
  * @title 移除效果節點
  * 移除 `particleEmitters`、`particleEmitters2`、`particleEmittersPopcorn`、`ribbonEmitters`、`eventObjects`。
@@ -6,7 +8,7 @@
  * `pivotPoints` 依新編號重新排列，長度等於節點數量。
  * 幾何的骨骼矩陣群組（`matrixGroups`／`matrixIndices`）指向的骨骼編號改為新編號。
  * 幾何、材質、貼圖、序列、全域序列的數量不變。
- * @param {import("mdx-m3-viewer-th").parsers.mdlx.Model} model
+ * @param {parsers.mdlx.Model} model
  */
 function stripEffects(model) {
     // 確認要保留的節點
@@ -67,10 +69,10 @@ function stripEffects(model) {
 }
 
 /**
- * @title 移除模型的陰影效果
+ * @title 設為不受光照
  * 將每個材質圖層設為不受光照。設定 flags 的 bit 0（Unshaded），保留其他旗標位元。
  * 圖層數量、`filterMode`、`textureId`、`alpha` 不變。
- * @param {import("mdx-m3-viewer-th").parsers.mdlx.Model} model
+ * @param {parsers.mdlx.Model} model
  */
 function makeUnshaded(model) {
     model.materials.forEach((mat) => {
@@ -82,10 +84,31 @@ function makeUnshaded(model) {
     return model;
 }
 
-function buildPreviewHero(bytes, options) {}
+/**
+ * @title 建置副本
+ * @param {*} bytes 傳入的模型檔案位元組陣列，不得修改。
+ * @param {boolean} options.unshaded 是否將材質設為不受光照
+ * @returns {Uint8Array} 回傳新的模型檔案位元組陣列
+ */
+function buildPreviewHero(bytes, { unshaded = false } = {}) {
+    // 讀取模型
+    const model = new parsers.mdlx.Model();
+    model.load(bytes);
+
+    // 移除效果節點
+    stripEffects(model);
+
+    // 設為不受光照
+    if (unshaded) {
+        makeUnshaded(model);
+    }
+
+    // 回傳新的模型檔案位元組陣列
+    return model.saveMdx();
+}
 
 module.exports = {
     stripEffects,
     makeUnshaded,
-    // buildPreviewHero,
+    buildPreviewHero,
 };
