@@ -108,6 +108,15 @@ function readModel(bytes: Uint8Array): Model {
     return model;
 }
 
+function boundaryFixture(withGlow = true): Model {
+    const model = fixture(withGlow);
+    model.geosetAnimations[0].geosetId = -1;
+    model.geosetAnimations[3].geosetId = 999;
+    model.bones[1].geosetId = 999;
+    model.bones[4].geosetAnimationId = 777;
+    return readModel(model.saveMdx());
+}
+
 function unchangedSnapshot(model: Model) {
     return structuredClone({
         materials: model.materials,
@@ -236,6 +245,43 @@ for (const roundTrip of [false, true]) {
             "骨骼應使用新的幾何動畫編號。",
         );
     });
+
+    function boundaryResult(): Model {
+        const model = boundaryFixture();
+        applyTeamGlow(model);
+        const actual = roundTrip ? readModel(model.saveMdx()) : model;
+        assert.equal(actual.geosets.length, 4, "邊界值不得阻止移除兩個光暈幾何。");
+        return actual;
+    }
+
+    verify(`${stage}保留 geosetId 為 -1 與 999 的幾何動畫，內容與順序不變。`, () => {
+        const original = boundaryFixture();
+        const expected = structuredClone([0, 3, 4, 5].map((id) => original.geosetAnimations[id]));
+        [1, 0].forEach((geosetId, index) => {
+            expected[index + 2].geosetId = geosetId;
+        });
+        assert.deepEqual(
+            structuredClone(boundaryResult().geosetAnimations),
+            expected,
+            "邊界動畫應保留原值與內容，有效幾何編號仍應更新。",
+        );
+    });
+
+    verify(`${stage}骨骼的 geosetId 為 999 時保留原值，其餘幾何編號依規則更新。`, () => {
+        assert.deepEqual(
+            boundaryResult().bones.map((bone) => bone.geosetId),
+            [-1, 999, -1, -1, 1, 0, 3],
+            "超出範圍的骨骼幾何編號應保持不變。",
+        );
+    });
+
+    verify(`${stage}骨骼的 geosetAnimationId 為 777 時保留原值，其餘動畫編號依規則更新。`, () => {
+        assert.deepEqual(
+            boundaryResult().bones.map((bone) => bone.geosetAnimationId),
+            [-1, 1, -1, -1, 777, 2, 3],
+            "超出範圍的骨骼幾何動畫編號應保持不變。",
+        );
+    });
 }
 
 verify("材質、貼圖、全部節點、pivot、序列與全域序列保持不變。", () => {
@@ -254,6 +300,19 @@ verify("沒有隊伍光暈幾何時，回傳原物件且全部 MDX 位元組不�
     const before = new Uint8Array(model.saveMdx());
     assert.equal(applyTeamGlow(model), model);
     assert.deepEqual(model.saveMdx(), before, "沒有光暈時，模型內容應完全不變。");
+});
+
+verify("沒有隊伍光暈幾何且有邊界值時，全部 MDX 位元組與讀回結果不變。", () => {
+    const model = boundaryFixture(false);
+    const before = new Uint8Array(model.saveMdx());
+    assert.equal(model.geosetAnimations[0].geosetId, -1);
+    assert.equal(model.geosetAnimations[3].geosetId, 999);
+    assert.equal(model.bones[1].geosetId, 999);
+    assert.equal(model.bones[4].geosetAnimationId, 777);
+    assert.equal(applyTeamGlow(model), model);
+    const after = model.saveMdx();
+    assert.deepEqual(after, before, "沒有光暈時，不得變更邊界值或其他模型內容。");
+    assert.deepEqual(readModel(after).saveMdx(), before, "MDX 讀回後的全部位元組應保持不變。");
 });
 
 verify("重複呼叫兩次的結果與呼叫一次相同。", () => {

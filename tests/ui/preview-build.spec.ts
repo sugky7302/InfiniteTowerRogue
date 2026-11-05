@@ -349,7 +349,7 @@ verifyWrite(
 
 for (const value of ["0", undefined, "1", "false", ""]) {
     verifyWrite(
-        `未傳 unshaded，環境變數為${value === undefined ? "未設定" : `「${value}」`}時，使用約定的預設值。`,
+        `未傳 unshaded，環境變數為${value === undefined ? "未設定" : `「${value}」`}時，一律使用 true。`,
         (root, uiFolder) => {
             const { source, bytes } = writeSource(root);
             if (value === undefined) {
@@ -360,22 +360,21 @@ for (const value of ["0", undefined, "1", "false", ""]) {
             writePreviewModels(uiFolder, heroModel, { source, warn: () => {} });
             assert.deepEqual(
                 new Uint8Array(fs.readFileSync(path.join(uiFolder, copyName))),
-                build(bytes, value !== "0"),
-                "只有環境變數等於 0 時，預設值才應為 false。",
+                build(bytes, true),
+                "未傳 unshaded 時，預設值應為 true，不受環境變數影響。",
             );
         },
     );
 }
 
 for (const unshaded of [true, false]) {
-    verifyWrite(`明確傳入 unshaded 為 ${unshaded} 時，優先使用選項值。`, (root, uiFolder) => {
+    verifyWrite(`明確傳入 unshaded 為 ${unshaded} 時，使用指定值。`, (root, uiFolder) => {
         const { source, bytes } = writeSource(root);
-        process.env.ITR_PREVIEW_UNSHADED = unshaded ? "0" : "1";
         writePreviewModels(uiFolder, heroModel, { source, unshaded, warn: () => {} });
         assert.deepEqual(
             new Uint8Array(fs.readFileSync(path.join(uiFolder, copyName))),
             build(bytes, unshaded),
-            "明確指定的選項應優先於環境變數。",
+            "應使用明確指定的選項值。",
         );
     });
 }

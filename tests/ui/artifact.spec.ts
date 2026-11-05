@@ -155,28 +155,18 @@ verify(() => {
         );
     }
 
-    // 產物檢查假設測試與建置使用相同的 ITR_PREVIEW_UNSHADED 值。
-    const unshaded = process.env.ITR_PREVIEW_UNSHADED !== "0";
     model.materials.forEach((material, materialIndex) => {
         const sourceLayers = source.materials[materialIndex].layers;
         assert.equal(material.layers.length, sourceLayers.length, "複本的圖層數量應與來源相同。");
         material.layers.forEach((layer, layerIndex) => {
             const message = `材質 ${materialIndex} 的圖層 ${layerIndex}`;
-            if (unshaded) {
-                assert.notEqual(layer.flags & 0x1, 0, `${message} 應有不受光照旗標。`);
-            } else {
-                assert.equal(
-                    layer.flags,
-                    sourceLayers[layerIndex].flags,
-                    `${message} 的旗標應與來源相同。`,
-                );
-            }
+            assert.notEqual(layer.flags & 0x1, 0, `${message} 應有不受光照旗標。`);
         });
     });
     assert.deepEqual(
         copyBytes,
-        Buffer.from(buildPreviewHero(sourceBytes, { unshaded })),
-        "英雄複本的位元組應等於相同環境變數下 buildPreviewHero 的結果。",
+        Buffer.from(buildPreviewHero(sourceBytes, { unshaded: true })),
+        "英雄複本的位元組應等於 buildPreviewHero 使用 unshaded: true 的結果。",
     );
 });
 const script = map.archive.get("war3map.lua")!.text();
