@@ -15,6 +15,7 @@
 |---|---|---|
 | `stripEffects(model)` | `Model` | 同一個 `Model`（原地修改）。移除粒子、緞帶發射器與事件物件 |
 | `makeUnshaded(model)` | `Model` | 同一個 `Model`（原地修改）。每個材質圖層加上旗標 `0x1` |
+| `stripTeamGlow(model)` | `Model` | 同一個 `Model`（原地修改）。移除隊伍光暈幾何（T7） |
 | `buildPreviewHero(bytes, options)` | 原始 MDX 位元組；`{ unshaded: boolean }` | 新的 MDX 位元組（`Uint8Array`）。不修改輸入 |
 
 ## T1：移除效果節點（`stripEffects`）
@@ -73,6 +74,26 @@
 
 若貼圖錯誤，進行 `PLAN.md` 的 E4。
 
+結果（2026-11-05）：HD 只有 E3 有顏色；SD 兩者都有顏色；畫面不變白。四種情況都有白色菱形（隊伍光暈幾何），加入 T7。不需要 E4。
+
+## T7：移除隊伍光暈幾何（`stripTeamGlow`）
+
+在 T6 之前進行。
+
+- 隊伍光暈幾何的定義：幾何的 `materialId` 指向的材質，**全部**圖層的 `textureId` 都指向 `replaceableId` 為 2 的貼圖。材質沒有圖層時，不算隊伍光暈幾何。
+- 移除全部隊伍光暈幾何。其他幾何保留，順序不變。
+- 幾何動畫（`geosetAnimations`）：
+  - `geosetId` 指向被移除幾何的幾何動畫，一起移除。
+  - 其他幾何動畫的 `geosetId` 改為新的幾何編號。
+- 骨骼（`bones`）：
+  - `geosetId` 指向被移除的幾何時改為 `-1`；指向保留的幾何時改為新編號；原本是 `-1` 時不變。
+  - `geosetAnimationId` 依相同規則對應新的幾何動畫編號。
+- 材質、貼圖、節點、pivot、序列不變。
+- 沒有隊伍光暈幾何時，模型不變。
+- `buildPreviewHero` 在 `stripEffects` 之後呼叫 `stripTeamGlow`，再依 `unshaded` 呼叫 `makeUnshaded`。
+
+完成條件：測試通過；用 `assets/models/hero-archmage.mdx` 執行時，幾何由 3 個變為 2 個，骨骼 `hero` 與 `Plane01` 的 `geosetId` 變為 `-1`；`npm run build` 與 `npm run test:ui:artifact` 通過；遊戲內沒有白色菱形。
+
 ## T6：收尾
 
 - 依 E2、E3 的結果移除 `ITR_PREVIEW_UNSHADED`，只保留最終做法。
@@ -86,5 +107,6 @@
 | T2 | 完成 | 完成 | 完成 |
 | T3 | 完成 | 完成 | 完成 |
 | T4 | 完成 | 不需要（T3 已產生產物） | 完成 |
-| T5 | — | — | 未開始 |
+| T5 | — | — | 完成 |
+| T7 | 未開始 | 未開始 | 未開始 |
 | T6 | — | 未開始 | 未開始 |
