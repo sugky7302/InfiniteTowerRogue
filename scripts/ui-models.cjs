@@ -69,7 +69,7 @@ function previewMdl(heroModel, index) {
 
 /**
  * @typedef {Object} PreviewOptions
- * @property {boolean} [unshaded] 是否將材質設為不受光照。未設定時由 ITR_PREVIEW_UNSHADED 決定：值是 0 時為 false，其他情況為 true。
+ * @property {boolean} [unshaded] 是否將材質設為不受光照。預設為 true。
  * @property {string} [source] 來源模型檔案路徑。
  * @property {(message:string) => void} [warn] 警告訊息輸出函式，預設為 console.warn
  */
@@ -83,10 +83,10 @@ function previewMdl(heroModel, index) {
  * @returns {string} 回傳使用的附件模型路徑
  */
 function writePreviewModels(uiFolder, heroModel, options = {}) {
-    // 如果沒有設定 unshaded，則從環境變數讀取，預設為 true
+    // 如果沒有設定 unshaded，預設為 true
     // 解構時，若是沒有值才會取得預設值，因此相當於 options.unshaded === undefined 時才會使用預設值
     const {
-        unshaded = process.env.ITR_PREVIEW_UNSHADED !== "0",
+        unshaded = true,
         source = "assets/models/hero-archmage.mdx",
         warn = console.warn,
     } = options;

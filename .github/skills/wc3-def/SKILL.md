@@ -48,8 +48,18 @@ description: 新增或使用 WC3 原生函式、handle 型別、事件資料或�
 - 框架在遊戲時間 0 秒後由全部玩家共同建立。`fromName`、`fromOrigin` 先在共同流程取得。只用本地玩家切換可見性；不得用本地可見值改變遊戲狀態。點擊後用 `resetFocus` 停用再啟用按鈕。
 - `registerEvent` 使用 `BlzTriggerRegisterFrameEvent`。使用端持有並銷毀觸發器。銷毀父框架會清理子框架，避免重複銷毀。
 - 模型動畫使用 `setSpriteAnimate(primaryProp, flags)`，沒有按名稱播放的 w3ts 方法。SPRITE 的 birth、death、stand、morph、alternate 分別為 0～4，不能使用 `ANIM_TYPE_*` 的 handle 編號。沒有已知的 attack 屬性。來源與遊戲驗收見 I3 設計稿。
-- I3 已確認：SPRITE 只從模型上方往下看，忽略鏡頭與光源。預覽接受全黑剪影。路徑用 `.mdl`。同一框架換模型及 `.mdx` 路徑都不能顯示。一個預覽只建立一個 SPRITE，之後只切換可見性：反覆建立 SPRITE 會讓框架持續增加，遊戲內確認存讀檔後關閉遊戲會卡住（2026-11-04）。
-- 預覽以 `setSize(0.001, 0.001)` 與 `setScale(0.001)` 設定。縮放也影響位移，所以 `setPoint` 的相對位移先除以 0.001。`scripts/ui-models.cjs` 建置包裝模型 `uiitr-hero-preview.mdx`：輔助節點把附件（`Path` 為英雄模型）轉為正面。SPRITE 沒有旋轉原生函式；需要其他角度時以 `turnRotation` 另建模型。使用者決定不旋轉。
+- I3 已確認：SPRITE 只從模型上方往下看，忽略鏡頭與光源。路徑用 `.mdl`。同一框架換模型及 `.mdx` 路徑都不能顯示。一個預覽只建立一個 SPRITE，之後只切換可見性：反覆建立 SPRITE 會讓框架持續增加，遊戲內確認存讀檔後關閉遊戲會卡住（2026-11-04）。
+- 預覽以 `setSize(0.001, 0.001)` 與 `setScale(0.001)` 設定。縮放也影響位移，所以 `setPoint` 的相對位移先除以 0.001。`scripts/ui-models.cjs` 建置包裝模型 `ui\itr-hero-preview.mdx`：輔助節點把附件轉為正面。SPRITE 沒有旋轉原生函式；需要其他角度時以 `turnRotation` 另建模型。使用者決定不旋轉。
+- SPRITE 中的模型顏色（2026-11-05 在 HD 與 SD 遊戲內確認，設計稿 `docs/hero-preview-color/`）：
+    - 遊戲內建模型在 HD 圖形下全黑，因為沒有場景光源。SD 有顏色，但粒子不隨 SPRITE 縮放，約 1 秒後蓋滿畫面變白。
+    - 做法：匯入 SD 模型的複本，並由 `scripts/preview-model.cjs` 的 `buildPreviewHero` 處理：
+        - `stripEffects`：移除粒子、緞帶發射器與事件物件。節點重新編號，並更新 pivot、`parentId` 與幾何矩陣。
+        - `stripTeamGlow`：移除全部圖層都使用可替換貼圖 2（隊伍光暈）的幾何。SPRITE 沒有玩家，這張貼圖顯示為白色方塊。同時更新幾何動畫與骨骼的 `geosetId`、`geosetAnimationId`；不在對照表中的編號保留原值。
+        - `makeUnshaded`：每個圖層加上旗標 `0x1`。HD 圖形必須有此旗標才有顏色。
+    - 匯入的模型不會被 HD 用戶端換成 HD 版本，模型引用的遊戲內建貼圖也正確顯示，所以不需要匯入貼圖。
+    - 來源檔案是 `assets/models/hero-archmage.mdx`（從 1.27b 的 `war3.mpq` 匯出，不提交到 git）。`writePreviewModels` 輸出 `ui\itr-hero-archmage-unshaded.mdx`，包裝模型的附件指向它。沒有來源檔案時顯示警告，改用遊戲內建模型（剪影），建置不失敗；來源檔案無法解析時建置失敗。
+    - 修改模型的函式先計算全部結果，再修改模型，讓出錯時模型不變。
+    - 測試：`npm run test:preview-model`（假模型，不依賴來源檔案）與 `npm run test:ui:artifact`。
 - 專案 FDF 位於 `assets/ui/`。建置時複製到 `dist/<mapFolder>/ui/` 再封裝。主 TOC 使用 CRLF，且最後一行之後必須有空行；I3 已確認缺少空行會載入失敗。探測資源與實驗程式已移除。執行 `npm run test:ui:artifact` 檢查主 TOC、樣板與預覽模型。
 - 介面方法在 Lua 中會收到 `self`。把一般函式指定給介面方法時，用箭頭函式包裝，例如 `unwrapUnit: (input) => unwrapUnit(input)`。否則 TSTL 會報錯。
 
