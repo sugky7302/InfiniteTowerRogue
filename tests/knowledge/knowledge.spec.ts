@@ -6,12 +6,12 @@ import {
     KnowledgeLaw,
     KnowledgeNodeType,
     formatKnowledgeExp,
-    knowledgeCatalog,
-    knowledgeExpMax,
-    knowledgeExpUnit,
+    KNOWLEDGE_CATALOG,
+    KNOWLEDGE_EXP_MAX,
+    KNOWLEDGE_EXP_UNIT,
     knowledgeLevel,
     knowledgeLevelThreshold,
-    knowledgeMaxLevel,
+    KNOWLEDGE_MAX_LEVEL,
     knowledgeProgress,
 } from "@entities/knowledge";
 import { heroKnowledge } from "../../src/app/hero-save";
@@ -79,7 +79,7 @@ test("深度常數與 K1 介面約定相同", () => {
 });
 
 test("知識目錄的名稱與順序和英雄存檔目錄完全相同", () => {
-    const names = knowledgeCatalog.map((entry) => entry.name);
+    const names = KNOWLEDGE_CATALOG.map((entry) => entry.name);
     assert.deepEqual(heroKnowledge, names);
     assert.deepEqual(
         names,
@@ -88,9 +88,9 @@ test("知識目錄的名稱與順序和英雄存檔目錄完全相同", () => {
 });
 
 test("知識目錄有七項，編號依序為零至六", () => {
-    assert.equal(knowledgeCatalog.length, 7);
+    assert.equal(KNOWLEDGE_CATALOG.length, 7);
     assert.deepEqual(
-        knowledgeCatalog.map((entry) => entry.id),
+        KNOWLEDGE_CATALOG.map((entry) => entry.id),
         [0, 1, 2, 3, 4, 5, 6],
     );
 });
@@ -98,7 +98,7 @@ test("知識目錄有七項，編號依序為零至六", () => {
 for (const entry of expectedCatalog) {
     const expected = entry;
     test(`「${expected.name}」的節點類型、法則與深度符合來源頁首`, () => {
-        const actual = knowledgeCatalog.find((candidate) => candidate.name === expected.name);
+        const actual = KNOWLEDGE_CATALOG.find((candidate) => candidate.name === expected.name);
         assert.ok(actual);
         assert.equal(actual.nodeType, expected.nodeType);
         assert.equal(actual.law, expected.law);
@@ -107,20 +107,20 @@ for (const entry of expectedCatalog) {
 }
 
 test("每項知識都有非空字串說明", () => {
-    for (const entry of knowledgeCatalog) {
+    for (const entry of KNOWLEDGE_CATALOG) {
         assert.equal(typeof entry.summary, "string");
         assert.ok(entry.summary.length > 0, `「${entry.name}」的說明必須有內容。`);
     }
 });
 
 test("一經驗等於十個整數單位，上限為四萬單位", () => {
-    assert.equal(knowledgeExpUnit, 10);
-    assert.equal(knowledgeExpMax, 40000);
+    assert.equal(KNOWLEDGE_EXP_UNIT, 10);
+    assert.equal(KNOWLEDGE_EXP_MAX, 40000);
 });
 
 test("最高等級為八級，等於經驗上限的等級", () => {
-    assert.equal(knowledgeMaxLevel, 8);
-    assert.equal(knowledgeMaxLevel, knowledgeLevel(knowledgeExpMax));
+    assert.equal(KNOWLEDGE_MAX_LEVEL, 8);
+    assert.equal(KNOWLEDGE_MAX_LEVEL, knowledgeLevel(KNOWLEDGE_EXP_MAX));
 });
 
 for (const [level, units] of expectedThresholds.entries()) {
@@ -129,7 +129,7 @@ for (const [level, units] of expectedThresholds.entries()) {
     test(`${expectedLevel} 級的累積門檻為 ${expectedUnits} 單位`, () => {
         const actual = knowledgeLevelThreshold(expectedLevel);
         assert.equal(actual, expectedUnits);
-        assert.equal(actual, 50 * expectedLevel * (expectedLevel + 1) * knowledgeExpUnit);
+        assert.equal(actual, 50 * expectedLevel * (expectedLevel + 1) * KNOWLEDGE_EXP_UNIT);
         assert.ok(Number.isInteger(actual) && actual >= 0 && actual <= 2147483647);
         assert.equal(Math.fround(actual), actual);
     });

@@ -22,6 +22,17 @@ export const TowerState = {
 export type TowerState = (typeof TowerState)[keyof typeof TowerState];
 ```
 
+- 模組層級的常數使用大寫蛇形命名法（`UPPER_SNAKE_CASE`）（2026-11-05）。
+    - 適用：純量常數（數字、字串、布林）與固定的資料表（陣列、對照表）。例如：`KNOWLEDGE_EXP_MAX`、`KNOWLEDGE_CATALOG`、`KNOWLEDGE_NODE_TYPE_ORDER`。
+    - 不適用：帶同名 `type` 的常數物件（如上例的 `TowerState`），維持 PascalCase。函式內的區域常數、函式與類別，維持原本的命名。
+    - 既有程式的名稱另外安排一次改名，在此之前不受此規則限制。
+
+```ts
+export const KNOWLEDGE_EXP_UNIT = 10;
+export const KNOWLEDGE_EXP_MAX = 40000;
+export const KNOWLEDGE_CATALOG: readonly KnowledgeDefinition[] = [ /* … */ ];
+```
+
 ## 開發流程
 
 1. 由我與 Claude 討論，擬定出設計稿，由 Codex 和 Antigravity 審核以及修正，最後將討論結果放置在 `docs/<開發項目>/PLAN.md` 裡。

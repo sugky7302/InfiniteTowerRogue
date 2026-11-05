@@ -28,10 +28,10 @@ export interface KnowledgeDefinition {
     readonly summary: string;     // 一句說明
 }
 
-export const knowledgeCatalog: readonly KnowledgeDefinition[];
-export const knowledgeExpUnit = 10;      // 1 經驗＝10 單位
-export const knowledgeExpMax = 40000;    // 單位，等於 4000 經驗
-export const knowledgeMaxLevel: number;  // knowledgeLevel(knowledgeExpMax)，目前為 8
+export const KNOWLEDGE_CATALOG: readonly KnowledgeDefinition[];
+export const KNOWLEDGE_EXP_UNIT = 10;      // 1 經驗＝10 單位
+export const KNOWLEDGE_EXP_MAX = 40000;    // 單位，等於 4000 經驗
+export const KNOWLEDGE_MAX_LEVEL: number;  // knowledgeLevel(KNOWLEDGE_EXP_MAX)，目前為 8
 
 export interface KnowledgeProgress {
     readonly level: number;
@@ -46,7 +46,7 @@ export function formatKnowledgeExp(units: number): string;      // 例如 350 �
 
 // K2
 export interface KnowledgeState {
-    readonly exp: readonly number[]; // 長度＝knowledgeCatalog.length；單位；0～knowledgeExpMax 的整數
+    readonly exp: readonly number[]; // 長度＝KNOWLEDGE_CATALOG.length；單位；0～KNOWLEDGE_EXP_MAX 的整數
 }
 export function createKnowledgeState(): KnowledgeState;
 export function knowledgeStateFromNames(names: readonly string[]): KnowledgeState;
@@ -80,8 +80,8 @@ export interface KnowledgeEntry {
     readonly units: number;
 }
 
-export const knowledgeNodeTypeOrder: readonly KnowledgeNodeType[]; // core, form, effect, modifier, trigger, bridge
-export const knowledgeLawOrder: readonly KnowledgeLaw[];           // form, flow, energy, motion, space, perception, mind
+export const KNOWLEDGE_NODE_TYPE_ORDER: readonly KnowledgeNodeType[]; // core, form, effect, modifier, trigger, bridge
+export const KNOWLEDGE_LAW_ORDER: readonly KnowledgeLaw[];           // form, flow, energy, motion, space, perception, mind
 
 export function knowledgeEntries(state: KnowledgeState): readonly KnowledgeEntry[];  // 目錄順序，包含 0
 export function testKnowledgeEntries(count: number): readonly KnowledgeEntry[];      // -know-fill 的假知識
@@ -93,8 +93,8 @@ export function knowledgeFilterLabels(filter: KnowledgeFilter): { readonly nodeT
 export function knowledgeSortLabel(sort: KnowledgeSort): string;
 export function knowledgeScrollLabel(total: number, columns: number, rows: number, top: number): string;
 
-export const knowledgeColumns = 6;
-export const knowledgeRows = 5;
+export const KNOWLEDGE_COLUMNS = 6;
+export const KNOWLEDGE_ROWS = 5;
 export interface KnowledgePanelLayout {
     readonly panel: FrameRect;              // 等於 screen
     readonly cells: readonly FrameRect[];   // 30 格，由左到右、由上到下
@@ -155,19 +155,19 @@ export function createTooltip(frames: FrameNatives, options: TooltipOptions): To
 - 目錄：`heroKnowledge` 的 7 項，編號 0～6，名稱與順序相同。資料取自 `docs/dnd/知識/` 的頁首（主要節點類型、主要歸屬法則、知識深度）與第一段。
 - `knowledgeLevel(units)`：
   - 0 為 0 級；1～999 為 0 級（解析中）；1000 為 1 級；2999 為 1 級；3000 為 2 級；36000 為 8 級；40000 為 8 級。
-  - 大於 `knowledgeExpMax` 時以上限計算（40001、2147483647 為 8 級）。
+  - 大於 `KNOWLEDGE_EXP_MAX` 時以上限計算（40001、2147483647 為 8 級）。
   - 負數或非整數丟出錯誤。
-- `knowledgeLevelThreshold(level)`：`50 × level × (level + 1) × knowledgeExpUnit`。`level` 必須是 0～`knowledgeMaxLevel` 的整數，否則丟出錯誤。
+- `knowledgeLevelThreshold(level)`：`50 × level × (level + 1) × KNOWLEDGE_EXP_UNIT`。`level` 必須是 0～`KNOWLEDGE_MAX_LEVEL` 的整數，否則丟出錯誤。
 - `knowledgeProgress(units)`：
   - 輸入規則與 `knowledgeLevel` 相同（大於上限時以上限計算）。
   - 未達最高等級：`current = units − threshold(level)`，`required = threshold(level + 1) − threshold(level)`。例如 350 → `{0, 350, 1000}`；1500 → `{1, 500, 2000}`；3000 → `{2, 0, 3000}`。
-  - 最高等級：`required = 0`，`current = units − threshold(knowledgeMaxLevel)`。例如 40000 → `{8, 4000, 0}`。
+  - 最高等級：`required = 0`，`current = units − threshold(KNOWLEDGE_MAX_LEVEL)`。例如 40000 → `{8, 4000, 0}`。
 - `formatKnowledgeExp(units)`：
   - 一位小數。以 `Math.floor(units / 10)` 與 `units % 10` 組成字串，不使用浮點數除法的結果。
   - 例如 0 →「0.0」，5 →「0.5」，350 →「35.0」，40000 →「4000.0」。
   - 負數或非整數丟出錯誤。大於上限時照實顯示。
 
-- `src/app/hero-save.ts` 的 `heroKnowledge` 改為 `knowledgeCatalog.map((entry) => entry.name)`。值不變（7 項，順序相同），既有測試不受影響。原因：Steiger 把沒有被任何程式 import 的 slice 視為錯誤（`fsd/insignificant-slice`，2026-11-05 實測），所以 K1 就讓 app 層 import 它。
+- `src/app/hero-save.ts` 的 `heroKnowledge` 改為 `KNOWLEDGE_CATALOG.map((entry) => entry.name)`。值不變（7 項，順序相同），既有測試不受影響。原因：Steiger 把沒有被任何程式 import 的 slice 視為錯誤（`fsd/insignificant-slice`，2026-11-05 實測），所以 K1 就讓 app 層 import 它。
 
 完成條件：測試通過；`npm run test:unit` 通過；`npm run lint:fsd` 沒有錯誤。
 
@@ -181,7 +181,7 @@ export function createTooltip(frames: FrameNatives, options: TooltipOptions): To
 - `knowledgeStateFromNames(names)`：每個名稱設為 `knowledgeLevelThreshold(1)`（目前為 1000 單位）。未知名稱丟出錯誤。重複名稱只計一次。
 - `setKnowledgeExp(state, id, units)`：
   - 傳回新狀態，不修改原狀態。
-  - `id` 不是 0～`knowledgeCatalog.length − 1` 的整數時丟出錯誤。
+  - `id` 不是 0～`KNOWLEDGE_CATALOG.length − 1` 的整數時丟出錯誤。
   - `units` 是負數或非整數時丟出錯誤。大於上限時以上限保存。
 - `knownKnowledgeIds(state)`：經驗大於 0 的編號，由小到大。
 - `formedKnowledgeNames(state)`：經驗至少 1000 的名稱，依目錄順序。
@@ -214,10 +214,10 @@ export function createTooltip(frames: FrameNatives, options: TooltipOptions): To
 - 第 5 版 `hero.knowledge`：32 個 0～40000 的整數。
 - 讀檔拒絕：
   - 經驗不是 0～40000 的整數。
-  - 位置 `knowledgeCatalog.length`～31 不是 0。
+  - 位置 `KNOWLEDGE_CATALOG.length`～31 不是 0。
   - `present` 為 false 時，任何經驗不是 0。
   - 重新簽章後仍不合法的資料。
-- `hero-save.ts` 的知識名稱改用 `knowledgeCatalog`，不再使用 `runeScholar.knowledge`。
+- `hero-save.ts` 的知識名稱改用 `KNOWLEDGE_CATALOG`，不再使用 `runeScholar.knowledge`。
 - `HeroSnapshot` 加入 `readonly knowledge: KnowledgeState`。`HeroSaveTarget.restore` 加入必填的第 4 個參數 `knowledge: KnowledgeState`。
 - 既有測試：
   - 寫死第 4 版的數值（版本、碼長、分段數、`pack(…, 4)`）由 Codex 改為第 5 版的值。
@@ -320,7 +320,7 @@ export function createTooltip(frames: FrameNatives, options: TooltipOptions): To
 - `knowledgeEntries(state)`：每個目錄項目一筆，依目錄順序。
 - `testKnowledgeEntries(count)`：`count` 筆假知識。第 i 筆（i 從 0 開始）：
   - 編號 `1000 + i`，名稱「測試知識 i+1」，說明「測試用的假知識。」。
-  - 節點類型、法則、深度依 `knowledgeNodeTypeOrder`、`knowledgeLawOrder`、`["basic", "professional", "advanced", "unified"]` 以 i 循環。
+  - 節點類型、法則、深度依 `KNOWLEDGE_NODE_TYPE_ORDER`、`KNOWLEDGE_LAW_ORDER`、`["basic", "professional", "advanced", "unified"]` 以 i 循環。
   - 經驗依 1、1000、3000、40000 以 i 循環。
   - `count` 不是 0～100 的整數時丟出錯誤。
 - `knowledgeView(entries, filter, sort)`：
@@ -329,7 +329,7 @@ export function createTooltip(frames: FrameNatives, options: TooltipOptions): To
   - 排序：
     - `Name`：名稱以 `<` 比較，小的在前。
     - `Level`：等級高到低；同級時經驗高到低。
-    - `NodeType`、`Law`：依 `knowledgeNodeTypeOrder`、`knowledgeLawOrder` 的位置。
+    - `NodeType`、`Law`：依 `KNOWLEDGE_NODE_TYPE_ORDER`、`KNOWLEDGE_LAW_ORDER` 的位置。
     - 同值時以編號由小到大。
   - 不修改輸入陣列。
 - `scrollRows(total, columns, rows, top, delta)`：
@@ -363,7 +363,7 @@ export function createTooltip(frames: FrameNatives, options: TooltipOptions): To
   - 文字為「限制後的頂列 + 1／最大頂列 + 1」，例如「1／3」；項目少於一頁時為「1／1」。
 - 初始狀態與切換順序（`config/`）：
   - 初始篩選 `{ nodeType: "all", law: "all", status: "all" }`，初始排序 `"name"`，初始頂列 0。
-  - 類型：`["all", ...knowledgeNodeTypeOrder]`；法則：`["all", ...knowledgeLawOrder]`；狀態：`["all", "formed", "analyzing"]`；排序：`["name", "level", "nodeType", "law"]`。
+  - 類型：`["all", ...KNOWLEDGE_NODE_TYPE_ORDER]`；法則：`["all", ...KNOWLEDGE_LAW_ORDER]`；狀態：`["all", "formed", "analyzing"]`；排序：`["name", "level", "nodeType", "law"]`。
 - `knowledgePanelLayout(screen)`：
   - `panel` 等於 `screen`。
   - 版面：上方標題列高 0.05，下方邊距 0.03，右側捲軸寬 0.04，左右邊距 0.02。格子區為其餘範圍，置中排列 6×5 格；格子為正方形，邊長為「格子區寬 ÷ 6」與「格子區高 ÷ 5」中較小者減去間距 0.005。
