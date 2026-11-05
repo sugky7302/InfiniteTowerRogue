@@ -1,9 +1,13 @@
 import { strict as assert } from "node:assert";
-import { readFileSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import * as path from "node:path";
+import type Model from "mdx-m3-viewer-th/dist/cjs/parsers/mdlx/model";
 import War3Map from "mdx-m3-viewer-th/dist/cjs/parsers/w3x/map";
 
 const { parsers } = require("mdx-m3-viewer-th");
+const { buildPreviewHero } = require("../../scripts/preview-model.cjs") as {
+    buildPreviewHero: (bytes: Uint8Array, options: { unshaded: boolean }) => Uint8Array;
+};
 const config = JSON.parse(readFileSync("config.json", "utf8"));
 const map = new War3Map();
 map.load(new Uint8Array(readFileSync(path.join(config.outputFolder, config.mapFolder))).buffer);
@@ -68,6 +72,10 @@ verify(() => {
             assert.ok(block[1].includes(property), "文字樣板缺少：" + property);
     assert.ok(fdf.includes('"ItrDescriptionText" INHERITS "ItrBodyText"'));
 });
+const heroSource = path.join("assets", "models", "hero-archmage.mdx");
+const hasHeroSource = existsSync(heroSource);
+const heroCopyName = "itr-hero-archmage-unshaded.mdx";
+const heroCopyPath = "ui\\" + heroCopyName;
 verify(() => {
     const folder = path.join("dist", config.mapFolder, "ui");
     const names = readdirSync(folder).filter((name) => name.startsWith("itr-hero-preview"));
@@ -80,8 +88,80 @@ verify(() => {
         model.load(archive.bytes());
         assert.equal(model.helpers.length, 1);
         assert.equal(model.attachments.length, 1);
-        assert.equal(model.attachments[0].path, "units\\human\\HeroArchMage\\HeroArchMage.mdx");
+        assert.equal(
+            model.attachments[0].path,
+            hasHeroSource ? heroCopyPath : "units\\human\\HeroArchMage\\HeroArchMage.mdx",
+            "包裝模型的附件路徑應符合來源檔案是否存在。",
+        );
     }
+});
+verify(() => {
+    const copyFile = path.join("dist", config.mapFolder, "ui", heroCopyName);
+    const archive = map.archive.get(heroCopyPath);
+    if (!hasHeroSource) {
+        assert.equal(existsSync(copyFile), false, "沒有來源時，建置資料夾不得有英雄複本。");
+        assert.ok(!archive, "沒有來源時，封裝不得有英雄複本。");
+        return;
+    }
+
+    assert.ok(existsSync(copyFile), "有來源時，建置資料夾應有英雄複本。");
+    assert.ok(archive, "有來源時，封裝應有英雄複本。");
+    const copyBytes = readFileSync(copyFile);
+    assert.deepEqual(Buffer.from(archive.bytes()), copyBytes, "封裝與建置資料夾的複本應相同。");
+    const model: Model = new parsers.mdlx.Model();
+    model.load(archive.bytes());
+    for (const field of [
+        "particleEmitters",
+        "particleEmitters2",
+        "particleEmittersPopcorn",
+        "ribbonEmitters",
+        "eventObjects",
+    ] as const) {
+        assert.equal(model[field].length, 0, `英雄複本的 ${field} 數量應為 0。`);
+    }
+
+    const sourceBytes = readFileSync(heroSource);
+    const source: Model = new parsers.mdlx.Model();
+    source.load(sourceBytes);
+    for (const field of [
+        "bones",
+        "helpers",
+        "attachments",
+        "geosets",
+        "materials",
+        "textures",
+        "sequences",
+    ] as const) {
+        assert.equal(
+            model[field].length,
+            source[field].length,
+            `英雄複本的 ${field} 數量應與來源相同。`,
+        );
+    }
+
+    // 產物檢查假設測試與建置使用相同的 ITR_PREVIEW_UNSHADED 值。
+    const unshaded = process.env.ITR_PREVIEW_UNSHADED !== "0";
+    model.materials.forEach((material, materialIndex) => {
+        const sourceLayers = source.materials[materialIndex].layers;
+        assert.equal(material.layers.length, sourceLayers.length, "複本的圖層數量應與來源相同。");
+        material.layers.forEach((layer, layerIndex) => {
+            const message = `材質 ${materialIndex} 的圖層 ${layerIndex}`;
+            if (unshaded) {
+                assert.notEqual(layer.flags & 0x1, 0, `${message} 應有不受光照旗標。`);
+            } else {
+                assert.equal(
+                    layer.flags,
+                    sourceLayers[layerIndex].flags,
+                    `${message} 的旗標應與來源相同。`,
+                );
+            }
+        });
+    });
+    assert.deepEqual(
+        copyBytes,
+        Buffer.from(buildPreviewHero(sourceBytes, { unshaded })),
+        "英雄複本的位元組應等於相同環境變數下 buildPreviewHero 的結果。",
+    );
 });
 const script = map.archive.get("war3map.lua")!.text();
 verify(() => {
