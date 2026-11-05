@@ -98,6 +98,9 @@ function buildPreviewHero(bytes, { unshaded = false } = {}) {
     // 移除效果節點
     stripEffects(model);
 
+    // 移除隊伍光暈幾何
+    stripTeamGlow(model);
+
     // 設為不受光照
     if (unshaded) {
         makeUnshaded(model);
@@ -107,8 +110,77 @@ function buildPreviewHero(bytes, { unshaded = false } = {}) {
     return model.saveMdx();
 }
 
+/* 依對照表換算編號，不在表中時保留原值 */
+const remap = (mapping, id) => (mapping.has(id) ? mapping.get(id) : id);
+
+/**
+ * @title 移除隊伍光暈幾何
+ * 移除全部隊伍光暈幾何。其他幾何保留，順序不變。
+ * 沒有隊伍光暈幾何時，模型不變。
+ * 這個函數採用先判斷後修改，保證傳入 model 有問題時，不會一半有改，一半沒改。
+ * @param {parsers.mdlx.Model} model
+ * @returns {parsers.mdlx.Model} 回傳修改後的模型
+ */
+function stripTeamGlow(model) {
+    // 建立幾何的編號對照表
+    const geoMapping = new Map();
+    let newGeoId = 0;
+
+    // 判斷是否有隊伍光暈幾何，不做移除動作，防止 filter 做一半出錯，讓 model 變成不完整。
+    model.geosets.forEach((geo, idx) => {
+        const material = model.materials[geo.materialId];
+        const hasLayers = material.layers.length > 0;
+        const allTeamGlow = material.layers.every(
+            (layer) => model.textures[layer.textureId].replaceableId === 2,
+        );
+
+        if (hasLayers && allTeamGlow) {
+            geoMapping.set(idx, -1); // 記錄為已移除
+        } else {
+            geoMapping.set(idx, newGeoId++);
+        }
+    });
+
+    if (newGeoId === model.geosets.length) {
+        // 沒有隊伍光暈幾何，模型不變
+        return model;
+    }
+
+    // 建立幾何動畫的編號對照表
+    const geoAnimMapping = new Map();
+    let newGeoAnimId = 0;
+
+    // 判斷幾何動畫是否有對應的幾何被移除。
+    model.geosetAnimations.forEach((geoAnim, idx) => {
+        if (geoMapping.get(geoAnim.geosetId) === -1) {
+            geoAnimMapping.set(idx, -1); // 記錄為已移除
+        } else {
+            geoAnimMapping.set(idx, newGeoAnimId++);
+        }
+    });
+
+    // 更新骨骼的幾何編號與幾何動畫編號
+    model.bones.forEach((bone) => {
+        bone.geosetId = remap(geoMapping, bone.geosetId);
+        bone.geosetAnimationId = remap(geoAnimMapping, bone.geosetAnimationId);
+    });
+
+    // 更新模型的幾何與幾何動畫
+    model.geosets = model.geosets.filter((_, idx) => geoMapping.get(idx) !== -1);
+    model.geosetAnimations = model.geosetAnimations.filter((geoAnim, idx) => {
+        if (geoAnimMapping.get(idx) !== -1) {
+            geoAnim.geosetId = remap(geoMapping, geoAnim.geosetId);
+            return true;
+        }
+        return false;
+    });
+
+    return model;
+}
+
 module.exports = {
     stripEffects,
     makeUnshaded,
     buildPreviewHero,
+    stripTeamGlow,
 };
