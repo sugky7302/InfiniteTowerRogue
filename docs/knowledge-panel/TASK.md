@@ -29,20 +29,20 @@ export interface KnowledgeDefinition {
 }
 
 export const KNOWLEDGE_CATALOG: readonly KnowledgeDefinition[];
-export const KNOWLEDGE_EXP_UNIT = 10;      // 1 經驗＝10 單位
-export const KNOWLEDGE_EXP_MAX = 40000;    // 單位，等於 4000 經驗
+export const KNOWLEDGE_EXP_UNIT = 100;     // 1 經驗＝100 單位（顯示到 0.01）
+export const KNOWLEDGE_EXP_MAX = 400000;   // 單位，等於 4000 經驗
 export const KNOWLEDGE_MAX_LEVEL: number;  // knowledgeLevel(KNOWLEDGE_EXP_MAX)，目前為 8
 
 export interface KnowledgeProgress {
     readonly level: number;
-    readonly current: number;   // 本級已累積的單位
-    readonly required: number;  // 本級所需的單位；最高等級時為 0
+    readonly currentEXP: number;   // 本級已累積的單位
+    readonly requiredEXP: number;  // 本級所需的單位；最高等級時為 0
 }
 
 export function knowledgeLevel(units: number): number;
 export function knowledgeLevelThreshold(level: number): number; // 達到該等級需要的累積單位；0 級為 0
 export function knowledgeProgress(units: number): KnowledgeProgress;
-export function formatKnowledgeExp(units: number): string;      // 例如 350 →「35.0」
+export function formatKnowledgeExp(units: number): string;      // 例如 3500 →「35.00」
 
 // K2
 export interface KnowledgeState {
@@ -154,17 +154,17 @@ export function createTooltip(frames: FrameNatives, options: TooltipOptions): To
 
 - 目錄：`heroKnowledge` 的 7 項，編號 0～6，名稱與順序相同。資料取自 `docs/dnd/知識/` 的頁首（主要節點類型、主要歸屬法則、知識深度）與第一段。
 - `knowledgeLevel(units)`：
-  - 0 為 0 級；1～999 為 0 級（解析中）；1000 為 1 級；2999 為 1 級；3000 為 2 級；36000 為 8 級；40000 為 8 級。
-  - 大於 `KNOWLEDGE_EXP_MAX` 時以上限計算（40001、2147483647 為 8 級）。
+  - 0 為 0 級；1～9999 為 0 級（解析中）；10000 為 1 級；29999 為 1 級；30000 為 2 級；359999 為 7 級；360000 為 8 級；400000 為 8 級。
+  - 大於 `KNOWLEDGE_EXP_MAX` 時以上限計算（400001、2147483647 為 8 級）。
   - 負數或非整數丟出錯誤。
 - `knowledgeLevelThreshold(level)`：`50 × level × (level + 1) × KNOWLEDGE_EXP_UNIT`。`level` 必須是 0～`KNOWLEDGE_MAX_LEVEL` 的整數，否則丟出錯誤。
 - `knowledgeProgress(units)`：
   - 輸入規則與 `knowledgeLevel` 相同（大於上限時以上限計算）。
-  - 未達最高等級：`current = units − threshold(level)`，`required = threshold(level + 1) − threshold(level)`。例如 350 → `{0, 350, 1000}`；1500 → `{1, 500, 2000}`；3000 → `{2, 0, 3000}`。
-  - 最高等級：`required = 0`，`current = units − threshold(KNOWLEDGE_MAX_LEVEL)`。例如 40000 → `{8, 4000, 0}`。
+  - 未達最高等級：`currentEXP = units − threshold(level)`，`requiredEXP = threshold(level + 1) − threshold(level)`。例如 3500 → `{0, 3500, 10000}`；15000 → `{1, 5000, 20000}`；30000 → `{2, 0, 30000}`。
+  - 最高等級：`requiredEXP = 0`，`currentEXP = units − threshold(KNOWLEDGE_MAX_LEVEL)`。例如 400000 → `{8, 40000, 0}`。
 - `formatKnowledgeExp(units)`：
-  - 一位小數。以 `Math.floor(units / 10)` 與 `units % 10` 組成字串，不使用浮點數除法的結果。
-  - 例如 0 →「0.0」，5 →「0.5」，350 →「35.0」，40000 →「4000.0」。
+  - 兩位小數。以 `Math.floor(units / 100)` 與 `units % 100` 組成字串，小數部分不足兩位時補 0，不使用浮點數除法的結果。
+  - 例如 0 →「0.00」，5 →「0.05」，50 →「0.50」，3500 →「35.00」，400000 →「4000.00」。
   - 負數或非整數丟出錯誤。大於上限時照實顯示。
 
 - `src/app/hero-save.ts` 的 `heroKnowledge` 改為 `KNOWLEDGE_CATALOG.map((entry) => entry.name)`。值不變（7 項，順序相同），既有測試不受影響。原因：Steiger 把沒有被任何程式 import 的 slice 視為錯誤（`fsd/insignificant-slice`，2026-11-05 實測），所以 K1 就讓 app 層 import 它。
@@ -178,16 +178,16 @@ export function createTooltip(frames: FrameNatives, options: TooltipOptions): To
 ### 知識狀態（`@entities/knowledge`）
 
 - `createKnowledgeState()`：長度等於目錄長度，全部為 0。
-- `knowledgeStateFromNames(names)`：每個名稱設為 `knowledgeLevelThreshold(1)`（目前為 1000 單位）。未知名稱丟出錯誤。重複名稱只計一次。
+- `knowledgeStateFromNames(names)`：每個名稱設為 `knowledgeLevelThreshold(1)`（目前為 10000 單位）。未知名稱丟出錯誤。重複名稱只計一次。
 - `setKnowledgeExp(state, id, units)`：
   - 傳回新狀態，不修改原狀態。
   - `id` 不是 0～`KNOWLEDGE_CATALOG.length − 1` 的整數時丟出錯誤。
   - `units` 是負數或非整數時丟出錯誤。大於上限時以上限保存。
 - `knownKnowledgeIds(state)`：經驗大於 0 的編號，由小到大。
-- `formedKnowledgeNames(state)`：經驗至少 1000 的名稱，依目錄順序。
+- `formedKnowledgeNames(state)`：經驗至少 10000 的名稱，依目錄順序。
 - `parseKnowledgeExp(text)`：把經驗字串轉為單位，不使用浮點數乘法。
-  - 接受 `整數` 或 `整數.一位數字`：「35」→ 350，「35.5」→ 355，「0.1」→ 1，「4000」→ 40000。
-  - 拒絕（傳回 `undefined`）：空字串、負號、兩位以上小數、非數字、大於 4000。
+  - 接受 `整數`、`整數.一位數字` 或 `整數.兩位數字`：「35」→ 3500，「35.5」→ 3550，「35.55」→ 3555，「0.01」→ 1，「4000」→ 400000。
+  - 拒絕（傳回 `undefined`）：空字串、負號、三位以上小數、非數字、大於 4000。
 
 ### 存檔（`features/save` 與 `src/app/hero-save.ts`）
 
@@ -211,9 +211,9 @@ export function createTooltip(frames: FrameNatives, options: TooltipOptions): To
   - 傳入目前的參與者時，註冊第 3、4、5 版，以第 5 版編碼。
   - 第 2 版轉第 3 版時，每個參與者使用第一個 `until ≥ 3` 項目的 `empty`；沒有時使用 `participant.empty`。
 - `maxPackedBytes` 改為 800。
-- 第 5 版 `hero.knowledge`：32 個 0～40000 的整數。
+- 第 5 版 `hero.knowledge`：32 個 0～400000 的整數（每項 19 位元）。
 - 讀檔拒絕：
-  - 經驗不是 0～40000 的整數。
+  - 經驗不是 0～400000 的整數。
   - 位置 `KNOWLEDGE_CATALOG.length`～31 不是 0。
   - `present` 為 false 時，任何經驗不是 0。
   - 重新簽章後仍不合法的資料。
@@ -221,10 +221,10 @@ export function createTooltip(frames: FrameNatives, options: TooltipOptions): To
 - `HeroSnapshot` 加入 `readonly knowledge: KnowledgeState`。`HeroSaveTarget.restore` 加入必填的第 4 個參數 `knowledge: KnowledgeState`。
 - 既有測試：
   - 寫死第 4 版的數值（版本、碼長、分段數、`pack(…, 4)`）由 Codex 改為第 5 版的值。
-  - 第 4 版的固定存檔碼保留，改為測試「舊版仍可讀取，且知識轉為 1000 單位」。
+  - 第 4 版的固定存檔碼保留，改為測試「舊版仍可讀取，且知識轉為 10000 單位」。
   - `encodeHeroSave` 等呼叫補上 `knowledge`。
 - 讀檔後 `Hero.knowledge` 等於 `formedKnowledgeNames(knowledge)`。編碼時只使用知識狀態，不讀 `Hero.knowledge`。
-- 位元數：測試記錄第 5 版的最壞位元數（6157）。
+- 位元數：測試記錄第 5 版的最壞位元數（6253）。
 
 ### `HeroExample`
 
@@ -268,7 +268,7 @@ export function createTooltip(frames: FrameNatives, options: TooltipOptions): To
 
 使用者決定把說明框標準化，放到 `@shared/ui`（2026-11-05）。它不含遊戲規則，只接收文字行與目標位置。
 
-### 原生函式（`@shared/wc3-def`）
+### 原生函式（`@shared/lib/wc3-def`）
 
 - `FrameNatives` 加入：
   - `getEventValue(): number`：`BlzGetTriggerFrameValue()`。
@@ -321,11 +321,11 @@ export function createTooltip(frames: FrameNatives, options: TooltipOptions): To
 - `testKnowledgeEntries(count)`：`count` 筆假知識。第 i 筆（i 從 0 開始）：
   - 編號 `1000 + i`，名稱「測試知識 i+1」，說明「測試用的假知識。」。
   - 節點類型、法則、深度依 `KNOWLEDGE_NODE_TYPE_ORDER`、`KNOWLEDGE_LAW_ORDER`、`["basic", "professional", "advanced", "unified"]` 以 i 循環。
-  - 經驗依 1、1000、3000、40000 以 i 循環。
+  - 經驗依 1、10000、30000、400000 以 i 循環。
   - `count` 不是 0～100 的整數時丟出錯誤。
 - `knowledgeView(entries, filter, sort)`：
   - 只包含 `units > 0` 的項目。
-  - 三種篩選同時成立。`Formed`：`units ≥ 1000`。`Analyzing`：`1 ≤ units ≤ 999`。
+  - 三種篩選同時成立。`Formed`：`units ≥ 10000`。`Analyzing`：`1 ≤ units ≤ 9999`。
   - 排序：
     - `Name`：名稱以 `<` 比較，小的在前。
     - `Level`：等級高到低；同級時經驗高到低。
@@ -337,7 +337,7 @@ export function createTooltip(frames: FrameNatives, options: TooltipOptions): To
   - 傳回 `top + delta` 限制在 0～max(0, 總列數 − rows)。
   - `total`、`top`、`delta` 必須是整數，`total ≥ 0`；`columns`、`rows` 必須是正整數。否則丟出錯誤。
 - `nextOption(options, current)`：傳回下一項；最後一項之後回到第一項；找不到目前值時傳回第一項；`options` 為空時丟出錯誤。
-- `knowledgeTooltip(entry)`：傳回每行一個字串，共 7 行，交給 `Tooltip.show`。例如火焰 1500 單位：
+- `knowledgeTooltip(entry)`：傳回每行一個字串，共 7 行，交給 `Tooltip.show`。例如火焰 15000 單位：
 
     ```
     火焰
@@ -345,12 +345,12 @@ export function createTooltip(frames: FrameNatives, options: TooltipOptions): To
     主要歸屬法則：能量
     知識深度：基礎
     等級：1 級
-    經驗：50.0／200
+    經驗：50.00／200
     <summary>
     ```
 
   - 等級行：0 級為「等級：解析中」，其他為「等級：N 級」。
-  - 經驗行：`required > 0` 時為「經驗：`formatKnowledgeExp(current)`／`Math.floor(required / 10)`」。分母一定是整數經驗，所以不顯示小數，例如 350 單位為「經驗：35.0／100」。`required = 0` 時為「經驗：已達最高等級」。
+  - 經驗行：`requiredEXP > 0` 時為「經驗：`formatKnowledgeExp(currentEXP)`／`Math.floor(requiredEXP / 100)`」。分母一定是整數經驗，所以不顯示小數，例如 3500 單位為「經驗：35.00／100」。`requiredEXP = 0` 時為「經驗：已達最高等級」。
 - 中文顯示名稱放在 `config/`：
   - 節點類型：核心、型態、效果、修飾、觸發、橋接。
   - 法則：形體、流動、能量、動力、空間、感知、心智（`docs/dnd/規則/知識體系.md`「七大法則與性質知識」）。
@@ -411,7 +411,7 @@ export function createTooltip(frames: FrameNatives, options: TooltipOptions): To
 - 物品欄：`runInventoryUi(port: InventoryPort, owner: player, frames: FrameNatives = wc3FrameNatives, onOpen?: (this: void) => void): InventoryControl`。`InventoryControl` 定義在 `src/app/inventory-ui.ts`，欄位與 `KnowledgePanelControl` 相同（`open`、`close`、`isOpen`、`refresh`、`stop`）。`tests/ui/frames.spec.ts` 由 Codex 把 `stop()` 改為 `.stop()`。
 - `src/app/skill-example.ts` 組合兩者：知識面板的 `onOpen` 關閉物品欄，物品欄的 `onOpen` 關閉知識面板（按鈕、`-bag`、`-know` 都適用）。`port.entries` 由 `HeroExample` 提供。
 - 聊天指令（`HeroExample.command`）：
-  - `-know-exp <編號> <經驗>`：把累積經驗設定為指定值（不是增加）。編號為 0～目錄長度 − 1 的整數（「0」有效；「-1」、「7」、「1.5」、「a」、空白無效）；經驗以 `parseKnowledgeExp` 轉換（「0」有效）。任一無效時不改變狀態。成功時傳回 `["<名稱>：<formatKnowledgeExp(units)> 經驗"]`，例如 `-know-exp 0 35` →「火焰：35.0 經驗」；失敗時傳回 `["用法：-know-exp <0～6> <0～4000，最多一位小數>"]`（範圍依目錄長度與上限產生）。成功後更新 `Hero.knowledge`、物品欄說明，並刷新知識視窗。
+  - `-know-exp <編號> <經驗>`：把累積經驗設定為指定值（不是增加）。編號為 0～目錄長度 − 1 的整數（「0」有效；「-1」、「7」、「1.5」、「a」、空白無效）；經驗以 `parseKnowledgeExp` 轉換（「0」有效）。任一無效時不改變狀態。成功時傳回 `["<名稱>：<formatKnowledgeExp(units)> 經驗"]`，例如 `-know-exp 0 35` →「火焰：35.00 經驗」；失敗時傳回 `["用法：-know-exp <0～6> <0～4000，最多兩位小數>"]`（範圍依目錄長度與上限產生）。成功後更新 `Hero.knowledge`、物品欄說明，並刷新知識視窗。
   - `-know-fill`：開關測試模式。傳回 `["知識測試模式：開啟（40 項假知識）"]` 或 `["知識測試模式：關閉"]`，並刷新知識視窗。不保存，不影響 `Hero.knowledge`。
   - `HeroExample.knowledgeEntries(): readonly KnowledgeEntry[]`：`knowledgeEntries(knowledgeState())`，測試模式時再加上 `testKnowledgeEntries(40)`。
 - 指令說明文字加入以上三個指令。
