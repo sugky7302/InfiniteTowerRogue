@@ -76,6 +76,17 @@ const heroSource = path.join("assets", "models", "hero-archmage.mdx");
 const hasHeroSource = existsSync(heroSource);
 const heroCopyName = "itr-hero-archmage-unshaded.mdx";
 const heroCopyPath = "ui\\" + heroCopyName;
+
+function teamGlowCount(model: Model): number {
+    return model.geosets.filter((geoset) => {
+        const layers = model.materials[geoset.materialId].layers;
+        return (
+            layers.length > 0 &&
+            layers.every((layer) => model.textures[layer.textureId].replaceableId === 2)
+        );
+    }).length;
+}
+
 verify(() => {
     const folder = path.join("dist", config.mapFolder, "ui");
     const names = readdirSync(folder).filter((name) => name.startsWith("itr-hero-preview"));
@@ -123,11 +134,16 @@ verify(() => {
     const sourceBytes = readFileSync(heroSource);
     const source: Model = new parsers.mdlx.Model();
     source.load(sourceBytes);
+    assert.equal(teamGlowCount(model), 0, "英雄複本不得包含隊伍光暈幾何。");
+    assert.equal(
+        model.geosets.length,
+        source.geosets.length - teamGlowCount(source),
+        "英雄複本的幾何數量應等於來源數量減去來源的隊伍光暈幾何數量。",
+    );
     for (const field of [
         "bones",
         "helpers",
         "attachments",
-        "geosets",
         "materials",
         "textures",
         "sequences",
