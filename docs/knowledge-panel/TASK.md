@@ -74,6 +74,8 @@ export function nextOption<T>(options: readonly T[], current: T): T; // 循環�
 
 完成條件：測試通過；`npm run lint:fsd` 沒有錯誤。
 
+測試整合：K1 實作前，使用 `npm run test:knowledge` 單獨執行。`tests/knowledge/` 暫時排除於 `tsconfig.test.json`，且未加入 `tests/run.ts`，避免尚未建立的模組使既有單元測試失敗。K1 完成後，在 `tests/run.ts` 加入 `./knowledge/knowledge.spec`，並移除 `tsconfig.test.json` 的知識測試排除項目。
+
 ## K2：知識狀態與存檔
 
 - 知識狀態函式依介面約定。
@@ -116,7 +118,7 @@ export function nextOption<T>(options: readonly T[], current: T): T; // 循環�
 
 | 任務 | 測試 | 實作 | 驗證 |
 |---|---|---|---|
-| K1 | 未開始 | 未開始 | 未開始 |
+| K1 | 完成 | 未開始 | 未開始 |
 | K2 | 未開始 | 未開始 | 未開始 |
 | K3 | 未開始 | 未開始 | 未開始 |
 | K4 | 未開始 | 未開始 | 未開始 |
