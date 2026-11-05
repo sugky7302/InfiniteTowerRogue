@@ -11,6 +11,8 @@ import {
     knowledgeExpUnit,
     knowledgeLevel,
     knowledgeLevelThreshold,
+    knowledgeMaxLevel,
+    knowledgeProgress,
 } from "@entities/knowledge";
 import { heroKnowledge } from "../../src/app/hero-save";
 
@@ -34,6 +36,15 @@ const expectedCatalog: readonly Pick<KnowledgeDefinition, "name" | "nodeType" | 
 
 // 預期門檻獨立列出，避免使用受測函式產生預期等級。
 const expectedThresholds = [0, 1000, 3000, 6000, 10000, 15000, 21000, 28000, 36000] as const;
+
+test("節點類型、法則與深度的同名型別可用於型別註記", () => {
+    const nodeType: KnowledgeNodeType = KnowledgeNodeType.Core;
+    const law: KnowledgeLaw = KnowledgeLaw.Energy;
+    const depth: KnowledgeDepth = KnowledgeDepth.Basic;
+    assert.equal(nodeType, "core");
+    assert.equal(law, "energy");
+    assert.equal(depth, "basic");
+});
 
 test("節點類型常數與 K1 介面約定相同", () => {
     assert.deepEqual(KnowledgeNodeType, {
@@ -69,16 +80,19 @@ test("深度常數與 K1 介面約定相同", () => {
 
 test("知識目錄的名稱與順序和英雄存檔目錄完全相同", () => {
     const names = knowledgeCatalog.map((entry) => entry.name);
-    assert.deepEqual(names, heroKnowledge);
+    assert.deepEqual(heroKnowledge, names);
     assert.deepEqual(
         names,
         expectedCatalog.map((entry) => entry.name),
     );
 });
 
-test("知識目錄最多有三十二項，編號等於索引", () => {
-    assert.ok(knowledgeCatalog.length <= 32);
-    knowledgeCatalog.forEach((entry, index) => assert.equal(entry.id, index));
+test("知識目錄有七項，編號依序為零至六", () => {
+    assert.equal(knowledgeCatalog.length, 7);
+    assert.deepEqual(
+        knowledgeCatalog.map((entry) => entry.id),
+        [0, 1, 2, 3, 4, 5, 6],
+    );
 });
 
 for (const entry of expectedCatalog) {
@@ -104,11 +118,20 @@ test("一經驗等於十個整數單位，上限為四萬單位", () => {
     assert.equal(knowledgeExpMax, 40000);
 });
 
+test("最高等級為八級，等於經驗上限的等級", () => {
+    assert.equal(knowledgeMaxLevel, 8);
+    assert.equal(knowledgeMaxLevel, knowledgeLevel(knowledgeExpMax));
+});
+
 for (const [level, units] of expectedThresholds.entries()) {
     const expectedLevel = level;
     const expectedUnits = units;
     test(`${expectedLevel} 級的累積門檻為 ${expectedUnits} 單位`, () => {
-        assert.equal(knowledgeLevelThreshold(expectedLevel), expectedUnits);
+        const actual = knowledgeLevelThreshold(expectedLevel);
+        assert.equal(actual, expectedUnits);
+        assert.equal(actual, 50 * expectedLevel * (expectedLevel + 1) * knowledgeExpUnit);
+        assert.ok(Number.isInteger(actual) && actual >= 0 && actual <= 2147483647);
+        assert.equal(Math.fround(actual), actual);
     });
 }
 
@@ -127,7 +150,7 @@ for (const [units, level] of [
 ] as const) {
     const expectedUnits = units;
     const expectedLevel = level;
-    test(`${expectedUnits} 單位得到 ${expectedLevel} 級，超過上限時以上限計算`, () => {
+    test(`${expectedUnits} 單位為 ${expectedLevel} 級`, () => {
         assert.equal(knowledgeLevel(expectedUnits), expectedLevel);
     });
 }
@@ -139,11 +162,59 @@ for (const [units, text] of [
     [350, "35.0"],
     [999, "99.9"],
     [40000, "4000.0"],
+    [40001, "4000.1"],
+    [2147483647, "214748364.7"],
 ] as const) {
     const expectedUnits = units;
     const expectedText = text;
     test(`${expectedUnits} 單位顯示為「${expectedText}」`, () => {
         assert.equal(formatKnowledgeExp(expectedUnits), expectedText);
+    });
+}
+
+for (const units of [-1, 0.5, NaN, Infinity, -Infinity, 2147483648]) {
+    const invalidUnits = units;
+    test(`等級計算拒絕無效單位 ${invalidUnits}`, () => {
+        assert.throws(() => knowledgeLevel(invalidUnits), Error);
+    });
+    test(`進度計算拒絕無效單位 ${invalidUnits}`, () => {
+        assert.throws(() => knowledgeProgress(invalidUnits), Error);
+    });
+    test(`經驗格式化拒絕無效單位 ${invalidUnits}`, () => {
+        assert.throws(() => formatKnowledgeExp(invalidUnits), Error);
+    });
+}
+
+for (const level of [-1, 9, 1.5, NaN, Infinity, -Infinity, 2147483648]) {
+    const invalidLevel = level;
+    test(`累積門檻拒絕無效等級 ${invalidLevel}`, () => {
+        assert.throws(() => knowledgeLevelThreshold(invalidLevel), Error);
+    });
+}
+
+for (const [units, level, current, required] of [
+    [0, 0, 0, 1000],
+    [350, 0, 350, 1000],
+    [999, 0, 999, 1000],
+    [1000, 1, 0, 2000],
+    [1500, 1, 500, 2000],
+    [3000, 2, 0, 3000],
+    [35999, 7, 35999 - 28000, 8000],
+    [36000, 8, 0, 0],
+    [37500, 8, 1500, 0],
+    [40000, 8, 4000, 0],
+    [40001, 8, 4000, 0],
+    [2147483647, 8, 4000, 0],
+] as const) {
+    const expectedUnits = units;
+    const expected = { level, current, required };
+    test(`${expectedUnits} 單位的進度符合各級門檻，回傳值符合 32 位元整數限制`, () => {
+        const actual = knowledgeProgress(expectedUnits);
+        assert.deepEqual(actual, expected);
+        for (const value of [actual.level, actual.current, actual.required]) {
+            assert.ok(Number.isInteger(value) && value >= 0 && value <= 2147483647);
+            assert.equal(Math.fround(value), value);
+        }
     });
 }
 
@@ -155,21 +226,5 @@ test("零至四萬的全部整數單位符合門檻，等級在 32 位元整數�
         assert.equal(actual, expectedLevel, `${units} 單位的等級必須符合門檻。`);
         assert.ok(Number.isInteger(actual) && actual >= 0 && actual <= 2147483647);
         assert.equal(Math.fround(actual), actual);
-    }
-});
-
-test("零至八級的門檻與公式各步驟符合 32 位元限制", () => {
-    for (let level = 0; level <= 8; level++) {
-        const scaledLevel = Math.fround(50 * level);
-        const nextLevel = Math.fround(level + 1);
-        const experience = Math.fround(scaledLevel * nextLevel);
-        const units = Math.fround(experience * knowledgeExpUnit);
-        const actual = knowledgeLevelThreshold(level);
-        for (const value of [scaledLevel, nextLevel, experience, units, actual]) {
-            assert.ok(Number.isInteger(value) && value >= 0 && value <= 2147483647);
-            assert.equal(Math.fround(value), value);
-        }
-        assert.equal(units, expectedThresholds[level]);
-        assert.equal(actual, units);
     }
 });

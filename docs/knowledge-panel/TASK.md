@@ -435,7 +435,7 @@ export function createTooltip(frames: FrameNatives, options: TooltipOptions): To
 
 | 任務 | 測試 | 實作 | 驗證 |
 |---|---|---|---|
-| K1 | 已提交；需依新規格補測試，並由 Antigravity 檢查 | 未開始 | 未開始 |
+| K1 | 完成（82 組；Codex 撰寫，Antigravity 檢查） | 未開始 | 未開始 |
 | K2 | 未開始 | 未開始 | 未開始 |
 | K3 | 未開始 | 未開始 | 未開始 |
 | K4 | 未開始 | 未開始 | 未開始 |
