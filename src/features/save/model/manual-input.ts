@@ -1,4 +1,4 @@
-import { Clock, fragmentNumber, FragmentReceiver } from "@shared/rxwc3";
+import { Clock, fragmentNumber, FragmentReceiver } from "@shared/lib/rxwc3";
 import { compactCode, maxSaveCodeLength } from "./codec";
 
 export const manualFragmentLength = 80;

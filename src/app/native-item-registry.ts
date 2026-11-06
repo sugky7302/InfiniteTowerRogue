@@ -1,7 +1,7 @@
 import { ItemInstance } from "@entities/item";
 import { nativeItemTypes } from "@features/equipment";
-import { ItemCarrierNatives } from "@shared/wc3-def";
-import { logger } from "@shared/logger";
+import { ItemCarrierNatives } from "@shared/lib/wc3-def";
+import { logger } from "@shared/lib/logger";
 
 interface Entry {
     readonly data: ItemInstance;

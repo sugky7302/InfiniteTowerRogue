@@ -1,5 +1,5 @@
-import { ClockDriver } from "../../src/shared/rxwc3/scheduler/clock";
-import { toTicks } from "../../src/shared/rxwc3/scheduler/time";
+import { ClockDriver } from "../../src/shared/lib/rxwc3/scheduler/clock";
+import { toTicks } from "../../src/shared/lib/rxwc3/scheduler/time";
 
 export class FakeClockDriver implements ClockDriver {
     public realTime = 0;

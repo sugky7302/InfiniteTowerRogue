@@ -1,4 +1,4 @@
-import { Clock, config, frames } from "../../src/shared/rxwc3";
+import { Clock, config, frames } from "../../src/shared/lib/rxwc3";
 import { fireball, frostbolt, castSeconds, yardsToWc3 } from "@features/skill";
 import {
     checkValue,

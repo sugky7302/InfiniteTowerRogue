@@ -7,7 +7,7 @@ import {
     UnitOrderEvent,
     EventNatives,
     UnitInput,
-} from "@shared/wc3-def";
+} from "@shared/lib/wc3-def";
 
 export function fakeUnit(): unit {
     return {} as unit;

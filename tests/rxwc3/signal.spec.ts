@@ -21,7 +21,7 @@ import {
     toObservable,
     toSignal,
     untracked,
-} from "../../src/shared/rxwc3";
+} from "../../src/shared/lib/rxwc3";
 
 function captureErrors(fn: (errors: unknown[]) => void): void {
     const saved = config.onUnhandledError;

@@ -5,7 +5,7 @@ description: 使用或修改 RxWC3（WC3 特化的 Observable、Signal、時鐘�
 
 # RxWC3
 
-位置：`src/shared/rxwc3/`，從 `index.ts` 匯入。規格與各階段記錄：`docs/rxwc3/PLAN.md`（M1 至 M5）。效能：`.github/skills/rxwc3-benchmark/SKILL.md`。
+位置：`src/shared/lib/rxwc3/`，從 `index.ts` 匯入。規格與各階段記錄：`docs/rxwc3/PLAN.md`（M1 至 M5）。效能：`.github/skills/rxwc3-benchmark/SKILL.md`。
 
 ## 選擇 API
 

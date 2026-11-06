@@ -1,7 +1,7 @@
 import { strict as assert } from "node:assert";
 import { test } from "node:test";
-import { logger } from "@shared/logger";
-import { config, reportUnhandledError } from "@shared/rxwc3/core/config";
+import { logger } from "@shared/lib/logger";
+import { config, reportUnhandledError } from "@shared/lib/rxwc3/core/config";
 
 type Output = { log: unknown[]; warn: unknown[]; error: unknown[]; print: unknown[] };
 

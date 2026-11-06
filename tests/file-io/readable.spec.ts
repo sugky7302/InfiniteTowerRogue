@@ -1,6 +1,6 @@
 import { strict as assert } from "node:assert";
 import { test } from "node:test";
-import { createLocalFileIo, FileWriteStatus } from "../../src/shared/file-io";
+import { createLocalFileIo, FileWriteStatus } from "../../src/shared/lib/file-io";
 import { fakeFileIo } from "./fake-file-io";
 
 test("可閱讀檔案的每條指令完整寫入同一註解行", () => {

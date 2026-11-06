@@ -6,14 +6,14 @@
     "plugins": [],
     "types": ["war3-types-strict/1.33.0"]
   },
-  "include": ["src/shared/rxwc3/**/*.ts"],
-  "exclude": ["src/shared/rxwc3/benchmark/wc3/example.ts"],
+  "include": ["src/shared/lib/rxwc3/**/*.ts"],
+  "exclude": ["src/shared/lib/rxwc3/benchmark/wc3/example.ts"],
   "tstl": {
     "luaTarget": "5.3",
     "noHeader": true,
     "luaLibImport": "require",
     "noImplicitSelf": true,
     "luaBundle": "rxwc3.lua",
-    "luaBundleEntry": "./src/shared/rxwc3/index.ts"
+    "luaBundleEntry": "./src/shared/lib/rxwc3/index.ts"
   }
 }

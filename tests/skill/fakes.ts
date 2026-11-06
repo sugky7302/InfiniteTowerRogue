@@ -1,4 +1,4 @@
-import { TimerNatives } from "@shared/wc3-def";
+import { TimerNatives } from "@shared/lib/wc3-def";
 import { SkillNatives } from "@features/skill";
 import { testEnemy } from "@entities/character";
 import { CombatStats, Defense, attributeModifier } from "@entities/combat";

@@ -1,5 +1,5 @@
-import { LocalFileIo, FileReadStatus } from "@shared/file-io";
-import { ChatEvent, PlayerNatives, SyncNatives } from "@shared/wc3-def";
+import { LocalFileIo, FileReadStatus } from "@shared/lib/file-io";
+import { ChatEvent, PlayerNatives, SyncNatives } from "@shared/lib/wc3-def";
 import {
     Observable,
     Subject,
@@ -9,13 +9,13 @@ import {
     syncChunked,
     Clock,
     fragmentNumber,
-} from "@shared/rxwc3";
+} from "@shared/lib/rxwc3";
 import { SaveCodec, maxSaveCodeLength } from "./codec";
 import { SaveData } from "./format";
 import { createDemoCodec, initialDemoData, changeDemo } from "./demo";
 import { loadCommands, ManualSaveInput } from "./manual-input";
 import { SaveParticipant } from "./participant";
-import { logger } from "@shared/logger";
+import { logger } from "@shared/lib/logger";
 
 /** 存檔流程需要的玩家原生操作。 */
 export type SaveNatives = Pick<PlayerNatives, "playerName" | "display">;

@@ -14,7 +14,7 @@ import {
     Subscriber,
     Subscription,
     take,
-} from "../../src/shared/rxwc3";
+} from "../../src/shared/lib/rxwc3";
 
 test("Subscription 收集清理，並立即清理加入已關閉訂閱的項目", () => {
     const calls: number[] = [];

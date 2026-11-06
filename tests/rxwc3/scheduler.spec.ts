@@ -7,7 +7,7 @@ import {
     MAX_TASKS_PER_WAKE,
     Phase,
     Scheduler,
-} from "../../src/shared/rxwc3";
+} from "../../src/shared/lib/rxwc3";
 import { FakeClockDriver } from "./fake-clock-driver";
 
 function setup(): { clock: Clock; driver: FakeClockDriver } {

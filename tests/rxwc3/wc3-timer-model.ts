@@ -1,5 +1,5 @@
 import { strict as assert } from "node:assert";
-import { Clock, Phase, ScheduledTask, Wc3ClockDriver } from "../../src/shared/rxwc3";
+import { Clock, Phase, ScheduledTask, Wc3ClockDriver } from "../../src/shared/lib/rxwc3";
 
 export function int32(value: number): number {
     assert.ok(

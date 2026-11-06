@@ -8,6 +8,7 @@ import {
     ItemTier,
     tierAffixCounts,
 } from "@entities/item";
+import { KNOWLEDGE_CATALOG } from "@entities/knowledge";
 import { emptyEquipment, equip, EquipmentState } from "@features/equipment";
 import {
     SaveData,
@@ -21,7 +22,7 @@ import {
 /** 已發布的索引只能在尾端增加。預建英雄的索引 0 代表符文學者。 */
 export const heroPresets: readonly HeroState[] = [runeScholar];
 export const heroClasses: readonly string[] = ["", ClassId.RuneApprentice];
-export const heroKnowledge: readonly string[] = [...runeScholar.knowledge];
+export const heroKnowledge: readonly string[] = KNOWLEDGE_CATALOG.map((e) => e.name);
 export const heroBases: readonly string[] = [
     "",
     ItemBaseId.RuneStaff,

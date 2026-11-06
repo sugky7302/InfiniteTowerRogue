@@ -17,7 +17,7 @@ description: 新增或修改戰鬥登錄、生命與失能、普通攻擊、D20 
 | `src/features/combat/model/patrol-machine.ts` | 巡檢機狀態機（巡邏、追擊、準備、作用、收招） |
 | `src/features/combat/model/runtime.ts` | `CombatRuntime`：傷害前事件、50 毫秒步進 |
 | `src/features/combat/model/tactical-pause.ts` | `TacticalPause`：暫停快照與最後命令 |
-| `src/shared/wc3-def/unit/` | `UnitActionNatives`：只包裝原生動作 |
+| `src/shared/lib/wc3-def/unit/` | `UnitActionNatives`：只包裝原生動作 |
 | `src/app/skill-example.ts` | 範例：符文學者對 2 台巡檢機 |
 
 ## 核心規則

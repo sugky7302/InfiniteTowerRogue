@@ -7,7 +7,7 @@ import {
     sync,
     Sync,
     toSignal,
-} from "../../src/shared/rxwc3";
+} from "../../src/shared/lib/rxwc3";
 
 function acceptsSync(source: Observable<number, Sync>): void {}
 function acceptsLocal(source: Observable<number, Local>): void {}

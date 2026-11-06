@@ -21,8 +21,8 @@ description: 新增存檔欄位、修改存檔碼格式、密鑰、`-save`／`-l
 | `src/features/save/model/demo.ts`、`src/app/save-example.ts` | 範例資料與範例地圖                                                |
 | `src/features/save/model/participant.ts`                     | 通用 `SaveParticipant`。存檔功能不得依賴英雄、物品或裝備模組      |
 | `src/app/hero-save.ts`                                       | 英雄與裝備目錄、純編碼與解碼、兩個參與者                          |
-| `src/shared/rxwc3/sync/sync-chunked.ts`                      | 分段同步 `syncChunked`                                            |
-| `src/shared/file-io/`                                        | `write`／`read`（存檔檔案）、`writeReadable`（可閱讀的指令檔）    |
+| `src/shared/lib/rxwc3/sync/sync-chunked.ts`                      | 分段同步 `syncChunked`                                            |
+| `src/shared/lib/file-io/`                                        | `write`／`read`（存檔檔案）、`writeReadable`（可閱讀的指令檔）    |
 
 ## 新增存檔欄位
 

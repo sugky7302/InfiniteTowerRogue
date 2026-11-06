@@ -1,4 +1,4 @@
-import { FileNatives } from "@shared/wc3-def";
+import { FileNatives } from "@shared/lib/wc3-def";
 import {
     escapeFileData,
     fileAbility,
@@ -6,7 +6,7 @@ import {
     filePreloadLimit,
     filePreloadStart,
     unescapeFileData,
-} from "../../src/shared/file-io";
+} from "../../src/shared/lib/file-io";
 
 /** 模擬 PreloadGenEnd 的文字包裝。注入行會產生內嵌 Lua 區塊。 */
 export function preloadFile(lines: readonly string[]): string {

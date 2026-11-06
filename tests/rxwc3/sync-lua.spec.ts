@@ -15,7 +15,7 @@ import {
     take,
     toObservable,
     toSignal,
-} from "../../src/shared/rxwc3";
+} from "../../src/shared/lib/rxwc3";
 import { FakeSyncNetwork } from "./fake-sync-natives";
 
 function check(condition: boolean, message: string): void {

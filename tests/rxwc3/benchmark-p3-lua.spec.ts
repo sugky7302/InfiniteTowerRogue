@@ -6,8 +6,8 @@ import {
     signal,
     Subject,
     Subscriber,
-} from "../../src/shared/rxwc3";
-import { createWorkload } from "../../src/shared/rxwc3/benchmark/workloads";
+} from "../../src/shared/lib/rxwc3";
+import { createWorkload } from "../../src/shared/lib/rxwc3/benchmark/workloads";
 
 export { createWorkload };
 

@@ -6,7 +6,7 @@ import {
     Phase,
     SpellEvent,
     createWc3Events,
-} from "@shared/rxwc3";
+} from "@shared/lib/rxwc3";
 import {
     DamageStat,
     DamageKind,

@@ -5,19 +5,19 @@ import {
     encodeFileData,
     decodeFileData,
     maxFileDataLength,
-} from "../../src/shared/file-io";
+} from "../../src/shared/lib/file-io";
 import {
     encodeLanguagePreference,
     decodeLanguagePreference,
     languagePreferencePath,
-} from "../../src/shared/i18n/preference";
-import { createI18n } from "../../src/shared/i18n/translation";
-import { installLanguageChat } from "../../src/shared/i18n/chat";
-import { Subject } from "../../src/shared/rxwc3/core/subject";
-import { ChatEvent, wc3FileNatives } from "@shared/wc3-def";
+} from "../../src/shared/lib/i18n/preference";
+import { createI18n } from "../../src/shared/lib/i18n/translation";
+import { installLanguageChat } from "../../src/shared/lib/i18n/chat";
+import { Subject } from "../../src/shared/lib/rxwc3/core/subject";
+import { ChatEvent, wc3FileNatives } from "@shared/lib/wc3-def";
 import { FakeSyncNetwork } from "../rxwc3/fake-sync-natives";
 import { fakeFileIo } from "./fake-file-io";
-import { fileAbility, filePreloadStart, filePreloadEnd } from "../../src/shared/file-io";
+import { fileAbility, filePreloadStart, filePreloadEnd } from "../../src/shared/lib/file-io";
 import { verifyFileIo } from "./file-io-lua.spec";
 
 test("本地檔案在 Node 執行二十八組 Lua 共用流程", () => assert.equal(verifyFileIo(), 28));

@@ -8,11 +8,11 @@ import {
     sha256,
     utf8,
 } from "@features/save";
-import { Subject, Observable, Clock, syncChunked } from "../../src/shared/rxwc3";
+import { Subject, Observable, Clock, syncChunked } from "../../src/shared/lib/rxwc3";
 import { FakeSyncNetwork } from "../rxwc3/fake-sync-natives";
 import { FakeClockDriver } from "../rxwc3/fake-clock-driver";
 import { setupSave } from "./setup";
-export { wc3PlayerNatives } from "@shared/wc3-def";
+export { wc3PlayerNatives } from "@shared/lib/wc3-def";
 export { recordsCases, verifyRecords } from "./records-cases";
 
 function check(condition: boolean, message: string): void {

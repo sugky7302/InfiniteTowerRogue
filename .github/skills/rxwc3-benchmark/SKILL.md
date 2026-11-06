@@ -51,4 +51,4 @@ description: 在 WC3 中量測 RxWC3 效能的方法、執行步驟、已知陷�
 - 不要頻繁寫入依賴者很多的 signal。例如：不要讓大量介面元素依賴每次受傷都改變的生命值 signal。
 - 大量需要每幀更新的物件（例如投射物），使用固定步進的幀來源，不要為每個物件建立 `interval`。
 - 每個事件的固定開銷（快照、事件物件、原生函式呼叫）約 0.007 ms。首版規模不需要優化；有實測瓶頸時再處理。
-- TSTL 的 `try/catch` 每次執行都建立閉包。熱點路徑使用 `src/shared/rxwc3/core/protected-call.ts` 的 `protectedCall(fn, ...args)`。
+- TSTL 的 `try/catch` 每次執行都建立閉包。熱點路徑使用 `src/shared/lib/rxwc3/core/protected-call.ts` 的 `protectedCall(fn, ...args)`。

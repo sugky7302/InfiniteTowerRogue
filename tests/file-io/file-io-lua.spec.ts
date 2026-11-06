@@ -7,16 +7,16 @@ import {
     fileAbility,
     FileReadStatus,
     FileWriteStatus,
-} from "../../src/shared/file-io";
-import { createI18n } from "../../src/shared/i18n/translation";
+} from "../../src/shared/lib/file-io";
+import { createI18n } from "../../src/shared/lib/i18n/translation";
 import {
     decodeLanguagePreference,
     encodeLanguagePreference,
     languagePreferencePath,
-} from "../../src/shared/i18n/preference";
+} from "../../src/shared/lib/i18n/preference";
 import { fakeFileIo, framedFile, loadedIcon } from "./fake-file-io";
-export { wc3FileNatives as natives } from "@shared/wc3-def";
-export { createLocalFileIo, escapeFileData, unescapeFileData } from "../../src/shared/file-io";
+export { wc3FileNatives as natives } from "@shared/lib/wc3-def";
+export { createLocalFileIo, escapeFileData, unescapeFileData } from "../../src/shared/lib/file-io";
 
 /** Node 與 Lua 共用此流程。只測試本地資料，不改同步狀態。 */
 export function verifyFileIo(): number {

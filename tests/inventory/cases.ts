@@ -29,7 +29,7 @@ import {
     loadCommands,
     saveFilePath,
 } from "@features/save";
-import { encodeFileData, decodeFileData } from "@shared/file-io";
+import { encodeFileData, decodeFileData } from "@shared/lib/file-io";
 import { HeroExample } from "../../src/app/hero-example";
 import { NativeItemRegistry } from "../../src/app/native-item-registry";
 import {

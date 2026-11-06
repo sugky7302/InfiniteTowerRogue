@@ -12,7 +12,7 @@ import {
     toObservable,
     toSignal,
     WritableSignal,
-} from "../../src/shared/rxwc3";
+} from "../../src/shared/lib/rxwc3";
 
 type Equal<A, B> =
     (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? true : false;

@@ -1,12 +1,12 @@
-import { Measurement } from "../../src/shared/rxwc3/benchmark/measurement";
-import { probe } from "../../src/shared/rxwc3/benchmark/metrics";
+import { Measurement } from "../../src/shared/lib/rxwc3/benchmark/measurement";
+import { probe } from "../../src/shared/lib/rxwc3/benchmark/metrics";
 import {
     formatRecord,
     parseRecords,
     resultPages,
     resultValue,
-} from "../../src/shared/rxwc3/benchmark/results";
-import { cases, createWorkload } from "../../src/shared/rxwc3/benchmark/workloads";
+} from "../../src/shared/lib/rxwc3/benchmark/results";
+import { cases, createWorkload } from "../../src/shared/lib/rxwc3/benchmark/workloads";
 
 /** 使用公開 API 與假的 EventHub 原生介面。Node 與 Lua 執行同一組工作。 */
 export function verifyBenchmark(): number {

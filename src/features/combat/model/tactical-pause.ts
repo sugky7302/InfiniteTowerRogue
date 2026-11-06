@@ -1,5 +1,5 @@
-import { Clock, Phase, Subscription } from "@shared/rxwc3";
-import { UnitOrderEvent } from "@shared/wc3-def";
+import { Clock, Phase, Subscription } from "@shared/lib/rxwc3";
+import { UnitOrderEvent } from "@shared/lib/wc3-def";
 import { Combatant, CombatRegistry } from "./registry";
 
 interface MotionSnapshot {

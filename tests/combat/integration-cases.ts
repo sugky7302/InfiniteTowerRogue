@@ -1,5 +1,5 @@
-import { Clock, ClockDriver, Subject } from "@shared/rxwc3";
-import { DamagingEvent, UnitOrderEvent } from "@shared/wc3-def";
+import { Clock, ClockDriver, Subject } from "@shared/lib/rxwc3";
+import { DamagingEvent, UnitOrderEvent } from "@shared/lib/wc3-def";
 import { scholar, patrolMachine } from "@entities/character";
 import { updateCombatLife, settleDamage } from "@entities/combat";
 import { CombatStats } from "@entities/combat";

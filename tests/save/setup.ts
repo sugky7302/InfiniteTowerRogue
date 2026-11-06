@@ -1,6 +1,6 @@
-import { Subject, Clock } from "../../src/shared/rxwc3";
-import { ChatEvent } from "@shared/wc3-def";
-import { createLocalFileIo } from "../../src/shared/file-io";
+import { Subject, Clock } from "../../src/shared/lib/rxwc3";
+import { ChatEvent } from "@shared/lib/wc3-def";
+import { createLocalFileIo } from "../../src/shared/lib/file-io";
 import { installSaveChat, SaveCodec, SaveParticipant } from "@features/save";
 import { FakeSyncNetwork } from "../rxwc3/fake-sync-natives";
 import { FakeClockDriver } from "../rxwc3/fake-clock-driver";

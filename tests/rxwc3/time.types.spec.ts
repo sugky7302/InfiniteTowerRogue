@@ -4,7 +4,7 @@ import {
     LocalObservable,
     Observable,
     throttleTime,
-} from "../../src/shared/rxwc3";
+} from "../../src/shared/lib/rxwc3";
 
 // 此函式只供型別檢查，不由 Node 載入。
 function checkTimeKinds(source: LocalObservable<number>, synced: Observable<number>): void {

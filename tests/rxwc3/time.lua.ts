@@ -12,9 +12,9 @@ import {
     takeUntil,
     throttleTime,
     timer,
-} from "../../src/shared/rxwc3";
+} from "../../src/shared/lib/rxwc3";
 import { FakeClockDriver } from "./fake-clock-driver";
-import { MAX_SECONDS, MAX_TICKS, toTicks } from "../../src/shared/rxwc3/scheduler/time";
+import { MAX_SECONDS, MAX_TICKS, toTicks } from "../../src/shared/lib/rxwc3/scheduler/time";
 
 declare const math: { type(this: void, value: number): string };
 

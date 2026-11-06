@@ -1,6 +1,6 @@
 import { strict as assert } from "node:assert";
 import { test as nodeTest } from "node:test";
-import { Clock, config, createWc3Events, frames, Phase } from "../../src/shared/rxwc3";
+import { Clock, config, createWc3Events, frames, Phase } from "../../src/shared/lib/rxwc3";
 import {
     attributeModifier,
     checkValue,

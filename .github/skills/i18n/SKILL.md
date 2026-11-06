@@ -9,7 +9,7 @@ description: 新增或修改顯示文字、翻譯、物件編輯器文字、語�
 
 ## 程式文字
 
-- 翻譯鍵定義在 `src/shared/i18n/locales/zh-TW.ts`。`zh-CN.ts` 與 `en-US.ts` 必須有相同的鍵，缺少或多出時編譯失敗。
+- 翻譯鍵定義在 `src/shared/lib/i18n/locales/zh-TW.ts`。`zh-CN.ts` 與 `en-US.ts` 必須有相同的鍵，缺少或多出時編譯失敗。
 - `zh-CN` 由人工翻譯，不使用自動轉換。
 - 使用 `t(key, params)`，參數格式為 `{name}`。
 - **參數若是顯示文字，也必須先翻譯**：`t("example.greeting", { name: t("example.traveler") })`。
@@ -43,7 +43,7 @@ description: 新增或修改顯示文字、翻譯、物件編輯器文字、語�
 
 ## 本地檔案讀寫（file-io）
 
-- 位置：`src/shared/file-io/`。以 `Preload` 系列函式寫入 `CustomMapData`，以 `Preloader` 與內建 `Amls` 的圖示欄位讀回。存檔系統也使用此模組。
+- 位置：`src/shared/lib/file-io/`。以 `Preload` 系列函式寫入 `CustomMapData`，以 `Preloader` 與內建 `Amls` 的圖示欄位讀回。存檔系統也使用此模組。
 - 上限 4096 個受限 ASCII 字元。寫入只能回報「已送出」，無法確認磁碟寫入成功。
 - 使用內嵌 Lua 累加 Preload 資料，每次最多 259 字元，最後一次設定圖示。讀取前保存圖示，讀取後還原。不建立專用技能或預載單位。
 - 新格式 F1 已實作；F2 語言偏好重開驗證仍待執行。舊 A0IO／AFxx 檔案不再支援，會使用用戶端語言作為後備。

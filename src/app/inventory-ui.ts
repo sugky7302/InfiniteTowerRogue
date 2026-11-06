@@ -12,8 +12,8 @@ import {
     inventoryView,
     previewModelPath,
 } from "@features/equipment";
-import { logger } from "@shared/logger";
-import { FrameNatives, wc3FrameNatives } from "@shared/wc3-def";
+import { logger } from "@shared/lib/logger";
+import { FrameNatives, wc3FrameNatives } from "@shared/lib/wc3-def";
 
 /** 共同流程建立相同框架。只有擁有者的同步事件可以送出操作。 */
 export function runInventoryUi(

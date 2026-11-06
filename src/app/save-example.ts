@@ -1,8 +1,8 @@
-import { createLocalFileIo } from "@shared/file-io";
-import { installWc3ClockDrivers, onPlayerChat, uiClock } from "@shared/rxwc3";
-import { wc3FileNatives, wc3PlayerNatives, wc3SyncNatives } from "@shared/wc3-def";
-import { logger } from "@shared/logger";
-import { getI18n, installLanguageChat } from "@shared/i18n";
+import { createLocalFileIo } from "@shared/lib/file-io";
+import { installWc3ClockDrivers, onPlayerChat, uiClock } from "@shared/lib/rxwc3";
+import { wc3FileNatives, wc3PlayerNatives, wc3SyncNatives } from "@shared/lib/wc3-def";
+import { logger } from "@shared/lib/logger";
+import { getI18n, installLanguageChat } from "@shared/lib/i18n";
 import { installSaveChat, SaveParticipant } from "@features/save";
 
 export function runSaveExample(participants: readonly SaveParticipant[] = []): void {

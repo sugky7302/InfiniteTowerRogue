@@ -36,9 +36,9 @@ import {
     throttleTime,
     toObservable,
     toSignal,
-} from "../../src/shared/rxwc3";
-import { wc3SyncNatives } from "@shared/wc3-def";
-import { syncDataByteLength } from "../../src/shared/rxwc3/sync/limits";
+} from "../../src/shared/lib/rxwc3";
+import { wc3SyncNatives } from "@shared/lib/wc3-def";
+import { syncDataByteLength } from "../../src/shared/lib/rxwc3/sync/limits";
 import { FakeSyncNetwork } from "./fake-sync-natives";
 import { verifySync } from "./sync-lua.spec";
 

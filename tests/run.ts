@@ -24,3 +24,4 @@ import "./inventory/inventory.spec";
 import "./inventory/objects.spec";
 import "./ui/inventory.spec";
 import "./ui/frames.spec";
+import "./knowledge/knowledge.spec";

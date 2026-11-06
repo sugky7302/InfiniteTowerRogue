@@ -16,7 +16,7 @@ import {
     wc3EffectNatives,
     wc3RandomNatives,
     wc3UnitNatives,
-} from "@shared/wc3-def";
+} from "@shared/lib/wc3-def";
 
 /**
  * 組合技能範例需要的 WC3 原生操作與範例戰鬥數值。

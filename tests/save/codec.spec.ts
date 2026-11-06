@@ -19,7 +19,7 @@ import {
     hmac256,
     utf8,
 } from "@features/save";
-import { encodeFileData } from "../../src/shared/file-io";
+import { encodeFileData } from "../../src/shared/lib/file-io";
 import { verifySave } from "./basic-lua.spec";
 
 test("存檔在 Node 執行十組 Lua 共用流程", () => assert.equal(verifySave(), 10));

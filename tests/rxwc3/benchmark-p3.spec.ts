@@ -5,11 +5,11 @@ import * as path from "node:path";
 import { test } from "node:test";
 import { verifyBenchmarkP3 } from "./benchmark-p3-lua.spec";
 import { framedFile } from "../file-io/fake-file-io";
-import { encodeFileData } from "../../src/shared/file-io/codec";
-import { resultPages } from "../../src/shared/rxwc3/benchmark/results";
-import { Measurement } from "../../src/shared/rxwc3/benchmark/measurement";
-import { Subscriber, config } from "../../src/shared/rxwc3";
-import { isLocalExecution } from "../../src/shared/rxwc3/sync/execution";
+import { encodeFileData } from "../../src/shared/lib/file-io/codec";
+import { resultPages } from "../../src/shared/lib/rxwc3/benchmark/results";
+import { Measurement } from "../../src/shared/lib/rxwc3/benchmark/measurement";
+import { Subscriber, config } from "../../src/shared/lib/rxwc3";
+import { isLocalExecution } from "../../src/shared/lib/rxwc3/sync/execution";
 
 const { decodeBenchmark, decodePld } = require("../../scripts/decode-bench.cjs");
 const { options, run } = require("../../scripts/run-bench.cjs");

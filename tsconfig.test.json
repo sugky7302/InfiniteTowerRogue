@@ -16,6 +16,5 @@
     "noEmit": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src/shared/**/*.ts", "tests/**/*.ts"],
-  "exclude": ["tests/knowledge/**/*.ts"]
+  "include": ["src/shared/**/*.ts", "tests/**/*.ts"]
 }

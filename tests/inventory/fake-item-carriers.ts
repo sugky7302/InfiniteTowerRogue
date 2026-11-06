@@ -1,4 +1,4 @@
-import { ItemCarrierNatives } from "@shared/wc3-def";
+import { ItemCarrierNatives } from "@shared/lib/wc3-def";
 
 export interface FakeItem {
     readonly handle: item;

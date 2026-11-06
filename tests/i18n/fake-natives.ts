@@ -1,5 +1,5 @@
-import { I18nNatives } from "@shared/i18n";
-import { ObjectTextData } from "../../src/shared/i18n/object-text";
+import { I18nNatives } from "@shared/lib/i18n";
+import { ObjectTextData } from "../../src/shared/lib/i18n/object-text";
 
 export interface TextCall {
     field: string;

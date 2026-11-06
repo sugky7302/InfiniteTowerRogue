@@ -1,4 +1,4 @@
-import { logger } from "@shared/logger";
+import { logger } from "@shared/lib/logger";
 import {
     frames,
     installWc3ClockDrivers,
@@ -9,7 +9,7 @@ import {
     onUnitOrder,
     Subscription,
     worldClock,
-} from "@shared/rxwc3";
+} from "@shared/lib/rxwc3";
 import { scholar, runeScholar, combatLevel, patrolMachine } from "@entities/character";
 import { displayNumber, manaCapacity } from "@entities/combat";
 import { CombatRegistry, CombatRuntime, PatrolMachine, installPauseBridge } from "@features/combat";
@@ -18,12 +18,12 @@ import {
     wc3UnitNatives,
     wc3EffectNatives,
     wc3RandomNatives,
-} from "@shared/wc3-def";
+} from "@shared/lib/wc3-def";
 import { skills, SkillRuntime } from "@features/skill";
 import { createWc3SkillNatives } from "./wc3-skill-natives";
 import { HeroExample } from "./hero-example";
 import { NativeItemRegistry } from "./native-item-registry";
-import { wc3ItemCarrierNatives } from "@shared/wc3-def";
+import { wc3ItemCarrierNatives } from "@shared/lib/wc3-def";
 import { runInventoryUi } from "./inventory-ui";
 
 declare function compiletime<T>(

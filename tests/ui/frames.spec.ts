@@ -9,7 +9,7 @@ import {
     emptyEquipment,
     inventoryTransition,
 } from "@features/equipment";
-import { FrameNatives } from "@shared/wc3-def";
+import { FrameNatives } from "@shared/lib/wc3-def";
 import { runInventoryUi } from "../../src/app/inventory-ui";
 
 type Call = { name: string; args: unknown[] };

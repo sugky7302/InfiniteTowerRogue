@@ -1,5 +1,5 @@
-import { Clock, Phase, Subscription, Observable } from "@shared/rxwc3";
-import { DamagingEvent, UnitOrderEvent } from "@shared/wc3-def";
+import { Clock, Phase, Subscription, Observable } from "@shared/lib/rxwc3";
+import { DamagingEvent, UnitOrderEvent } from "@shared/lib/wc3-def";
 import { CombatRegistry } from "./registry";
 import { attackCheck, ordinaryAttack, weaponDamage } from "./attack";
 import { PatrolMachine } from "./patrol-machine";

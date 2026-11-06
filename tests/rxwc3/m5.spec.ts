@@ -1,8 +1,8 @@
 import { strict as assert } from "node:assert";
 import { test as nodeTest } from "node:test";
-import { Clock, config, createWc3Events, Phase, Subscription } from "../../src/shared/rxwc3";
-import { installShieldExample, whenCastCompleted } from "../../src/shared/rxwc3/wc3/m5-logic";
-import { SpellEvent } from "@shared/wc3-def";
+import { Clock, config, createWc3Events, Phase, Subscription } from "../../src/shared/lib/rxwc3";
+import { installShieldExample, whenCastCompleted } from "../../src/shared/lib/rxwc3/wc3/m5-logic";
+import { SpellEvent } from "@shared/lib/wc3-def";
 import { damage, FakeEventNatives, fakeUnit, spell } from "./fake-event-natives";
 import { FakeClockDriver } from "./fake-clock-driver";
 import { verifyM5 } from "./m5-lua.spec";

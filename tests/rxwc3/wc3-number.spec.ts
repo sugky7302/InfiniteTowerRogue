@@ -2,8 +2,13 @@ import { strict as assert } from "node:assert";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "node:test";
-import { Clock, interval, Phase, Scheduler, take, timer } from "../../src/shared/rxwc3";
-import { addTicks, MAX_SECONDS, MAX_TICKS, toTicks } from "../../src/shared/rxwc3/scheduler/time";
+import { Clock, interval, Phase, Scheduler, take, timer } from "../../src/shared/lib/rxwc3";
+import {
+    addTicks,
+    MAX_SECONDS,
+    MAX_TICKS,
+    toTicks,
+} from "../../src/shared/lib/rxwc3/scheduler/time";
 import { FakeClockDriver } from "./fake-clock-driver";
 import { int32, Wc3TimerModel } from "./wc3-timer-model";
 

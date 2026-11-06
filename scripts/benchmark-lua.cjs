@@ -12,7 +12,7 @@ const {
 
 function snapshot(output) {
     const parsed = tstl.parseConfigFileWithSystem("tsconfig.rxwc3.json");
-    const entry = path.resolve("src/shared/rxwc3/benchmark/workloads.ts");
+    const entry = path.resolve("src/shared/lib/rxwc3/benchmark/workloads.ts");
     let bundle;
     const result = tstl.transpileFiles(
         [entry],

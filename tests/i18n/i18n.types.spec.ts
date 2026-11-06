@@ -1,6 +1,6 @@
-import { t } from "../../src/shared/i18n/translation";
-import { Messages } from "../../src/shared/i18n/locales/zh-TW";
-import { enUS } from "../../src/shared/i18n/locales/en-US";
+import { t } from "../../src/shared/lib/i18n/translation";
+import { Messages } from "../../src/shared/lib/i18n/locales/zh-TW";
+import { enUS } from "../../src/shared/lib/i18n/locales/en-US";
 
 function typeChecks(): void {
     t("example.ready");

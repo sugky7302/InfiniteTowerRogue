@@ -5,9 +5,9 @@ require("ts-node").register({
     project: path.resolve(__dirname, "../tsconfig.test.json"),
     transpileOnly: true,
 });
-const { decodeFileData } = require("../src/shared/file-io/codec.ts");
-const { unescapeFileData, fileAbility } = require("../src/shared/file-io/preload.ts");
-const { parseRecords } = require("../src/shared/rxwc3/benchmark/results.ts");
+const { decodeFileData } = require("../src/shared/lib/file-io/codec.ts");
+const { unescapeFileData, fileAbility } = require("../src/shared/lib/file-io/preload.ts");
+const { parseRecords } = require("../src/shared/lib/rxwc3/benchmark/results.ts");
 
 function decodePld(filename) {
     const text = fs.readFileSync(filename, "utf8");

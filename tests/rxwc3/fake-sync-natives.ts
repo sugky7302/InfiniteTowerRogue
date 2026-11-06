@@ -1,4 +1,4 @@
-import { SyncNatives } from "../../src/shared/rxwc3";
+import { SyncNatives } from "../../src/shared/lib/rxwc3";
 
 interface FakeSyncTrigger extends trigger {
     action?: (this: void) => void;

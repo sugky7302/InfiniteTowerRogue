@@ -1,11 +1,11 @@
 import { strict as assert } from "node:assert";
 import { test as nodeTest } from "node:test";
-import { config, Subject, localComputed, localEffect } from "../../src/shared/rxwc3";
-import { createI18n } from "../../src/shared/i18n/translation";
-import { createObjectText } from "../../src/shared/i18n/object-text";
-import { localeFromClient } from "../../src/shared/i18n/locale";
-import { installLanguageChat } from "../../src/shared/i18n/chat";
-import { ChatEvent } from "@shared/wc3-def";
+import { config, Subject, localComputed, localEffect } from "../../src/shared/lib/rxwc3";
+import { createI18n } from "../../src/shared/lib/i18n/translation";
+import { createObjectText } from "../../src/shared/lib/i18n/object-text";
+import { localeFromClient } from "../../src/shared/lib/i18n/locale";
+import { installLanguageChat } from "../../src/shared/lib/i18n/chat";
+import { ChatEvent } from "@shared/lib/wc3-def";
 import { FakeSyncNetwork } from "../rxwc3/fake-sync-natives";
 import { fakeNatives, fixtureData } from "./fake-natives";
 import { verifyI18n } from "./i18n-lua.spec";

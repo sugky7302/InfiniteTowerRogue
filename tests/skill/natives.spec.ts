@@ -1,7 +1,7 @@
 import { strict as assert } from "node:assert";
 import { test } from "node:test";
 import { createWc3SkillNatives } from "../../src/app/wc3-skill-natives";
-import { wc3TimerNatives } from "@shared/wc3-def";
+import { wc3TimerNatives } from "@shared/lib/wc3-def";
 
 function withGlobals(values: Record<string, unknown>, run: () => void): void {
     const scope = globalThis as unknown as Record<string, unknown>;
@@ -180,7 +180,7 @@ test("S2 目標死亡與移除均視為失效，骰值使用同步原生函式",
 });
 
 test("S3 命令原生註冊三種事件，快照保留目標與座標", () => {
-    const { wc3EventNatives } = require("@shared/wc3-def");
+    const { wc3EventNatives } = require("@shared/lib/wc3-def");
     const target = {} as widget,
         ordered = {} as unit,
         trigger = {} as trigger;

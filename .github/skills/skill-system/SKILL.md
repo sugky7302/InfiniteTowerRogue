@@ -13,13 +13,13 @@ description: 新增或修改技能、施法流程、投射物、傷害套用、�
 |---|---|
 | `src/features/skill/config/definitions.ts` | 技能定義。純資料，試玩值註明來源 |
 | `src/features/skill/model/runtime.ts` | 施法流程、投射物、命中。建構時分別接收 `SkillNatives` 與 `CombatStats` |
-| `src/features/skill/api/natives.ts` | `SkillNatives`：從 `@shared/wc3-def` 組合需要的原生操作 |
+| `src/features/skill/api/natives.ts` | `SkillNatives`：從 `@shared/lib/wc3-def` 組合需要的原生操作 |
 | `src/features/combat/` | 戰鬥登錄、普通攻擊、巡檢機、戰術暫停與技能資源轉接 |
 | `src/entities/combat/` | 傷害公式、燃燒與減速、D20 檢定、`CombatStats` 介面 |
 | `src/entities/character/` | 英雄狀態、職業與固定角色資料；scholar 仍供建置使用 |
 | `src/app/skill-example.ts`、`src/app/wc3-skill-natives.ts` | 技能範例；組合 WC3 原生操作與範例戰鬥數值 |
-| `src/shared/rxwc3/sources/frames.ts` | 固定步進幀來源 `frames()` |
-| `src/shared/wc3-def/` | 技能與幀的原生函式介面及 WC3 實作 |
+| `src/shared/lib/rxwc3/sources/frames.ts` | 固定步進幀來源 `frames()` |
+| `src/shared/lib/wc3-def/` | 技能與幀的原生函式介面及 WC3 實作 |
 | `scripts/skill-objects.cjs`、`scripts/skill-misc.cjs` | 建置時產生物件資料與 `war3mapMisc.txt` |
 
 純公式不得讀取 WC3 原生函式。

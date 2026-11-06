@@ -113,8 +113,8 @@ for (const entry of EXPECTED_CATALOG) {
 
 test("每項知識都有非空字串說明", () => {
     for (const entry of KNOWLEDGE_CATALOG) {
-        assert.equal(typeof entry.summary, "string");
-        assert.ok(entry.summary.length > 0, `「${entry.name}」的說明必須有內容。`);
+        assert.equal(typeof entry.description, "string");
+        assert.ok(entry.description.length > 0, `「${entry.name}」的說明必須有內容。`);
     }
 });
 

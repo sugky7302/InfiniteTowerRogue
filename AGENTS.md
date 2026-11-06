@@ -51,13 +51,13 @@ export const KNOWLEDGE_CATALOG: readonly KnowledgeDefinition[] = [ /* … */ ];
 | widgets | `src/widgets/<名稱>/` | 獨立的視窗元件，例如知識面板 |
 | features | `src/features/<名稱>/` | 玩家可使用的功能，例如技能、存檔 |
 | entities | `src/entities/<名稱>/` | 遊戲領域的資料與規則，例如傷害公式、狀態效果、角色數值 |
-| shared | `src/shared/` | 與遊戲規則無關的通用模組，例如 RxWC3、wc3-def、logger、file-io |
+| shared | `src/shared/lib/`、`src/shared/ui/` | 與遊戲規則無關的通用模組。`lib/`：RxWC3、wc3-def、logger、file-io、i18n；`ui/`：通用介面元件，例如 tooltip |
 
 - 依賴方向只能是 app → widgets → features → entities → shared。
 - 同一層的不同模組（slice）不得互相 import。兩個功能都需要的規則，移到 entities 層；組合多個功能的程式，放在 app 層。
 - 每個模組以 `index.ts` 作為公開 API。其他模組只能從 `index.ts` import，不得 import 內部檔案。
 - widgets、features 與 entities 的 slice 內，檔案放在 segment 資料夾：`model/`（狀態與規則）、`lib/`（內部工具）、`config/`（常數與資料）、`api/`（對外介面，例如原生函式組合）、`ui/`（介面）。
-- 跨層 import 使用路徑別名：`@widgets/<名稱>`、`@features/<名稱>`、`@entities/<名稱>`、`@shared/<模組>`。
+- 跨層 import 使用路徑別名：`@widgets/<名稱>`、`@features/<名稱>`、`@entities/<名稱>`、`@shared/lib/<模組>`、`@shared/ui/<元件>`。
 - shared 層不得知道任何遊戲規則。WC3 原生函式介面只包裝原生操作；需要遊戲規則的查詢，在上層定義介面並實作。
 - 以 Steiger 檢查分層：`pnpm run lint:fsd`。必須沒有錯誤。
 
@@ -72,7 +72,7 @@ export const KNOWLEDGE_CATALOG: readonly KnowledgeDefinition[] = [ /* … */ ];
     - Node 測試請用 `Math.fround` 模擬 32 位元浮點數，並檢查整數不超過上限。
 - WC3 Lua 沒有 `debug` 函式庫。
     - TSTL 的 `Error` 沒有 `stack`。把 `Error` 物件轉為字串（`print`、`tostring`、字串串接）時，會因呼叫 `debug.getinfo` 而失敗，並遮蔽原始錯誤。
-    - 輸出錯誤時，請使用 `src/shared/logger.ts` 的 `logger.error`。不得直接 `print` 錯誤物件。
+    - 輸出錯誤時，請使用 `src/shared/lib/logger.ts` 的 `logger.error`。不得直接 `print` 錯誤物件。
 - TSTL 把 `for (let i = ...; ...; ...)` 轉譯為共用一個變數的 `while` 迴圈。每次迴圈不會建立新的 `i`。
     - 閉包（回呼、訂閱、計時器）在迴圈結束後讀取 `i` 時，會讀到最後的值。
     - 閉包需要迴圈變數時，請在迴圈內複製到 `const`。例如：`const id = index;`。

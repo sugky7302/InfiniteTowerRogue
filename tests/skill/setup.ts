@@ -1,4 +1,4 @@
-import { Clock, createWc3Events, frames } from "../../src/shared/rxwc3";
+import { Clock, createWc3Events, frames } from "../../src/shared/lib/rxwc3";
 import { SkillRuntime, fireball, frostbolt, SkillDefinition, skills } from "@features/skill";
 import { FakeClockDriver } from "../rxwc3/fake-clock-driver";
 import { FakeEventNatives, spell } from "../rxwc3/fake-event-natives";

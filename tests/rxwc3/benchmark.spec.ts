@@ -1,8 +1,8 @@
 import { strict as assert } from "node:assert";
 import { test } from "node:test";
-import { encodeFileData, maxFileDataLength } from "../../src/shared/file-io";
-import { Subscription } from "../../src/shared/rxwc3";
-import { Measurement } from "../../src/shared/rxwc3/benchmark/measurement";
+import { encodeFileData, maxFileDataLength } from "../../src/shared/lib/file-io";
+import { Subscription } from "../../src/shared/lib/rxwc3";
+import { Measurement } from "../../src/shared/lib/rxwc3/benchmark/measurement";
 import {
     dispatchGoal,
     elapsedUs,
@@ -12,15 +12,15 @@ import {
     ratio,
     resolvedMs,
     timerGoal,
-} from "../../src/shared/rxwc3/benchmark/metrics";
+} from "../../src/shared/lib/rxwc3/benchmark/metrics";
 import {
     formatRecord,
     parseRecords,
     resultPages,
     resultValue,
-} from "../../src/shared/rxwc3/benchmark/results";
-import { Output } from "../../src/shared/rxwc3/benchmark/wc3/runtime";
-import { runTimers } from "../../src/shared/rxwc3/benchmark/wc3/timers";
+} from "../../src/shared/lib/rxwc3/benchmark/results";
+import { Output } from "../../src/shared/lib/rxwc3/benchmark/wc3/runtime";
+import { runTimers } from "../../src/shared/lib/rxwc3/benchmark/wc3/timers";
 import { verifyBenchmark } from "./benchmark-lua.spec";
 import { int32, Wc3TimerModel } from "./wc3-timer-model";
 

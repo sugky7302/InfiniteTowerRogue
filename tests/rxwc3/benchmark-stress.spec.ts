@@ -1,12 +1,16 @@
 import { strict as assert } from "node:assert";
 import { test } from "node:test";
-import { FileReadStatus } from "../../src/shared/file-io";
-import { Subscription } from "../../src/shared/rxwc3";
-import { probe } from "../../src/shared/rxwc3/benchmark/metrics";
-import { formatRecord, parseRecords, resultPages } from "../../src/shared/rxwc3/benchmark/results";
-import { Output } from "../../src/shared/rxwc3/benchmark/wc3/runtime";
-import { runStress } from "../../src/shared/rxwc3/benchmark/wc3/stress";
-import { Mode } from "../../src/shared/rxwc3/benchmark/workloads";
+import { FileReadStatus } from "../../src/shared/lib/file-io";
+import { Subscription } from "../../src/shared/lib/rxwc3";
+import { probe } from "../../src/shared/lib/rxwc3/benchmark/metrics";
+import {
+    formatRecord,
+    parseRecords,
+    resultPages,
+} from "../../src/shared/lib/rxwc3/benchmark/results";
+import { Output } from "../../src/shared/lib/rxwc3/benchmark/wc3/runtime";
+import { runStress } from "../../src/shared/lib/rxwc3/benchmark/wc3/stress";
+import { Mode } from "../../src/shared/lib/rxwc3/benchmark/workloads";
 
 interface FakeTrigger {
     action?: () => void;

@@ -20,7 +20,7 @@ import {
     takeUntil,
     takeWhile,
     tap,
-} from "../../src/shared/rxwc3";
+} from "../../src/shared/lib/rxwc3";
 
 function collect<T>(source: Observable<T>): T[] {
     const values: T[] = [];

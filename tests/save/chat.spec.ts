@@ -13,8 +13,8 @@ import {
     saveFilePath,
     readableSavePath,
 } from "@features/save";
-import { encodeFileData, decodeFileData } from "../../src/shared/file-io";
-import { Clock } from "../../src/shared/rxwc3";
+import { encodeFileData, decodeFileData } from "../../src/shared/lib/file-io";
+import { Clock } from "../../src/shared/lib/rxwc3";
 import { FakeClockDriver } from "../rxwc3/fake-clock-driver";
 
 test("存檔收集同步資料，只在擁有者寫入兩份檔案與顯示結果", () => {
@@ -389,7 +389,8 @@ test("後輸入的手動讀檔取代在途自動讀檔", () => {
 });
 test("全部送出被原生函式拒絕時仍顯示讀檔逾時", () => {
     const setup = setupSave();
-    const { config } = require("../../src/shared/rxwc3") as typeof import("../../src/shared/rxwc3");
+    const { config } =
+        require("../../src/shared/lib/rxwc3") as typeof import("../../src/shared/lib/rxwc3");
     const previous = config.onUnhandledError;
     const errors: unknown[] = [];
     config.onUnhandledError = (error) => {

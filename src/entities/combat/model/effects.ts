@@ -1,4 +1,4 @@
-import { Clock, Phase, Subscription, addTicks, durationTicks } from "@shared/rxwc3";
+import { Clock, Phase, Subscription, addTicks, durationTicks } from "@shared/lib/rxwc3";
 
 export function periodicTicks(
     start: number,

@@ -8,13 +8,13 @@ import {
     sync,
     config,
     forLocalPlayer,
-} from "../../src/shared/rxwc3";
-import { splitSyncData } from "../../src/shared/rxwc3/sync/sync-chunked";
+} from "../../src/shared/lib/rxwc3";
+import { splitSyncData } from "../../src/shared/lib/rxwc3/sync/sync-chunked";
 import {
     FragmentReceiver,
     decodeFragment,
     fragmentNumber,
-} from "../../src/shared/rxwc3/sync/fragments";
+} from "../../src/shared/lib/rxwc3/sync/fragments";
 import { FakeSyncNetwork } from "./fake-sync-natives";
 import { FakeClockDriver } from "./fake-clock-driver";
 

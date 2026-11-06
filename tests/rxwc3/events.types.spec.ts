@@ -1,4 +1,4 @@
-import { DamageEvent, onDamaged, onDamaging, onSpellChannel } from "../../src/shared/rxwc3";
+import { DamageEvent, onDamaged, onDamaging, onSpellChannel } from "../../src/shared/lib/rxwc3";
 
 // 僅供型別檢查，不由 Node 載入。
 function checkEvents(unit: unit, wrapped: { readonly handle: unit }, event: DamageEvent): void {

@@ -10,7 +10,7 @@ import {
     switchMap,
     takeUntil,
     timer,
-} from "../../src/shared/rxwc3";
+} from "../../src/shared/lib/rxwc3";
 import { damage, FakeEventNatives, fakeUnit, spell } from "./fake-event-natives";
 import { FakeClockDriver } from "./fake-clock-driver";
 

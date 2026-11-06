@@ -5,7 +5,7 @@ description: 新增或使用 WC3 原生函式、handle 型別、事件資料或�
 
 # wc3-def：WC3 共用定義與原生函式綁定
 
-位置：`src/shared/wc3-def/`。規格：`docs/wc3-def/PLAN.md`。
+位置：`src/shared/lib/wc3-def/`。規格：`docs/wc3-def/PLAN.md`。
 
 ## 規則
 
@@ -23,7 +23,7 @@ description: 新增或使用 WC3 原生函式、handle 型別、事件資料或�
 | `<概念>/wc3-<概念>-natives.ts` | WC3 實作。呼叫真正的原生函式 |
 | `tests/.../fake-xxx.ts` | 測試用的假實作 |
 
-依 WC3 概念分資料夾（2026-11-03 重構）。其他模組只從 `@shared/wc3-def`（`index.ts`）import：
+依 WC3 概念分資料夾（2026-11-03 重構）。其他模組只從 `@shared/lib/wc3-def`（`index.ts`）import：
 
 | 資料夾 | 介面 | 內容 |
 |---|---|---|

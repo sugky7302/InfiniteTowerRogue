@@ -1,9 +1,11 @@
 import { heroCases } from "./integration-cases";
 import { heroSaveCases } from "../hero-save/cases";
 import { inventoryCases } from "../inventory/cases";
+import { KNOWLEDGE_LUA_CASES } from "../knowledge/lua-cases";
 import { inventoryUiCases } from "../ui/cases";
 heroCases.push(...heroSaveCases);
 heroCases.push(...inventoryCases);
 heroCases.push(...inventoryUiCases);
+heroCases.push(...KNOWLEDGE_LUA_CASES);
 export { heroCases, verifyHero } from "./integration-cases";
-export { wc3ItemCarrierNatives } from "@shared/wc3-def";
+export { wc3ItemCarrierNatives } from "@shared/lib/wc3-def";

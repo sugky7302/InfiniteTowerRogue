@@ -15,7 +15,7 @@ import {
     resizeCombatLife,
     settleDamage,
 } from "@entities/combat";
-import { Clock, Phase, Subscription, Subject } from "@shared/rxwc3";
+import { Clock, Phase, Subscription, Subject } from "@shared/lib/rxwc3";
 import { CombatNatives } from "../api/natives";
 
 export interface CombatProfile extends PrimaryAttributes {

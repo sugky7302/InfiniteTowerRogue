@@ -1,5 +1,5 @@
-import { Clock, config, createWc3Events, interval, Subscription } from "../../src/shared/rxwc3";
-import { installShieldExample, whenCastCompleted } from "../../src/shared/rxwc3/wc3/m5-logic";
+import { Clock, config, createWc3Events, interval, Subscription } from "../../src/shared/lib/rxwc3";
+import { installShieldExample, whenCastCompleted } from "../../src/shared/lib/rxwc3/wc3/m5-logic";
 import { damage, FakeEventNatives, fakeUnit, spell } from "./fake-event-natives";
 import { FakeClockDriver } from "./fake-clock-driver";
 

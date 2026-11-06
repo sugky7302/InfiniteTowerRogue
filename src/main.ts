@@ -1,5 +1,5 @@
 import { W3TS_HOOK, addScriptHook } from "w3ts/hooks";
-import { logger } from "@shared/logger";
+import { logger } from "@shared/lib/logger";
 import { runSaveExample } from "./app/save-example";
 import { runSkillExample } from "./app/skill-example";
 import { createHeroSaveParticipants } from "./app/hero-save";

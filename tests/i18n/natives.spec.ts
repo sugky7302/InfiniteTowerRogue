@@ -1,10 +1,10 @@
 import { strict as assert } from "node:assert";
 import { test } from "node:test";
-import { wc3I18nNatives } from "../../src/shared/i18n/natives";
-import { createI18n, getI18n, t } from "../../src/shared/i18n/translation";
-import { createObjectText } from "../../src/shared/i18n/object-text";
+import { wc3I18nNatives } from "../../src/shared/lib/i18n/natives";
+import { createI18n, getI18n, t } from "../../src/shared/lib/i18n/translation";
+import { createObjectText } from "../../src/shared/lib/i18n/object-text";
 import { fixtureData } from "./fake-natives";
-import { config } from "../../src/shared/rxwc3/core/config";
+import { config } from "../../src/shared/lib/rxwc3/core/config";
 
 function withGlobals(values: Record<string, unknown>, run: () => void): void {
     const scope = globalThis as unknown as Record<string, unknown>;

@@ -25,7 +25,7 @@ export interface KnowledgeDefinition {
     readonly nodeType: KnowledgeNodeType;
     readonly law: KnowledgeLaw;   // 主要歸屬法則
     readonly depth: KnowledgeDepth;
-    readonly summary: string;     // 一句說明
+    readonly description: string; // 一句說明
 }
 
 export const KNOWLEDGE_CATALOG: readonly KnowledgeDefinition[];
@@ -63,7 +63,7 @@ export function parseKnowledgeExp(text: string): number | undefined;
 ### `@widgets/knowledge-panel`（`src/widgets/knowledge-panel/`）
 
 ```ts
-import { FrameRect } from "@shared/ui";
+import { FrameRect } from "@shared/ui/screen";
 
 export const KnowledgeSort = { Name: "name", Level: "level", NodeType: "nodeType", Law: "law" } as const;
 export type KnowledgeSort = (typeof KnowledgeSort)[keyof typeof KnowledgeSort];
@@ -120,10 +120,23 @@ export function runKnowledgePanel(port: KnowledgePanelPort, owner: player, frame
 
 通用的介面元件，不含任何遊戲規則。知識面板是第一個使用者，之後的自製介面也使用它。
 
+使用者決定分為兩個模組（2026-11-06），與 `@shared/lib/<模組>` 的寫法相同：
+
+- `@shared/ui/screen`（`src/shared/ui/screen/`）：`FrameRect` 與 `visibleScreen`。
+- `@shared/ui/tooltip`（`src/shared/ui/tooltip/`）：Tooltip 的型別、`tooltipPlacement` 與 `createTooltip`。它從 `@shared/ui/screen` import `FrameRect`。
+
+每個模組以 `index.ts` 作為公開 API。
+
 ```ts
+// @shared/ui/screen
 export interface FrameRect { readonly left: number; readonly right: number; readonly bottom: number; readonly top: number }
 
 export function visibleScreen(clientWidth: number, clientHeight: number): FrameRect; // 整個螢幕的框架座標
+```
+
+```ts
+// @shared/ui/tooltip
+import { FrameRect } from "@shared/ui/screen";
 
 export const TooltipSide = { Right: "right", Left: "left" } as const;
 export type TooltipSide = (typeof TooltipSide)[keyof typeof TooltipSide];
@@ -163,7 +176,7 @@ export function createTooltip(frames: FrameNatives, options: TooltipOptions): To
   - 未達最高等級：`currentEXP = units − threshold(level)`，`requiredEXP = threshold(level + 1) − threshold(level)`。例如 3500 → `{0, 3500, 10000}`；15000 → `{1, 5000, 20000}`；30000 → `{2, 0, 30000}`。
   - 最高等級：`requiredEXP = 0`，`currentEXP = units − threshold(KNOWLEDGE_MAX_LEVEL)`。例如 400000 → `{8, 40000, 0}`。
 - `formatKnowledgeExp(units)`：
-  - 兩位小數。以 `Math.floor(units / 100)` 與 `units % 100` 組成字串，小數部分不足兩位時補 0，不使用浮點數除法的結果。
+  - 兩位小數。先把 `units` 正規化為 Lua integer，再轉為字串，左側補 0 到至少 3 位，然後在倒數第 2 位前插入小數點。不使用除法（2026-11-06 改定：接近整數上限時，32 位元浮點數除法會失去精度；Lua float 子型別轉為字串時會帶「.0」）。
   - 例如 0 →「0.00」，5 →「0.05」，50 →「0.50」，3500 →「35.00」，400000 →「4000.00」。
   - 負數或非整數丟出錯誤。大於上限時照實顯示。
 
@@ -171,7 +184,7 @@ export function createTooltip(frames: FrameNatives, options: TooltipOptions): To
 
 完成條件：測試通過；`npm run test:unit` 通過；`npm run lint:fsd` 沒有錯誤。
 
-測試整合：K1 實作前，使用 `npm run test:knowledge` 單獨執行。`tests/knowledge/` 暫時排除於 `tsconfig.test.json`，且未加入 `tests/run.ts`。K1 完成後，在 `tests/run.ts` 加入 `./knowledge/knowledge.spec`，並移除排除項目。
+測試整合：K1 實作前，使用 `npm run test:knowledge` 單獨執行。`tests/knowledge/` 暫時排除於 `tsconfig.test.json`，且未加入 `tests/run.ts`。K1 完成後，在 `tests/run.ts` 加入 `./knowledge/knowledge.spec`，並移除排除項目（2026-11-06 已完成）。Lua float 子型別的測試在 `tests/knowledge/lua-cases.ts`，由 `npm run test:hero:lua` 執行。
 
 ## K2：知識狀態、存檔第 5 版、`HeroExample` 同步
 
@@ -266,7 +279,7 @@ export function createTooltip(frames: FrameNatives, options: TooltipOptions): To
 
 ## K3：`@shared/ui` 的螢幕範圍與浮動說明框
 
-使用者決定把說明框標準化，放到 `@shared/ui`（2026-11-05）。它不含遊戲規則，只接收文字行與目標位置。
+使用者決定把說明框標準化，放到 `@shared/ui`（2026-11-05）。它不含遊戲規則，只接收文字行與目標位置。`visibleScreen` 放在 `@shared/ui/screen`，`tooltipPlacement` 與 `createTooltip` 放在 `@shared/ui/tooltip`（2026-11-06）。
 
 ### 原生函式（`@shared/lib/wc3-def`）
 
@@ -346,7 +359,7 @@ export function createTooltip(frames: FrameNatives, options: TooltipOptions): To
     知識深度：基礎
     等級：1 級
     經驗：50.00／200
-    <summary>
+    <description>
     ```
 
   - 等級行：0 級為「等級：解析中」，其他為「等級：N 級」。
@@ -386,7 +399,7 @@ export function createTooltip(frames: FrameNatives, options: TooltipOptions): To
 - 新增 `assets/ui/knowledge.fdf`，加入主 TOC。樣板與子框架名稱：
   - `ItrKnowledgePanel`：背景。
   - `ItrKnowledgeCell`：格子按鈕。子框架 `ItrKnowledgeCellIcon`（圖示）、`ItrKnowledgeCellName`（名稱文字）。
-  - 其他按鈕沿用物品欄的按鈕樣板。說明框使用 `@shared/ui` 的 `createTooltip`。
+  - 其他按鈕沿用物品欄的按鈕樣板。說明框使用 `@shared/ui/tooltip` 的 `createTooltip`。
 - 顯示文字：標題「知識」，關閉「關閉」，捲動「上」、「下」，開關按鈕「知識」。
 - `KnowledgePanelPort`：
   - `entries()`：每次刷新時讀取。
@@ -435,7 +448,7 @@ export function createTooltip(frames: FrameNatives, options: TooltipOptions): To
 
 | 任務 | 測試 | 實作 | 驗證 |
 |---|---|---|---|
-| K1 | 完成（82 組；Codex 撰寫，Antigravity 檢查） | 未開始 | 未開始 |
+| K1 | 完成（Node 82 組，Lua 16 組；Codex 撰寫，Antigravity 檢查） | 完成（使用者） | 完成（第三輪 Codex 與 Antigravity 通過；遊戲內驗證通過，2026-11-06） |
 | K2 | 未開始 | 未開始 | 未開始 |
 | K3 | 未開始 | 未開始 | 未開始 |
 | K4 | 未開始 | 未開始 | 未開始 |

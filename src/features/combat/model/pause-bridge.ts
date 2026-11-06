@@ -1,6 +1,6 @@
-import { Clock, Subscription } from "@shared/rxwc3";
+import { Clock, Subscription } from "@shared/lib/rxwc3";
 
-/** 暫停轉接需要的原生操作。WC3 實作由 `@shared/wc3-def` 的單位與技能介面提供。 */
+/** 暫停轉接需要的原生操作。WC3 實作由 `@shared/lib/wc3-def` 的單位與技能介面提供。 */
 export interface ResourceNatives<U> {
     cooldown(target: U, ability: number): number;
     startCooldown(target: U, ability: number, seconds: number): void;

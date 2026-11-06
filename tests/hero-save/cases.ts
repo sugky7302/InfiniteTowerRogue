@@ -19,7 +19,7 @@ import {
     SaveParticipant,
 } from "@features/save";
 import { loadCommands } from "@features/save";
-import { decodeFileData } from "@shared/file-io";
+import { decodeFileData } from "@shared/lib/file-io";
 import { saveFilePath } from "@features/save";
 import {
     createHeroSaveParticipantsV3 as createHeroSaveParticipants,
