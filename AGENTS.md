@@ -41,6 +41,37 @@ export const KNOWLEDGE_CATALOG: readonly KnowledgeDefinition[] = [ /* … */ ];
 4. 由我本人實作程式碼，**AI Agents** 只能提供建議，不得直接修改。除非是 MDX 或者工具的使用，這部份需要先尋求我的同意。Claude 會要求我回覆是否完成，若是我回答完成，Claude 調用 Codex 以及 Antigravity 進行分開驗證、檢查，確認符合測試。
 5. 檢查後，若是符合，則進行下一個任務，循環往復。若是不符合測試，則重複執行 4.。
 
+## 任務追蹤（GitHub Issue）
+
+`TASK.md` 的每一個任務是一個 GitHub issue（2026-11-06）。
+
+- 標題：`<開發項目名稱> <任務編號>：<TASK.md 的任務標題>`。例如：`知識面板 K2：知識狀態、存檔第 5 版、HeroExample 同步`。
+- 內文：`PLAN.md` 與 `TASK.md` 的連結、`TASK.md` 中該任務的段落（包含完成條件）與進度。任務完成時，加上提交編號。
+- milestone：每個開發項目一個，名稱與開發項目名稱相同。全部任務完成後，關閉 milestone。
+- 儲存庫是公開的。建立 issue 前，必須先得到我的同意。
+
+### 標籤
+
+每個 issue 在每一組中最多使用一個標籤。
+
+| 組 | 標籤 | 顏色 | 使用時機 |
+|---|---|---|---|
+| `type:` | `type: feature` | 綠 | 新功能 |
+| | `type: change` | 藍 | 修改既有程式或規則 |
+| | `type: bugfix` | 紅 | 修正錯誤 |
+| | `type: docs` | 灰 | 只改文件、skill 或工具 |
+| `task:` | `task: <開發項目資料夾名稱>` | 黑 | 屬於哪一個開發項目。例如：`task: knowledge-panel`。新增開發項目時，新增此標籤 |
+| `stage:` | `stage: test` | 黃 | 開發流程 3.：Codex 寫測試，Antigravity 檢查 |
+| | `stage: implement` | 黃 | 開發流程 4.：我實作 |
+| | `stage: verify` | 黃 | 開發流程 4.：Codex 與 Antigravity 驗證 |
+| | `stage: in-game` | 黃 | 我在測試地圖中驗證 |
+| `status:` | `status: paused` | 桃紅 | 暫停 |
+| | `status: blocked` | 橘 | 等待其他任務或決定 |
+
+- `type:` 與 `task:` 必須有。`status:` 只在例外時使用。
+- 任務進入下一步時，同時更新 `TASK.md` 的進度與 `stage:` 標籤。
+- 任務完成時，關閉 issue，並移除 `stage:` 標籤。提交訊息可以使用 `Closes #<編號>`。
+
 # 分層規則（Feature-Sliced Design）
 
 `src/` 分為五層，層名使用 FSD 標準名稱（複數）。上層可以 import 下層，下層不得 import 上層：
