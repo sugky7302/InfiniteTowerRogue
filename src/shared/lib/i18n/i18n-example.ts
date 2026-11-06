@@ -9,7 +9,7 @@ import { installLanguageChat } from "./chat";
 import { createObjectText, ObjectTextData } from "./object-text";
 import { getI18n } from "./translation";
 import { createLocalFileIo } from "../file-io";
-import { languagePreferencePath } from "./preference";
+import { LANGUAGE_PREFERENCE_PATH } from "./preference";
 
 // 此宣告也讓 Node 型別檢查不需要載入建置轉換器的全域型別。
 declare function compiletime<T>(
@@ -38,7 +38,7 @@ export function runI18nExample(): void {
         const files = createLocalFileIo(wc3FileNatives);
         const service = getI18n(files);
         logger.info(`語言偏好讀檔結果：${service.preference?.result.status ?? "未讀取"}。`);
-        logger.info(`偏好檔相對路徑：CustomMapData\\${languagePreferencePath}`);
+        logger.info(`偏好檔相對路徑：CustomMapData\\${LANGUAGE_PREFERENCE_PATH}`);
         logger.info(`啟動採用語言：${service.language()}`);
         logger.info(`自動層技能編輯器名稱：${GetObjectName(FourCC("A0I1")) ?? "無法讀取"}`);
         const objects = createObjectText(service, __i18nObjectData, wc3I18nNatives);

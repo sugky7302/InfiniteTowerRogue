@@ -64,9 +64,9 @@ export const frostbolt: SkillDefinition = {
     model: "Abilities\\Weapons\\LichMissile\\LichMissile.mdl",
     slow: { multiplier: 0.5, duration: 8, group: "寒冰箭減速" },
 };
-export const skills = [fireball, frostbolt];
+export const SKILLS = [fireball, frostbolt];
 
-export const areaChallenge = 1;
+export const AREA_CHALLENGE = 1;
 export const yardsToWc3 = (yards: number): number => yards * 32;
 export const castSeconds = (skill: SkillDefinition, speed = 0, extra = 0): number =>
     Math.max(0.1, (0.5 + skill.complexity * 0.25 + skill.rangeTier * 0.25 + extra) / (1 + speed));

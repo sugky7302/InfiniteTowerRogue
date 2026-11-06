@@ -6,7 +6,10 @@ require("ts-node").register({
     transpileOnly: true,
 });
 const { decodeFileData } = require("../src/shared/lib/file-io/codec.ts");
-const { unescapeFileData, fileAbility } = require("../src/shared/lib/file-io/preload.ts");
+const {
+    unescapeFileData,
+    FILE_ABILITY: fileAbility,
+} = require("../src/shared/lib/file-io/preload.ts");
 const { parseRecords } = require("../src/shared/lib/rxwc3/benchmark/results.ts");
 
 function decodePld(filename) {

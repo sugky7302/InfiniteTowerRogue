@@ -1,6 +1,6 @@
 import { getItemBase, ItemBonusStat } from "@entities/item";
-import { nativeItemIcons } from "../config/native-items";
-import { emptyBagIcon, emptyEquipmentIcons } from "../config/inventory-icons";
+import { NATIVE_ITEM_ICONS } from "../config/native-items";
+import { EMPTY_BAG_ICON, EMPTY_EQUIPMENT_ICONS } from "../config/inventory-icons";
 import { aggregateEquipment } from "../model/aggregate";
 import { compareEquipment } from "../model/compare";
 import {
@@ -9,11 +9,11 @@ import {
     InventorySnapshot,
     inventoryCellItem,
 } from "./interaction";
-import { bagPosition, inventorySlots } from "./layout";
+import { bagPosition, INVENTORY_SLOTS } from "./layout";
 import {
-    equipmentSlotNames,
-    equipmentStatNames,
-    equipmentStatOrder,
+    EQUIPMENT_SLOT_NAMES,
+    EQUIPMENT_STAT_NAMES,
+    EQUIPMENT_STAT_ORDER,
     equipmentStatValue,
     equipFailureText,
     inventoryItemText,
@@ -35,9 +35,9 @@ export function inventorySlotView(
         icon:
             item === false
                 ? cell.kind === "bag"
-                    ? emptyBagIcon
-                    : emptyEquipmentIcons[cell.slot]
-                : nativeItemIcons[item.baseId],
+                    ? EMPTY_BAG_ICON
+                    : EMPTY_EQUIPMENT_ICONS[cell.slot]
+                : NATIVE_ITEM_ICONS[item.baseId],
     };
 }
 export function inventoryDescription(
@@ -47,7 +47,7 @@ export function inventoryDescription(
     if (cell === false) return "移入格子以查看物品；點選一格，再點另一格。";
     const item = inventoryCellItem(snapshot, cell);
     if (item === false)
-        return cell.kind === "bag" ? "空背包格子。" : equipmentSlotNames[cell.slot] + "：空。";
+        return cell.kind === "bag" ? "空背包格子。" : EQUIPMENT_SLOT_NAMES[cell.slot] + "：空。";
     const lines = [...inventoryItemText(item)];
     if (cell.kind === "bag") {
         const comparison = compareEquipment(snapshot.hero, snapshot.worn, item);
@@ -64,11 +64,11 @@ export function inventoryDescription(
                         : getItemBase(comparison.current.baseId).name),
             );
             const changes: string[] = [];
-            for (const key of equipmentStatOrder) {
+            for (const key of EQUIPMENT_STAT_ORDER) {
                 const value = comparison.delta[key];
                 if (value !== 0)
                     changes.push(
-                        equipmentStatNames[key] +
+                        EQUIPMENT_STAT_NAMES[key] +
                             " " +
                             (value > 0 ? "+" : "") +
                             equipmentStatValue(key, value),
@@ -114,11 +114,11 @@ export function inventoryView(
     const summary = aggregateEquipment(snapshot.hero, snapshot.worn);
     return {
         bag,
-        worn: inventorySlots.map((slot) =>
+        worn: INVENTORY_SLOTS.map((slot) =>
             inventorySlotView(snapshot, { kind: "equipment", slot }, selection),
         ),
-        stats: equipmentStatOrder.map((key) => ({
-            name: equipmentStatNames[key],
+        stats: EQUIPMENT_STAT_ORDER.map((key) => ({
+            name: EQUIPMENT_STAT_NAMES[key],
             value: equipmentStatValue(key, summary.stats[key]),
         })),
     };

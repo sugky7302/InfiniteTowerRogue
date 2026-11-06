@@ -11,13 +11,13 @@ import {
 import { EquipFailure, EquipFailureCode } from "../model/equipment";
 import { EquipmentStats } from "../model/aggregate";
 
-export const equipmentSlotNames: Readonly<Record<EquipSlot, string>> = {
+export const EQUIPMENT_SLOT_NAMES: Readonly<Record<EquipSlot, string>> = {
     "main-hand": "主武器",
     "off-hand": "副手",
     armor: "防具",
     tool: "工具",
 };
-export const equipmentStatNames: Readonly<Record<keyof EquipmentStats, string>> = {
+export const EQUIPMENT_STAT_NAMES: Readonly<Record<keyof EquipmentStats, string>> = {
     maxLife: "最大生命",
     meleeAttack: "近戰攻擊力",
     rangedAttack: "遠程攻擊力",
@@ -32,7 +32,7 @@ export const equipmentStatNames: Readonly<Record<keyof EquipmentStats, string>> 
     meleeCritChance: "近戰暴擊率",
     spellCritChance: "法術暴擊率",
 };
-export const equipmentStatOrder: readonly (keyof EquipmentStats)[] = [
+export const EQUIPMENT_STAT_ORDER: readonly (keyof EquipmentStats)[] = [
     "maxLife",
     "meleeAttack",
     "rangedAttack",
@@ -47,7 +47,7 @@ export const equipmentStatOrder: readonly (keyof EquipmentStats)[] = [
     "meleeCritChance",
     "spellCritChance",
 ];
-const percentStats: readonly (keyof EquipmentStats)[] = [
+const PERCENT_STATS: readonly (keyof EquipmentStats)[] = [
     "critChance",
     "critDamage",
     "attackSpeed",
@@ -68,11 +68,11 @@ export function inventoryNumberText(value: number): string {
     return sign + whole + (fraction === 0 ? "" : "." + fraction);
 }
 export function equipmentStatValue(key: keyof EquipmentStats, value: number): string {
-    return percentStats.includes(key)
+    return PERCENT_STATS.includes(key)
         ? inventoryNumberText(value * 100) + "%"
         : inventoryNumberText(value);
 }
-const bonusNames: Readonly<Record<ItemBonusStat, string>> = {
+const BONUS_NAMES: Readonly<Record<ItemBonusStat, string>> = {
     maxLife: "最大生命加值",
     maxLifePercent: "最大生命",
     meleeAttack: "近戰攻擊力",
@@ -92,7 +92,7 @@ const bonusNames: Readonly<Record<ItemBonusStat, string>> = {
     armorPenetration: "固定護甲穿透",
     spellPenetration: "固定法術防禦穿透",
 };
-const percentBonuses: readonly ItemBonusStat[] = [
+const PERCENT_BONUSES: readonly ItemBonusStat[] = [
     "maxLifePercent",
     "attackSpeed",
     "meleeCritChance",
@@ -105,10 +105,10 @@ const percentBonuses: readonly ItemBonusStat[] = [
     "directReduction",
 ];
 export function equipmentBonusName(key: ItemBonusStat): string {
-    return bonusNames[key];
+    return BONUS_NAMES[key];
 }
 export function equipmentBonusValue(key: ItemBonusStat, value: number): string {
-    return inventoryNumberText(value) + (percentBonuses.includes(key) ? "%" : "");
+    return inventoryNumberText(value) + (PERCENT_BONUSES.includes(key) ? "%" : "");
 }
 export function equipFailureText(failure: EquipFailure): string {
     switch (failure.code) {
@@ -133,7 +133,7 @@ export function inventoryItemText(item: ItemInstance): readonly string[] {
         legendary: "傳世",
     };
     const fixed = base.bonuses.map(
-        (bonus) => bonusNames[bonus.stat] + " +" + equipmentBonusValue(bonus.stat, bonus.value),
+        (bonus) => BONUS_NAMES[bonus.stat] + " +" + equipmentBonusValue(bonus.stat, bonus.value),
     );
     if (base.weapon !== undefined)
         fixed.push(
@@ -150,7 +150,7 @@ export function inventoryItemText(item: ItemInstance): readonly string[] {
         return definition.name + " +" + entry.value + unit;
     });
     return [
-        `${base.name}，${tiers[item.tier]}階，${equipmentSlotNames[base.slot]}，編號 ${item.id}`,
+        `${base.name}，${tiers[item.tier]}階，${EQUIPMENT_SLOT_NAMES[base.slot]}，編號 ${item.id}`,
         "固定屬性：" + (fixed.length > 0 ? fixed.join("、") : "無"),
         "詞綴：" + (affixes.length > 0 ? affixes.join("、") : "無"),
     ];

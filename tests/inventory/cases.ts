@@ -5,7 +5,7 @@ import {
     ItemTier,
     getItemBase,
     getAffixRange,
-    tierAffixCounts,
+    TIER_AFFIX_COUNTS,
     EquipSlot,
 } from "@entities/item";
 import {
@@ -16,7 +16,7 @@ import {
     swapBagSlots,
     findBagSlot,
     emptyEquipment,
-    nativeItemTypes,
+    NATIVE_ITEM_TYPES,
 } from "@features/equipment";
 import {
     createDemoRegistry,
@@ -27,7 +27,7 @@ import {
     compactCode,
     initialDemoData,
     loadCommands,
-    saveFilePath,
+    SAVE_FILE_PATH,
 } from "@features/save";
 import { encodeFileData, decodeFileData } from "@shared/lib/file-io";
 import { HeroExample } from "../../src/app/hero-example";
@@ -69,7 +69,7 @@ export function inventoryItem(
         baseId: base,
         tier,
         affixes: getItemBase(base)
-            .affixPool.slice(0, tierAffixCounts[tier])
+            .affixPool.slice(0, TIER_AFFIX_COUNTS[tier])
             .map((entry) => ({
                 affixId: entry.affixId,
                 value: getAffixRange(entry.affixId, tier)[1],
@@ -276,7 +276,7 @@ export const inventoryCases: { name: string; run: (this: void) => void }[] = [
             const setup = setupSave(codec);
             try {
                 const name = setup.names.get(setup.network.players[0])!;
-                setup.files[0].setData(saveFilePath, encodeFileData(codec.encode(data, name)!)!);
+                setup.files[0].setData(SAVE_FILE_PATH, encodeFileData(codec.encode(data, name)!)!);
                 setup.command("-load");
                 check(
                     setup.network.packets.length === Math.ceil(code.length / 200) &&
@@ -378,7 +378,7 @@ export const inventoryCases: { name: string; run: (this: void) => void }[] = [
             f.demo.command("-item-new 訓練短劍");
             const handle = f.native.byId(3).handle;
             check(
-                f.native.byId(3).code === nativeItemTypes[ItemBaseId.TrainingSword] &&
+                f.native.byId(3).code === NATIVE_ITEM_TYPES[ItemBaseId.TrainingSword] &&
                     !f.native.byId(3).visible,
             );
             check(f.demo.command("-drop 1")![0] === "已丟棄物品。");

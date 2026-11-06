@@ -12,7 +12,7 @@ export type ItemBaseId = (typeof ItemBaseId)[keyof typeof ItemBaseId];
 function pool(...ids: AffixId[]): readonly AffixPoolEntry[] {
     return ids.map((affixId) => ({ affixId, weight: 1 }));
 }
-export const itemBases: readonly ItemBase[] = [
+export const ITEM_BASES: readonly ItemBase[] = [
     {
         id: ItemBaseId.RuneStaff,
         name: "符文杖",
@@ -94,7 +94,7 @@ export const itemBases: readonly ItemBase[] = [
     },
 ];
 export function getItemBase(id: string): ItemBase {
-    const result = itemBases.find((entry) => entry.id === id);
+    const result = ITEM_BASES.find((entry) => entry.id === id);
     if (!result) throw new Error("物品基底識別碼未登錄。");
     return result;
 }

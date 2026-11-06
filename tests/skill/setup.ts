@@ -1,5 +1,5 @@
 import { Clock, createWc3Events, frames } from "../../src/shared/lib/rxwc3";
-import { SkillRuntime, fireball, frostbolt, SkillDefinition, skills } from "@features/skill";
+import { SkillRuntime, fireball, frostbolt, SkillDefinition, SKILLS } from "@features/skill";
 import { FakeClockDriver } from "../rxwc3/fake-clock-driver";
 import { FakeEventNatives, spell } from "../rxwc3/fake-event-natives";
 import { abilityCode, FakeFrames, FakeSkillNatives, makeUnit } from "./fakes";
@@ -14,7 +14,7 @@ export function setupSkill() {
     const caster = makeUnit(),
         target = makeUnit(320, 0);
     const runtime = new SkillRuntime(natives, natives, clock, frames({ clock, natives: timer }));
-    runtime.track(caster, skills, events, abilityCode);
+    runtime.track(caster, SKILLS, events, abilityCode);
     natives.targets = [caster, target];
     const order = (orderId = 851972): void => {
         eventNatives.currentOrder = {

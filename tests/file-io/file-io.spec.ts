@@ -4,12 +4,12 @@ import {
     createLocalFileIo,
     encodeFileData,
     decodeFileData,
-    maxFileDataLength,
+    MAX_FILE_DATA_LENGTH,
 } from "../../src/shared/lib/file-io";
 import {
     encodeLanguagePreference,
     decodeLanguagePreference,
-    languagePreferencePath,
+    LANGUAGE_PREFERENCE_PATH,
 } from "../../src/shared/lib/i18n/preference";
 import { createI18n } from "../../src/shared/lib/i18n/translation";
 import { installLanguageChat } from "../../src/shared/lib/i18n/chat";
@@ -17,7 +17,7 @@ import { Subject } from "../../src/shared/lib/rxwc3/core/subject";
 import { ChatEvent, wc3FileNatives } from "@shared/lib/wc3-def";
 import { FakeSyncNetwork } from "../rxwc3/fake-sync-natives";
 import { fakeFileIo } from "./fake-file-io";
-import { fileAbility, filePreloadStart, filePreloadEnd } from "../../src/shared/lib/file-io";
+import { FILE_ABILITY, FILE_PRELOAD_START, FILE_PRELOAD_END } from "../../src/shared/lib/file-io";
 import { verifyFileIo } from "./file-io-lua.spec";
 
 test("本地檔案在 Node 執行二十八組 Lua 共用流程", () => assert.equal(verifyFileIo(), 28));
@@ -38,11 +38,11 @@ test("偏好拒絕其他版本、尾隨文字、錯誤大小寫與空白", () =>
     }
 });
 test("檔案資料支援空字串、分隔符號與長內容", () => {
-    for (const value of ["", "ABC|[]:'-_/", "Z".repeat(maxFileDataLength)])
+    for (const value of ["", "ABC|[]:'-_/", "Z".repeat(MAX_FILE_DATA_LENGTH)])
         assert.equal(decodeFileData(encodeFileData(value)!), value);
 });
 test("檔案資料拒絕注入字元、中文與長度超限", () => {
-    for (const value of ['"', "\\", "\n", "\r", "\0", "甲", "Z".repeat(maxFileDataLength + 1)])
+    for (const value of ['"', "\\", "\n", "\r", "\0", "甲", "Z".repeat(MAX_FILE_DATA_LENGTH + 1)])
         assert.equal(encodeFileData(value), undefined);
 });
 test("檔案資料拒絕錯誤長度、檢查碼與多餘內容", () => {
@@ -60,13 +60,13 @@ test("檔案資料拒絕錯誤長度、檢查碼與多餘內容", () => {
 });
 test("檢查碼在 32 位元整數與浮點數中保持精確", () => {
     let checksum = 0;
-    for (let i = 0; i < maxFileDataLength; i++) {
+    for (let i = 0; i < MAX_FILE_DATA_LENGTH; i++) {
         const middle = checksum * 31 + 126;
         assert(middle <= 2147483647);
         assert.equal(Math.fround(middle), middle);
         checksum = middle % 65521;
     }
-    assert(encodeFileData("~".repeat(maxFileDataLength))!.endsWith("|" + checksum));
+    assert(encodeFileData("~".repeat(MAX_FILE_DATA_LENGTH))!.endsWith("|" + checksum));
 });
 test("不存在的偏好使用用戶端語言，其他語言使用正體", () => {
     const files = createLocalFileIo(fakeFileIo().natives);
@@ -81,7 +81,7 @@ test("不存在的偏好使用用戶端語言，其他語言使用正體", () =>
 });
 test("有效檔案框架內的錯誤偏好使用用戶端語言", () => {
     const fake = fakeFileIo();
-    fake.setData(languagePreferencePath, encodeFileData("ITR-LANG-1:frFR")!);
+    fake.setData(LANGUAGE_PREFERENCE_PATH, encodeFileData("ITR-LANG-1:frFR")!);
     const service = createI18n({ getLocale: () => "zhCN" }, createLocalFileIo(fake.natives));
     assert.equal(service.language(), "zh-CN");
     assert.equal(service.preference?.result.status, "內容錯誤");
@@ -106,11 +106,11 @@ test("寫入最長資料時每段至多 259 字元且使用內嵌 Lua", () => {
         emit(line);
     };
     const files = createLocalFileIo(fake.natives);
-    const payload = "A".repeat(maxFileDataLength);
+    const payload = "A".repeat(MAX_FILE_DATA_LENGTH);
     assert.equal(files.write("slot.pld", payload).status, "已送出，尚未確認磁碟寫入");
     assert(emitted.every((line) => Buffer.byteLength(line) <= 259));
-    assert.equal(emitted[0], filePreloadStart);
-    assert.equal(emitted.at(-1), filePreloadEnd);
+    assert.equal(emitted[0], FILE_PRELOAD_START);
+    assert.equal(emitted.at(-1), FILE_PRELOAD_END);
     assert.deepEqual(files.read("slot.pld"), { status: "已讀取", data: payload });
     assert.equal(fake.lines.length, 0);
 });
@@ -228,12 +228,12 @@ test("正式介面只呼叫圖示與預載原生函式", () => {
         assert(
             calls
                 .filter(([name]) => name === "BlzGetAbilityIcon")
-                .every(([, args]) => args.length === 1 && args[0] === fileAbility),
+                .every(([, args]) => args.length === 1 && args[0] === FILE_ABILITY),
         );
         assert(
             calls
                 .filter(([name]) => name === "BlzSetAbilityIcon")
-                .every(([, args]) => args.length === 2 && args[0] === fileAbility),
+                .every(([, args]) => args.length === 2 && args[0] === FILE_ABILITY),
         );
     } finally {
         names.forEach((name, index) => {

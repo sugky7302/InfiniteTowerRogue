@@ -27,7 +27,7 @@ import {
     settleDamage,
     rollCheck,
 } from "@entities/combat";
-import { areaChallenge, castSeconds, SkillDefinition, yardsToWc3 } from "../config/definitions";
+import { AREA_CHALLENGE, castSeconds, SkillDefinition, yardsToWc3 } from "../config/definitions";
 import { SkillNatives } from "../api/natives";
 
 interface Projectile {
@@ -155,7 +155,7 @@ export class SkillRuntime {
         const caster = this.stats.caster(event.caster);
         const threshold = checkValue({
             challenge:
-                skill.target === "point" ? areaChallenge : this.stats.challenge(event.target!),
+                skill.target === "point" ? AREA_CHALLENGE : this.stats.challenge(event.target!),
             complexity: skill.complexity,
             adverse: skill.target === "point" ? 0 : this.stats.evasion(event.target!),
             level: caster.level,

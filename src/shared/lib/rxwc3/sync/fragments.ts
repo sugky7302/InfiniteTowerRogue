@@ -2,8 +2,8 @@ import { Clock } from "../scheduler/clock";
 import { Subscription } from "../core/subscription";
 import { syncDataByteLength, validSyncData } from "./limits";
 
-export const maxFragmentCount = 64;
-export const maxTransferBytes = 4096;
+export const MAX_FRAGMENT_COUNT = 64;
+export const MAX_TRANSFER_BYTES = 4096;
 
 export interface Fragment {
     transfer: number;
@@ -41,7 +41,7 @@ export class FragmentReceiver {
             transfer > 1048575 ||
             !Number.isInteger(count) ||
             count < 1 ||
-            count > maxFragmentCount ||
+            count > MAX_FRAGMENT_COUNT ||
             !Number.isInteger(index) ||
             index < 1 ||
             index > count
@@ -71,7 +71,7 @@ export class FragmentReceiver {
         }
         if (existing !== undefined) return undefined;
         this.length += syncDataByteLength(data);
-        if (this.length > maxTransferBytes) {
+        if (this.length > MAX_TRANSFER_BYTES) {
             this.clear();
             this.failed();
             return undefined;

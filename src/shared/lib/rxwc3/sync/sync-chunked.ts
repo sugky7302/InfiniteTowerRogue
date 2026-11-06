@@ -6,7 +6,12 @@ import { uiClock } from "../scheduler/clocks";
 import { PlayerInput, unwrapPlayer, SyncNatives, wc3SyncNatives } from "@shared/lib/wc3-def";
 import { Local, Sync } from "./types";
 import { sync, SyncOptions } from "./sync";
-import { decodeFragment, FragmentReceiver, maxFragmentCount, maxTransferBytes } from "./fragments";
+import {
+    decodeFragment,
+    FragmentReceiver,
+    MAX_FRAGMENT_COUNT,
+    MAX_TRANSFER_BYTES,
+} from "./fragments";
 
 export interface ChunkedSyncOptions<T> extends SyncOptions<T> {
     clock?: Clock;
@@ -45,7 +50,7 @@ export function splitSyncData(data: string, chunkBytes = 200): string[] | undefi
         }
         if (character.indexOf("\0") >= 0) return undefined;
         total += length;
-        if (total > maxTransferBytes) return undefined;
+        if (total > MAX_TRANSFER_BYTES) return undefined;
         if (bytes + length > chunkBytes) {
             parts.push(part);
             part = "";
@@ -55,7 +60,7 @@ export function splitSyncData(data: string, chunkBytes = 200): string[] | undefi
         bytes += length;
     }
     parts.push(part);
-    return parts.length <= maxFragmentCount ? parts : undefined;
+    return parts.length <= MAX_FRAGMENT_COUNT ? parts : undefined;
 }
 declare const string: unknown;
 

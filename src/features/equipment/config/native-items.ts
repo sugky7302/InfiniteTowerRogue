@@ -1,7 +1,7 @@
 import type { ItemBaseId } from "@entities/item";
 
 /** 已使用的代碼不得改指向其他基底。建置時檢查衝突。 */
-export const nativeItemTypes: Readonly<Record<ItemBaseId, string>> = {
+export const NATIVE_ITEM_TYPES: Readonly<Record<ItemBaseId, string>> = {
     "rune-staff": "I0B1",
     "training-sword": "I0B2",
     "patrol-hammer": "I0B3",
@@ -9,7 +9,7 @@ export const nativeItemTypes: Readonly<Record<ItemBaseId, string>> = {
     "apprentice-robe": "I0B5",
 };
 
-export const nativeItemIcons: Readonly<Record<string, string>> = {
+export const NATIVE_ITEM_ICONS: Readonly<Record<string, string>> = {
     "rune-staff": "ReplaceableTextures\\CommandButtons\\BTNStaffOfSanctuary.blp",
     "training-sword": "ReplaceableTextures\\CommandButtons\\BTNSteelMelee.blp",
     "patrol-hammer": "ReplaceableTextures\\CommandButtons\\BTNHammer.blp",
@@ -17,7 +17,7 @@ export const nativeItemIcons: Readonly<Record<string, string>> = {
     "apprentice-robe": "ReplaceableTextures\\CommandButtons\\BTNRobeOfTheMagi.blp",
 };
 
-export const nativeItemNames: Readonly<Record<ItemBaseId, string>> = {
+export const NATIVE_ITEM_NAMES: Readonly<Record<ItemBaseId, string>> = {
     "rune-staff": "符文杖",
     "training-sword": "訓練短劍",
     "patrol-hammer": "巡檢長槌",

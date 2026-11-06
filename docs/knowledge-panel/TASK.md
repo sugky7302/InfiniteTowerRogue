@@ -165,7 +165,7 @@ export function createTooltip(frames: FrameNatives, options: TooltipOptions): To
 
 ## K1：知識目錄與等級（entities）
 
-- 目錄：`heroKnowledge` 的 7 項，編號 0～6，名稱與順序相同。資料取自 `docs/dnd/知識/` 的頁首（主要節點類型、主要歸屬法則、知識深度）與第一段。
+- 目錄：`HERO_KNOWLEDGE` 的 7 項，編號 0～6，名稱與順序相同。資料取自 `docs/dnd/知識/` 的頁首（主要節點類型、主要歸屬法則、知識深度）與第一段。
 - `knowledgeLevel(units)`：
   - 0 為 0 級；1～9999 為 0 級（解析中）；10000 為 1 級；29999 為 1 級；30000 為 2 級；359999 為 7 級；360000 為 8 級；400000 為 8 級。
   - 大於 `KNOWLEDGE_EXP_MAX` 時以上限計算（400001、2147483647 為 8 級）。
@@ -180,7 +180,7 @@ export function createTooltip(frames: FrameNatives, options: TooltipOptions): To
   - 例如 0 →「0.00」，5 →「0.05」，50 →「0.50」，3500 →「35.00」，400000 →「4000.00」。
   - 負數或非整數丟出錯誤。大於上限時照實顯示。
 
-- `src/app/hero-save.ts` 的 `heroKnowledge` 改為 `KNOWLEDGE_CATALOG.map((entry) => entry.name)`。值不變（7 項，順序相同），既有測試不受影響。原因：Steiger 把沒有被任何程式 import 的 slice 視為錯誤（`fsd/insignificant-slice`，2026-11-05 實測），所以 K1 就讓 app 層 import 它。
+- `src/app/hero-save.ts` 的 `HERO_KNOWLEDGE`（K1 時名為 `heroKnowledge`）改為 `KNOWLEDGE_CATALOG.map((entry) => entry.name)`。值不變（7 項，順序相同），既有測試不受影響。原因：Steiger 把沒有被任何程式 import 的 slice 視為錯誤（`fsd/insignificant-slice`，2026-11-05 實測），所以 K1 就讓 app 層 import 它。
 
 完成條件：測試通過；`npm run test:unit` 通過；`npm run lint:fsd` 沒有錯誤。
 
@@ -219,11 +219,11 @@ export function createTooltip(frames: FrameNatives, options: TooltipOptions): To
   - 版本 v 的區段：第一個 `until ≥ v` 的項目；沒有時使用目前的 `section`。
   - 讀取版本 v：依序執行每個 `until ≥ v` 項目的 `migrate`。
   - 裝備：`[{ until: 3, … }]`（沿用現有轉換）。英雄：`[{ until: 4, section: 旗標區段, migrate: 旗標 → 單位 }]`。
-- `demoSaveVersion` 維持 2（沒有參與者時的範例格式）。有參與者時，最新版本＝`max(3, 全部 history 的 until + 1)`：
+- `DEMO_SAVE_VERSION` 維持 2（沒有參與者時的範例格式）。有參與者時，最新版本＝`max(3, 全部 history 的 until + 1)`：
   - 傳入第 3 版參與者（`createHeroSaveParticipantsV3`，沒有 `history`）時為第 3 版，與現有測試相同。
   - 傳入目前的參與者時，註冊第 3、4、5 版，以第 5 版編碼。
   - 第 2 版轉第 3 版時，每個參與者使用第一個 `until ≥ 3` 項目的 `empty`；沒有時使用 `participant.empty`。
-- `maxPackedBytes` 改為 800。
+- `MAX_PACKED_BYTES` 改為 800。
 - 第 5 版 `hero.knowledge`：32 個 0～400000 的整數（每項 19 位元）。
 - 讀檔拒絕：
   - 經驗不是 0～400000 的整數。

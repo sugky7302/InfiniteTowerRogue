@@ -13,7 +13,7 @@ import {
 } from "@entities/combat";
 import {
     createItem,
-    itemBases,
+    ITEM_BASES,
     ItemBaseId,
     ItemInstance,
     ItemTier,
@@ -79,7 +79,7 @@ function attack(f: ReturnType<typeof combatFixture>) {
     }));
 }
 export const heroCases: { name: string; run(this: void): void }[] = [];
-for (const entry of itemBases) {
+for (const entry of ITEM_BASES) {
     const base = entry;
     for (const bound of ["low", "high"] as const) {
         const edge = bound;
@@ -102,7 +102,7 @@ for (const entry of itemBases) {
 heroCases.push({
     name: "普通階每個詞綴池與區間中的整數都可抽取",
     run() {
-        for (const base of itemBases) {
+        for (const base of ITEM_BASES) {
             for (let index = 0; index < base.affixPool.length; index++) {
                 const position = index;
                 const entry = base.affixPool[position];

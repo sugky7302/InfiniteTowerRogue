@@ -3,13 +3,13 @@ import { logger } from "../../../logger";
 import { Subscription } from "../../index";
 import { Measurement } from "../measurement";
 import { dispatchGoal, median, observationalGoal, ratio, resolvedMs } from "../metrics";
-import { cases, createWorkload, Mode } from "../workloads";
+import { CASES, createWorkload, Mode } from "../workloads";
 import { Output, Pump } from "./runtime";
 import { runTimers } from "./timers";
 
-const warmup = 1000;
-const iterations = 2000;
-const rounds = 5;
+const WARMUP = 1000;
+const ITERATIONS = 2000;
+const ROUNDS = 5;
 
 export function runP1(output: Output, owner: Subscription): void {
     const pump = new Pump(owner);
@@ -17,9 +17,9 @@ export function runP1(output: Output, owner: Subscription): void {
         output.metadata(),
         output.row({
             type: "config",
-            warmup,
-            iterations,
-            rounds,
+            warmup: WARMUP,
+            iterations: ITERATIONS,
+            rounds: ROUNDS,
             batch_max: 25,
             batch_budget_us: 5000,
             batch_pause_ms: 30,
@@ -32,7 +32,7 @@ export function runP1(output: Output, owner: Subscription): void {
     });
     let caseIndex = 0;
     const nextCase = (): void => {
-        if (caseIndex === cases.length) {
+        if (caseIndex === CASES.length) {
             runTimers(output, owner, records, () => {
                 records.push(
                     output.row({
@@ -51,7 +51,7 @@ export function runP1(output: Output, owner: Subscription): void {
             });
             return;
         }
-        const spec = cases[caseIndex];
+        const spec = CASES[caseIndex];
         const values: Record<Mode, number[]> = { native: [], rx: [] };
         const memory: Record<Mode, number[]> = { native: [], rx: [] };
         let mode: Mode = "native";
@@ -61,7 +61,7 @@ export function runP1(output: Output, owner: Subscription): void {
             const dispose = () => work.dispose();
             owner.add(dispose);
             const measurement = new Measurement(work, output.functions, output.capabilities);
-            const target = round < 0 ? warmup : iterations;
+            const target = round < 0 ? WARMUP : ITERATIONS;
             const batch = (): void => {
                 measurement.runBatch(target - measurement.completed);
                 if (measurement.completed < target) {
@@ -110,7 +110,7 @@ export function runP1(output: Output, owner: Subscription): void {
                 work.dispose();
                 owner.remove(dispose);
                 round++;
-                if (round < rounds) {
+                if (round < ROUNDS) {
                     pump.later(runRound);
                     return;
                 }
@@ -120,26 +120,26 @@ export function runP1(output: Output, owner: Subscription): void {
                     pump.later(runRound);
                     return;
                 }
-                const native = values.native.length === rounds ? median(values.native) : undefined;
-                const rx = values.rx.length === rounds ? median(values.rx) : undefined;
-                const perEvent = rx === undefined ? undefined : rx / iterations;
+                const native = values.native.length === ROUNDS ? median(values.native) : undefined;
+                const rx = values.rx.length === ROUNDS ? median(values.rx) : undefined;
+                const perEvent = rx === undefined ? undefined : rx / ITERATIONS;
                 records.push(
                     output.row({
                         type: "summary",
                         id: spec.id,
-                        operations: iterations,
+                        operations: ITERATIONS,
                         native_ms: resultValue(native),
                         rx_ms: resultValue(rx),
                         native_ms_op: resultValue(
-                            native === undefined ? undefined : native / iterations,
+                            native === undefined ? undefined : native / ITERATIONS,
                         ),
                         rx_ms_op: resultValue(perEvent),
                         ratio: resultValue(ratio(rx, native)),
                         native_alloc_kb_op: resultValue(
-                            memory.native.length === rounds ? median(memory.native) : undefined,
+                            memory.native.length === ROUNDS ? median(memory.native) : undefined,
                         ),
                         rx_alloc_kb_op: resultValue(
-                            memory.rx.length === rounds ? median(memory.rx) : undefined,
+                            memory.rx.length === ROUNDS ? median(memory.rx) : undefined,
                         ),
                     }),
                 );

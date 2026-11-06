@@ -1,9 +1,9 @@
-import { SaveData, SaveRegistry, maxPackedBytes } from "./format";
+import { SaveData, SaveRegistry, MAX_PACKED_BYTES } from "./format";
 import { hmac256, NumberAudit, utf8 } from "../lib/hash";
-import { currentKeyVersion, saveKeys } from "../config/keys";
+import { CURRENT_KEY_VERSION, SAVE_KEYS } from "../config/keys";
 
-export const saveAlphabet = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
-export const maxSaveCodeLength = 1600;
+export const SAVE_ALPHABET = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+export const MAX_SAVE_CODE_LENGTH = 1600;
 
 /** 只折疊 ASCII 大小寫。其他 UTF-8 位元組保留，確保 Node 與 Lua 一致。 */
 export function normalizePlayerName(name: string): string {
@@ -44,24 +44,24 @@ export function encodeBase32(bytes: readonly number[], audit?: NumberAudit): str
         bits += 8;
         while (bits >= 5) {
             bits -= 5;
-            text += saveAlphabet.charAt(Math.floor(pending / 2 ** bits));
+            text += SAVE_ALPHABET.charAt(Math.floor(pending / 2 ** bits));
             pending %= 2 ** bits;
         }
     }
-    if (bits > 0) text += saveAlphabet.charAt(pending * 2 ** (5 - bits));
+    if (bits > 0) text += SAVE_ALPHABET.charAt(pending * 2 ** (5 - bits));
     const groups: string[] = [];
     for (let index = 0; index < text.length; index += 5) groups.push(text.slice(index, index + 5));
     return groups.join("-");
 }
 
 export function decodeBase32(code: string, audit?: NumberAudit): number[] | undefined {
-    if (code.length > maxSaveCodeLength) return undefined;
+    if (code.length > MAX_SAVE_CODE_LENGTH) return undefined;
     const text = compactCode(code);
     const bytes: number[] = [];
     let pending = 0;
     let bits = 0;
     for (let index = 0; index < text.length; index++) {
-        const value = saveAlphabet.indexOf(text.charAt(index));
+        const value = SAVE_ALPHABET.indexOf(text.charAt(index));
         if (value < 0) return undefined;
         pending = pending * 32 + value;
         audit?.(pending);
@@ -153,12 +153,12 @@ export class SaveCodec {
         if (utf8(normalizePlayerName(playerName)).length > 256) return undefined;
         const packed = this.registry.pack(data, this.version, this.audit);
         if (packed === undefined) return undefined;
-        const key = utf8(saveKeys[currentKeyVersion]);
-        const tag = authentication(key, packed, playerName, currentKeyVersion, this.audit);
+        const key = utf8(SAVE_KEYS[CURRENT_KEY_VERSION]);
+        const tag = authentication(key, packed, playerName, CURRENT_KEY_VERSION, this.audit);
         return encodeBase32(
             [
                 this.version,
-                currentKeyVersion,
+                CURRENT_KEY_VERSION,
                 ...tag,
                 ...transform(packed, tag, key, false, this.audit),
             ],
@@ -170,9 +170,9 @@ export class SaveCodec {
     public decode(code: string, playerName: string): SaveData | undefined {
         if (utf8(normalizePlayerName(playerName)).length > 256) return undefined;
         const bytes = decodeBase32(code, this.audit);
-        if (bytes === undefined || bytes.length < 19 || bytes.length > maxPackedBytes + 18)
+        if (bytes === undefined || bytes.length < 19 || bytes.length > MAX_PACKED_BYTES + 18)
             return undefined;
-        const secret = saveKeys[bytes[1]];
+        const secret = SAVE_KEYS[bytes[1]];
         if (secret === undefined) return undefined;
         const key = utf8(secret);
         const tag = bytes.slice(2, 18);

@@ -1,5 +1,5 @@
 /** 尺寸由 inventory.fdf 定義。此處只計算位置。 */
-export const inventorySlots = ["main-hand", "off-hand", "armor", "tool"] as const;
+export const INVENTORY_SLOTS = ["main-hand", "off-hand", "armor", "tool"] as const;
 
 export function bagPosition(index: number) {
     if (!Number.isInteger(index) || index < 0 || index >= 90)
@@ -17,4 +17,4 @@ export function equipmentPosition(index: number) {
 }
 
 /** 正面的英雄預覽包裝模型。I3 確認 SPRITE 路徑須使用 .mdl。 */
-export const previewModelPath = "ui\\itr-hero-preview.mdl";
+export const PREVIEW_MODEL_PATH = "ui\\itr-hero-preview.mdl";

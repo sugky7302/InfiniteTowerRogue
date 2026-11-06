@@ -10,7 +10,7 @@ import {
     Clock,
     fragmentNumber,
 } from "@shared/lib/rxwc3";
-import { SaveCodec, maxSaveCodeLength } from "./codec";
+import { SaveCodec, MAX_SAVE_CODE_LENGTH } from "./codec";
 import { SaveData } from "./format";
 import { createDemoCodec, initialDemoData, changeDemo } from "./demo";
 import { loadCommands, ManualSaveInput } from "./manual-input";
@@ -20,8 +20,8 @@ import { logger } from "@shared/lib/logger";
 /** 存檔流程需要的玩家原生操作。 */
 export type SaveNatives = Pick<PlayerNatives, "playerName" | "display">;
 
-export const saveFilePath = "InfiniteTowerRogue\\save.pld";
-export const readableSavePath = "InfiniteTowerRogue\\save-commands.pld";
+export const SAVE_FILE_PATH = "InfiniteTowerRogue\\save.pld";
+export const READABLE_SAVE_PATH = "InfiniteTowerRogue\\save-commands.pld";
 
 interface SaveRead {
     request: number;
@@ -98,13 +98,13 @@ export function installSaveChat(
         const saves = new Subject<string>();
         owner.add(
             saves.pipe(forLocalPlayer(player, network)).subscribe((code) => {
-                const written = files.write(saveFilePath, code);
-                const readable = files.writeReadable(readableSavePath, loadCommands(code));
+                const written = files.write(SAVE_FILE_PATH, code);
+                const readable = files.writeReadable(READABLE_SAVE_PATH, loadCommands(code));
                 natives.display(
                     player,
                     `存檔檔案 ${written.status}。指令檔案 ${readable.status}。file-io 只能回報已送出。`,
                 );
-                natives.display(player, `CustomMapData\\${saveFilePath}`);
+                natives.display(player, `CustomMapData\\${SAVE_FILE_PATH}`);
                 natives.display(player, `存檔碼 ${code}`);
             }),
         );
@@ -112,7 +112,7 @@ export function installSaveChat(
         const localReads = new Observable<SaveRead, "local">(
             (subscriber) =>
                 reads.pipe(forLocalPlayer(player, network)).subscribe((request) => {
-                    const result = files.read(saveFilePath);
+                    const result = files.read(SAVE_FILE_PATH);
                     // 讀取失敗與存檔碼無效最後都顯示同一句。此提示只在本地說明讀取結果。
                     if (result.status === FileReadStatus.InvalidData)
                         natives.display(
@@ -121,13 +121,13 @@ export function installSaveChat(
                         );
                     else if (result.status !== FileReadStatus.Read)
                         natives.display(player, `存檔檔案${result.status}。`);
-                    else if (result.data.length > maxSaveCodeLength)
+                    else if (result.data.length > MAX_SAVE_CODE_LENGTH)
                         natives.display(player, `存檔檔案過長：${result.data.length} 個字元。`);
                     subscriber.next({
                         request,
                         code:
                             result.status === FileReadStatus.Read &&
-                            result.data.length <= maxSaveCodeLength
+                            result.data.length <= MAX_SAVE_CODE_LENGTH
                                 ? result.data
                                 : "",
                     });

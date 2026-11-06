@@ -8,10 +8,10 @@ import {
     createDemoCodec,
     initialDemoData,
     loadCommands,
-    manualFragmentLength,
+    MANUAL_FRAGMENT_LENGTH,
     ManualSaveInput,
-    saveFilePath,
-    readableSavePath,
+    SAVE_FILE_PATH,
+    READABLE_SAVE_PATH,
 } from "@features/save";
 import { encodeFileData, decodeFileData } from "../../src/shared/lib/file-io";
 import { Clock } from "../../src/shared/lib/rxwc3";
@@ -26,12 +26,12 @@ test("存檔收集同步資料，只在擁有者寫入兩份檔案與顯示結�
         setup.command("-save");
         assert.equal(setup.files[0].writes(), 2);
         assert.equal(setup.files[1].writes(), 0);
-        const code = decodeFileData(setup.files[0].getData(saveFilePath)!)!;
+        const code = decodeFileData(setup.files[0].getData(SAVE_FILE_PATH)!)!;
         assert.deepEqual(
             createDemoCodec().decode(code, setup.names.get(setup.network.players[0])!),
             { demo: { level: 10, gold: 500, items: [2, 0, 0, 0, 0, 0] } },
         );
-        const readable = setup.files[0].outputs.get(readableSavePath)!.join("\n");
+        const readable = setup.files[0].outputs.get(READABLE_SAVE_PATH)!.join("\n");
         assert(readable.includes(`-load ${code}`));
         assert(readable.includes("-load 1/1 "));
         assert(
@@ -122,7 +122,7 @@ test("長存檔自動分段並可用亂序手動指令完整載入", () => {
         for (const service of setup.services) service.states.set(setup.network.players[0], data);
         setup.command("-save");
         const commands = setup.files[0].outputs
-            .get(readableSavePath)!
+            .get(READABLE_SAVE_PATH)!
             .map((line) => line.slice(6, -3));
         assert(commands.length > 1 && commands.every((command) => command.length <= 126));
         setup.command("-save-demo gold 0");
@@ -157,11 +157,12 @@ for (const mode of ["不存在", "框架損壞", "碼無效", "讀取例外", "�
     test(`自動讀檔處理${mode}，保留原資料並提示手動輸入`, () => {
         const setup = setupSave();
         try {
-            if (mode === "框架損壞") setup.files[0].setData(saveFilePath, "損壞");
-            if (mode === "碼無效") setup.files[0].setData(saveFilePath, encodeFileData("INVALID")!);
+            if (mode === "框架損壞") setup.files[0].setData(SAVE_FILE_PATH, "損壞");
+            if (mode === "碼無效")
+                setup.files[0].setData(SAVE_FILE_PATH, encodeFileData("INVALID")!);
             if (mode === "讀取例外") setup.files[0].failRead(true);
             if (mode === "超長檔案")
-                setup.files[0].setData(saveFilePath, encodeFileData("A".repeat(2000))!);
+                setup.files[0].setData(SAVE_FILE_PATH, encodeFileData("A".repeat(2000))!);
             setup.command("-save-demo level 80");
             setup.command("-load");
             setup.network.flush();
@@ -258,7 +259,7 @@ test("寫檔失敗仍顯示可手動備份的存檔碼", () => {
     }
 });
 test("單片上限為 80，最長格式的每條指令均小於 127 字元", () => {
-    assert.equal(manualFragmentLength, 80);
+    assert.equal(MANUAL_FRAGMENT_LENGTH, 80);
     const commands = loadCommands("A".repeat(1016));
     assert(commands.length > 9 && commands.every((command) => command.length <= 126));
     assert(encodeFileData(commands.join(" | ")));
@@ -302,7 +303,7 @@ test("同一玩家連續自動讀檔以新傳輸覆蓋舊傳輸", () => {
     const name = setup.names.get(setup.network.players[0])!;
     try {
         setup.files[0].setData(
-            saveFilePath,
+            SAVE_FILE_PATH,
             encodeFileData(
                 codec.encode({ demo: { ...initialDemoData().demo, level: 10 } }, name)!,
             )!,
@@ -310,7 +311,7 @@ test("同一玩家連續自動讀檔以新傳輸覆蓋舊傳輸", () => {
         setup.command("-load");
         const old = setup.network.packets.splice(0);
         setup.files[0].setData(
-            saveFilePath,
+            SAVE_FILE_PATH,
             encodeFileData(
                 codec.encode({ demo: { ...initialDemoData().demo, level: 90 } }, name)!,
             )!,

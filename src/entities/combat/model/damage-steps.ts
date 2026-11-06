@@ -1012,7 +1012,7 @@ export function finishDamage(state: DamageState): DamageState {
     };
 }
 
-export const damageSteps = [
+export const DAMAGE_STEPS = [
     validateDamage,
     generateDamage,
     hitDamage,
@@ -1044,8 +1044,8 @@ export const damageSteps = [
 export function settleDamage(input: DamageInput): DamageResult {
     let state = createDamageState(input);
     const trace = [];
-    for (let index = 0; index < damageSteps.length; index++) {
-        state = damageSteps[index](state);
+    for (let index = 0; index < DAMAGE_STEPS.length; index++) {
+        state = DAMAGE_STEPS[index](state);
         trace.push({ step: index + 1, state });
     }
     return { ...state, trace };

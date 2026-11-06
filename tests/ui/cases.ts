@@ -7,7 +7,7 @@ import {
     InventoryTransition,
     bagPosition,
     equipmentPosition,
-    inventorySlots,
+    INVENTORY_SLOTS,
     inventoryTransition,
     inventoryView,
     inventoryDescription,
@@ -15,7 +15,7 @@ import {
     inventoryItemText,
     equipmentStatValue,
     inventoryNumberText,
-    previewModelPath,
+    PREVIEW_MODEL_PATH,
     createBag,
     emptyEquipment,
     aggregateEquipment,
@@ -329,7 +329,7 @@ export const inventoryUiCases: { name: string; run(this: void): void }[] = [
             const empty = fixture();
             empty.bag[0] = false;
             check(inventorySlotView(empty, bag(0), false).name === "空");
-            for (const slot of inventorySlots)
+            for (const slot of INVENTORY_SLOTS)
                 check(inventorySlotView(empty, worn(slot), false).icon.length > 0);
         },
     },
@@ -430,7 +430,7 @@ export const inventoryUiCases: { name: string; run(this: void): void }[] = [
     {
         name: "I4 英雄預覽只使用正面模型",
         run() {
-            check(previewModelPath === "ui\\itr-hero-preview.mdl");
+            check(PREVIEW_MODEL_PATH === "ui\\itr-hero-preview.mdl");
         },
     },
     {

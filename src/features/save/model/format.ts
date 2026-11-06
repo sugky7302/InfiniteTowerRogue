@@ -35,7 +35,7 @@ export interface SaveVersion {
     /** 將此版本轉為下一個版本。不得讀取本地或遊戲狀態。 */
     migrate?: (this: void, data: SaveData) => SaveData;
 }
-export const maxPackedBytes = 768;
+export const MAX_PACKED_BYTES = 768;
 function integer(value: number, min: number, max: number): boolean {
     return value >= min && value <= max && Math.floor(value) === value;
 }
@@ -113,7 +113,7 @@ export class SaveRegistry {
                         throw new Error("存檔紀錄清單無效。");
                     bits += width(field.maxLength) + field.maxLength * validateFields(field.fields);
                 } else bits += validateFields([field]);
-                if (bits > maxPackedBytes * 8) throw new Error("存檔格式超過打包上限。");
+                if (bits > MAX_PACKED_BYTES * 8) throw new Error("存檔格式超過打包上限。");
             }
         }
         this.versions.set(format.version, {
@@ -214,7 +214,7 @@ export class SaveRegistry {
         currentVersion: number,
         audit?: NumberAudit,
     ): SaveData | undefined {
-        if (bytes.length > maxPackedBytes || bytes.some((value) => !integer(value, 0, 255)))
+        if (bytes.length > MAX_PACKED_BYTES || bytes.some((value) => !integer(value, 0, 255)))
             return undefined;
         const format = this.versions.get(bytes[0]);
         if (format === undefined || format.version > currentVersion) return undefined;

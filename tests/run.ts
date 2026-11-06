@@ -25,3 +25,4 @@ import "./inventory/objects.spec";
 import "./ui/inventory.spec";
 import "./ui/frames.spec";
 import "./knowledge/knowledge.spec";
+import "./naming/constant-naming.spec";

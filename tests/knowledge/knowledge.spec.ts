@@ -15,7 +15,7 @@ import {
     KNOWLEDGE_MAX_LEVEL,
     knowledgeProgress,
 } from "@entities/knowledge";
-import { heroKnowledge } from "../../src/app/hero-save";
+import { HERO_KNOWLEDGE } from "../../src/app/hero-save";
 
 const EXPECTED_CATALOG: readonly Pick<
     KnowledgeDefinition,
@@ -85,7 +85,7 @@ test("深度常數與 K1 介面約定相同", () => {
 
 test("知識目錄的名稱與順序和英雄存檔目錄完全相同", () => {
     const names = KNOWLEDGE_CATALOG.map((entry) => entry.name);
-    assert.deepEqual(heroKnowledge, names);
+    assert.deepEqual(HERO_KNOWLEDGE, names);
     assert.deepEqual(
         names,
         EXPECTED_CATALOG.map((entry) => entry.name),

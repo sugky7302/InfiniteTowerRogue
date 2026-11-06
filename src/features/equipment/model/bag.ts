@@ -1,27 +1,27 @@
 import { ItemInstance } from "@entities/item";
 
-export const bagSize = 90;
+export const BAG_SIZE = 90;
 /** false 明確表示空格。Lua 的 nil 無法維持陣列位置與長度。 */
 export type BagSlot = ItemInstance | false;
 export type BagState = readonly BagSlot[];
 export function createBag(source: readonly (ItemInstance | false | undefined)[] = []): BagState {
     const bag: BagSlot[] = [];
-    for (let slot = 0; slot < bagSize; slot++) bag.push(source[slot] ?? false);
+    for (let slot = 0; slot < BAG_SIZE; slot++) bag.push(source[slot] ?? false);
     return bag;
 }
 export function firstEmptySlot(bag: BagState): number | undefined {
-    for (let slot = 0; slot < bagSize; slot++) if (bag[slot] === false) return slot;
+    for (let slot = 0; slot < BAG_SIZE; slot++) if (bag[slot] === false) return slot;
     return undefined;
 }
 export function findBagSlot(bag: BagState, id: number): number | undefined {
-    for (let slot = 0; slot < bagSize; slot++) {
+    for (let slot = 0; slot < BAG_SIZE; slot++) {
         const item = bag[slot];
         if (item !== false && item.id === id) return slot;
     }
     return undefined;
 }
 function validSlot(slot: number): boolean {
-    return Number.isInteger(slot) && slot >= 0 && slot < bagSize;
+    return Number.isInteger(slot) && slot >= 0 && slot < BAG_SIZE;
 }
 export function putInBag(bag: BagState, item: ItemInstance): BagState | undefined {
     if (findBagSlot(bag, item.id) !== undefined) return undefined;

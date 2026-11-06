@@ -44,26 +44,26 @@ function copyItem(item: ItemInstance, id = item.id): ItemInstance {
     return { ...item, id, affixes: item.affixes.map((entry) => ({ ...entry })) };
 }
 
-const slotOrder: readonly EquipSlot[] = [
+const SLOT_ORDER: readonly EquipSlot[] = [
     EquipSlot.MainHand,
     EquipSlot.OffHand,
     EquipSlot.Armor,
     EquipSlot.Tool,
 ];
-const slots: Record<EquipSlot, string> = {
+const SLOTS: Record<EquipSlot, string> = {
     [EquipSlot.MainHand]: "主武器",
     [EquipSlot.OffHand]: "副手",
     [EquipSlot.Armor]: "防具",
     [EquipSlot.Tool]: "工具",
 };
-const bases: Record<string, ItemBaseId> = {
+const BASES: Record<string, ItemBaseId> = {
     符文杖: ItemBaseId.RuneStaff,
     訓練短劍: ItemBaseId.TrainingSword,
     巡檢長槌: ItemBaseId.PatrolHammer,
     術式手冊: ItemBaseId.SpellManual,
     學徒長袍: ItemBaseId.ApprenticeRobe,
 };
-const statNames: Record<keyof EquipmentSummary["stats"], string> = {
+const STAT_NAMES: Record<keyof EquipmentSummary["stats"], string> = {
     maxLife: "最大生命",
     meleeAttack: "近戰攻擊力",
     rangedAttack: "遠程攻擊力",
@@ -78,7 +78,7 @@ const statNames: Record<keyof EquipmentSummary["stats"], string> = {
     meleeCritChance: "近戰暴擊率",
     spellCritChance: "法術暴擊率",
 };
-const bonusNames: Record<ItemBonusStat, string> = {
+const BONUS_NAMES: Record<ItemBonusStat, string> = {
     maxLife: "最大生命加值",
     maxLifePercent: "最大生命百分比",
     meleeAttack: "近戰攻擊力",
@@ -114,7 +114,7 @@ function failureText(failure: EquipFailure): string {
 }
 function itemText(item: ItemInstance): string {
     const base = getItemBase(item.baseId);
-    const fixed = base.bonuses.map((bonus) => `${bonusNames[bonus.stat]} +${bonus.value}`);
+    const fixed = base.bonuses.map((bonus) => `${BONUS_NAMES[bonus.stat]} +${bonus.value}`);
     if (base.weapon)
         fixed.push(
             `${base.weapon.hands === 2 ? "雙手" : "單手"}，傷害 ${base.weapon.base}＋近戰攻擊力×${base.weapon.coefficient}`,
@@ -241,7 +241,7 @@ export class HeroExample implements InventoryPort {
         const restored = { ...emptyEquipment() };
         this.nextId = 1;
         // Lua 的物件列舉順序不固定。編號依固定位置順序指定。
-        for (const slot of slotOrder) {
+        for (const slot of SLOT_ORDER) {
             const item = worn[slot];
             if (item !== undefined) restored[slot] = copyItem(item, this.nextId++);
         }
@@ -262,7 +262,7 @@ export class HeroExample implements InventoryPort {
     }
     private allItems(): ItemInstance[] {
         const result: ItemInstance[] = [];
-        for (const slot of slotOrder) {
+        for (const slot of SLOT_ORDER) {
             const item = this.worn[slot];
             if (item !== undefined) result.push(item);
         }
@@ -332,7 +332,7 @@ export class HeroExample implements InventoryPort {
                     )
                     .join("、"),
                 `戰鬥等級 ${this.summary.attributes.level}`,
-                ...Object.entries(statNames).map(
+                ...Object.entries(STAT_NAMES).map(
                     ([key, name]) =>
                         `${name} ${equipmentStatValue(key as keyof EquipmentSummary["stats"], this.summary.stats[key as keyof EquipmentSummary["stats"]])}`,
                 ),
@@ -361,7 +361,7 @@ export class HeroExample implements InventoryPort {
                 "穿戴物：",
                 ...Object.values(EquipSlot).map(
                     (slot) =>
-                        `${slots[slot]}：${this.worn[slot] ? itemText(this.worn[slot]!) : "空"}`,
+                        `${SLOTS[slot]}：${this.worn[slot] ? itemText(this.worn[slot]!) : "空"}`,
                 ),
                 `背包 ${this.held.filter((item) => item !== false).length}／90：`,
                 ...this.held.flatMap((item, index) =>
@@ -371,7 +371,7 @@ export class HeroExample implements InventoryPort {
         }
         if (command === "-item-new") {
             const baseId =
-                bases[parts[1]] ?? Object.values(ItemBaseId).find((id) => id === parts[1]);
+                BASES[parts[1]] ?? Object.values(ItemBaseId).find((id) => id === parts[1]);
             if (!baseId || parts.length !== 2)
                 return [
                     "請指定基底：符文杖、訓練短劍、巡檢長槌、術式手冊、學徒長袍；也可使用基底 ID。",
@@ -392,7 +392,7 @@ export class HeroExample implements InventoryPort {
         }
         if (command === "-unequip") {
             const slot = Object.values(EquipSlot).find(
-                (value) => value === parts[1] || slots[value] === parts[1],
+                (value) => value === parts[1] || SLOTS[value] === parts[1],
             );
             if (!slot || parts.length !== 2)
                 return ["請指定位置：主武器、副手、防具、工具；也可使用位置 ID。"];
@@ -402,7 +402,7 @@ export class HeroExample implements InventoryPort {
             this.worn = result.state;
             this.held = putInBag(this.held, result.removed!)!;
             this.refresh();
-            return [`已卸下${slots[slot]}。`, ...(this.summary.mainWeapon ? [] : ["沒有武器"])];
+            return [`已卸下${SLOTS[slot]}。`, ...(this.summary.mainWeapon ? [] : ["沒有武器"])];
         }
         if (command === "-drop" || command === "-bag-swap") {
             const first = Number(parts[1]) - 1;
@@ -448,7 +448,7 @@ export class HeroExample implements InventoryPort {
         for (const key of Object.keys(comparison.delta) as (keyof typeof comparison.delta)[]) {
             const value = comparison.delta[key];
             if (value !== 0)
-                changes.push(`${statNames[key]} ${value > 0 ? "+" : ""}${displayNumber(value)}`);
+                changes.push(`${STAT_NAMES[key]} ${value > 0 ? "+" : ""}${displayNumber(value)}`);
         }
         for (const modifier of [
             ...comparison.modifierChanges.attacker,
@@ -456,7 +456,7 @@ export class HeroExample implements InventoryPort {
         ]) {
             const key = modifier.id.slice("equipment-".length) as ItemBonusStat;
             changes.push(
-                `${bonusNames[key]}修正 ${modifier.value > 0 ? "+" : ""}${displayNumber(modifier.value)}`,
+                `${BONUS_NAMES[key]}修正 ${modifier.value > 0 ? "+" : ""}${displayNumber(modifier.value)}`,
             );
         }
         changes.push(

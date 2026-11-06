@@ -19,7 +19,7 @@ import {
     wc3EffectNatives,
     wc3RandomNatives,
 } from "@shared/lib/wc3-def";
-import { skills, SkillRuntime } from "@features/skill";
+import { SKILLS, SkillRuntime } from "@features/skill";
 import { createWc3SkillNatives } from "./wc3-skill-natives";
 import { HeroExample } from "./hero-example";
 import { NativeItemRegistry } from "./native-item-registry";
@@ -205,7 +205,7 @@ export function runSkillExample(): HeroExample | undefined {
             );
         }
         runtime = new SkillRuntime(adapter.natives, adapter.stats, worldClock, frames());
-        runtime.track(hero, skills, { onSpellChannel, onSpellEndCast, onUnitOrder }, (code) =>
+        runtime.track(hero, SKILLS, { onSpellChannel, onSpellEndCast, onUnitOrder }, (code) =>
             FourCC(code),
         );
         const tracked = runtime;
@@ -213,7 +213,7 @@ export function runSkillExample(): HeroExample | undefined {
             worldClock,
             adapter.natives,
             [hero],
-            skills.map((skill) => FourCC(skill.code)),
+            SKILLS.map((skill) => FourCC(skill.code)),
             (unit) => tracked.isCasting(unit),
         );
         const natives = adapter.natives;

@@ -2,9 +2,9 @@ import { strict as assert } from "node:assert";
 import { test } from "node:test";
 import {
     AffixId,
-    affixes,
+    AFFIXES,
     affixPercentile,
-    affixTables,
+    AFFIX_TABLES,
     AffixTable,
     AffixValueType,
     createItem,
@@ -14,35 +14,35 @@ import {
     getItemBase,
     getItemBonuses,
     isAffixCompatible,
-    itemBases,
+    ITEM_BASES,
     ItemBaseId,
     ItemBonusStat,
     ItemTag,
     ItemTier,
-    tierAffixCounts,
+    TIER_AFFIX_COUNTS,
 } from "@entities/item";
 import { item } from "./fixtures";
 
 test("四個階級的詞綴數量依序為一至四", () => {
     assert.deepEqual(
-        Object.values(ItemTier).map((tier) => tierAffixCounts[tier]),
+        Object.values(ItemTier).map((tier) => TIER_AFFIX_COUNTS[tier]),
         [1, 2, 3, 4],
     );
 });
 test("全部比例與百分點表符合來源的四階區間", () => {
-    assert.deepEqual(Object.values(affixTables[AffixTable.Minor]), [
+    assert.deepEqual(Object.values(AFFIX_TABLES[AffixTable.Minor]), [
         [1, 2],
         [2, 4],
         [3, 6],
         [5, 8],
     ]);
-    assert.deepEqual(Object.values(affixTables[AffixTable.Standard]), [
+    assert.deepEqual(Object.values(AFFIX_TABLES[AffixTable.Standard]), [
         [2, 5],
         [4, 8],
         [7, 12],
         [10, 15],
     ]);
-    assert.deepEqual(Object.values(affixTables[AffixTable.Strong]), [
+    assert.deepEqual(Object.values(AFFIX_TABLES[AffixTable.Strong]), [
         [4, 8],
         [7, 12],
         [14, 20],
@@ -50,13 +50,13 @@ test("全部比例與百分點表符合來源的四階區間", () => {
     ]);
 });
 test("全部固定值表符合來源的四階區間", () => {
-    assert.deepEqual(Object.values(affixTables[AffixTable.MaxLife]), [
+    assert.deepEqual(Object.values(AFFIX_TABLES[AffixTable.MaxLife]), [
         [8, 15],
         [14, 24],
         [22, 36],
         [32, 50],
     ]);
-    assert.deepEqual(Object.values(affixTables[AffixTable.Evasion]), [
+    assert.deepEqual(Object.values(AFFIX_TABLES[AffixTable.Evasion]), [
         [1, 1],
         [1, 2],
         [2, 3],
@@ -69,7 +69,7 @@ test("全部固定值表符合來源的四階區間", () => {
         AffixTable.ArmorPenetration,
         AffixTable.SpellPenetration,
     ]) {
-        assert.deepEqual(Object.values(affixTables[table]), [
+        assert.deepEqual(Object.values(AFFIX_TABLES[table]), [
             [2, 4],
             [4, 7],
             [6, 10],
@@ -77,14 +77,14 @@ test("全部固定值表符合來源的四階區間", () => {
         ]);
     }
     for (const table of [AffixTable.Armor, AffixTable.Protection])
-        assert.deepEqual(Object.values(affixTables[table]), [
+        assert.deepEqual(Object.values(AFFIX_TABLES[table]), [
             [4, 8],
             [7, 13],
             [11, 19],
             [17, 28],
         ]);
 });
-for (const base of itemBases) {
+for (const base of ITEM_BASES) {
     const testedBase = base;
     test(`${testedBase.name}的每個普通階詞綴與整數值都可抽到且不重複`, () => {
         for (let index = 0; index < testedBase.affixPool.length; index++) {
@@ -121,10 +121,10 @@ for (const base of itemBases) {
     });
 }
 test("全部詞綴有唯一名稱、型態、作用參數、相容標籤與疊加群組", () => {
-    assert.equal(affixes.length, 18);
-    assert.equal(new Set(affixes.map((affix) => affix.id)).size, affixes.length);
-    assert.equal(new Set(affixes.map((affix) => affix.name)).size, affixes.length);
-    for (const definition of affixes) {
+    assert.equal(AFFIXES.length, 18);
+    assert.equal(new Set(AFFIXES.map((affix) => affix.id)).size, AFFIXES.length);
+    assert.equal(new Set(AFFIXES.map((affix) => affix.name)).size, AFFIXES.length);
+    for (const definition of AFFIXES) {
         assert.ok(definition.compatibleTags.length > 0 && definition.stackingGroup.length > 0);
         assert.ok(Object.values(ItemBonusStat).includes(definition.stat));
         for (const tier of Object.values(ItemTier)) {
@@ -137,7 +137,7 @@ test("全部詞綴有唯一名稱、型態、作用參數、相容標籤與疊�
     assert.equal(getAffix(AffixId.FireDamage).valueType, AffixValueType.Percent);
 });
 test("全部基底詞綴池相容，工具標籤不能取得詞綴", () => {
-    for (const base of itemBases) {
+    for (const base of ITEM_BASES) {
         for (const entry of base.affixPool)
             assert.ok(isAffixCompatible(base, getAffix(entry.affixId)));
     }
@@ -151,10 +151,10 @@ test("全部基底詞綴池相容，工具標籤不能取得詞綴", () => {
         isAffixCompatible({ ...base, tags: [ItemTag.MeleeWeapon] }, getAffix(AffixId.MeleeAttack)),
         true,
     );
-    assert.ok(itemBases.every((entry) => entry.slot !== EquipSlot.Tool));
+    assert.ok(ITEM_BASES.every((entry) => entry.slot !== EquipSlot.Tool));
 });
 test("五件物品保留設計稿的名稱、手數、武器係數與固定防護", () => {
-    const weapons = itemBases.filter((base) => base.weapon).map((base) => base.weapon);
+    const weapons = ITEM_BASES.filter((base) => base.weapon).map((base) => base.weapon);
     assert.deepEqual(weapons, [
         { name: "符文杖", hands: 1, base: 4, coefficient: 0.5 },
         { name: "訓練短劍", hands: 1, base: 4, coefficient: 0.5 },

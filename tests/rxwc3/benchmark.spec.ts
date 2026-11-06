@@ -1,6 +1,6 @@
 import { strict as assert } from "node:assert";
 import { test } from "node:test";
-import { encodeFileData, maxFileDataLength } from "../../src/shared/lib/file-io";
+import { encodeFileData, MAX_FILE_DATA_LENGTH } from "../../src/shared/lib/file-io";
 import { Subscription } from "../../src/shared/lib/rxwc3";
 import { Measurement } from "../../src/shared/lib/rxwc3/benchmark/measurement";
 import {
@@ -60,7 +60,7 @@ test("結果分檔保持記錄完整，全部頁面都可通過 file-io 上限",
     assert.ok(pages.length > 1);
     const restored: string[] = [];
     pages.forEach((page, index) => {
-        assert.ok(page.length <= maxFileDataLength);
+        assert.ok(page.length <= MAX_FILE_DATA_LENGTH);
         assert.ok(encodeFileData(page));
         const rows = parseRecords(page);
         assert.equal(rows[0].page, `${index + 1}`);
@@ -68,7 +68,7 @@ test("結果分檔保持記錄完整，全部頁面都可通過 file-io 上限",
         restored.push(...rows.slice(1).map(formatRecord));
     });
     assert.deepEqual(restored, records);
-    assert.throws(() => resultPages(["a".repeat(maxFileDataLength)]));
+    assert.throws(() => resultPages(["a".repeat(MAX_FILE_DATA_LENGTH)]));
 });
 
 test("探測使用最小正差值，並分別驗證記憶體與回收能力", () => {

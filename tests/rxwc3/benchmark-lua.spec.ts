@@ -6,12 +6,12 @@ import {
     resultPages,
     resultValue,
 } from "../../src/shared/lib/rxwc3/benchmark/results";
-import { cases, createWorkload } from "../../src/shared/lib/rxwc3/benchmark/workloads";
+import { CASES, createWorkload } from "../../src/shared/lib/rxwc3/benchmark/workloads";
 
 /** 使用公開 API 與假的 EventHub 原生介面。Node 與 Lua 執行同一組工作。 */
 export function verifyBenchmark(): number {
     let groups = 0;
-    for (const spec of cases) {
+    for (const spec of CASES) {
         const native = createWorkload(spec, "native");
         const rx = createWorkload(spec, "rx");
         for (let index = 0; index < 40; index++) {

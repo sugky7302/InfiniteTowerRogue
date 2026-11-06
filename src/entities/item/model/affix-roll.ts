@@ -1,9 +1,9 @@
 import {
-    affixTables,
+    AFFIX_TABLES,
     AffixDefinition,
     getAffix,
     getAffixRange,
-    tierAffixCounts,
+    TIER_AFFIX_COUNTS,
 } from "../config/affixes";
 import { getItemBase } from "../config/bases";
 import { ItemBase, ItemBonus, ItemInstance, ItemTier, RandomInt } from "./item";
@@ -41,7 +41,7 @@ export function createItem(id: number, baseId: string, random: RandomInt): ItemI
         seen.push(entry.affixId);
         totalWeight += entry.weight;
     }
-    const count = tierAffixCounts[ItemTier.Common];
+    const count = TIER_AFFIX_COUNTS[ItemTier.Common];
     if (candidates.length < count) throw new Error("相容詞綴數量不足。");
     const result: ItemInstance["affixes"][number][] = [];
     for (let index = 0; index < count; index++) {
@@ -66,7 +66,7 @@ export function getItemBonuses(item: ItemInstance): readonly ItemBonus[] {
     const bonuses = [...base.bonuses];
     for (const rolled of item.affixes) {
         const definition = getAffix(rolled.affixId);
-        const [minimum, maximum] = affixTables[definition.table][item.tier];
+        const [minimum, maximum] = AFFIX_TABLES[definition.table][item.tier];
         if (
             seen.includes(rolled.affixId) ||
             !isAffixCompatible(base, definition) ||

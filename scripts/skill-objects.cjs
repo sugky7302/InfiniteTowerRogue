@@ -1,5 +1,5 @@
 function createSkillObjects(data, definitions) {
-    const { skills, castSeconds, rangeYards, yardsToWc3, scholar } = definitions;
+    const { SKILLS: skills, castSeconds, rangeYards, yardsToWc3, scholar } = definitions;
     for (const skill of skills) {
         if (data.abilities.has(skill.code)) throw new Error(`技能代碼已被使用：${skill.code}`);
         const ability = data.abilities.copy("ANcl", skill.code);

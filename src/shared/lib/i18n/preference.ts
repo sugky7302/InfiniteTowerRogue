@@ -1,7 +1,7 @@
 import { LocalFileIo, FileRead, FileWrite, FileReadStatus } from "../file-io";
 import { isLocale, Locale } from "./locale";
 
-export const languagePreferencePath = "InfiniteTowerRogue\\language.pld";
+export const LANGUAGE_PREFERENCE_PATH = "InfiniteTowerRogue\\language.pld";
 export function encodeLanguagePreference(locale: Locale): string {
     return "ITR-LANG-1:" + locale;
 }
@@ -13,7 +13,7 @@ export function decodeLanguagePreference(value: string): Locale | undefined {
 
 /** 結果只能寫入本地語言 Signal，不得用於同步狀態。 */
 export function readLanguagePreference(files: LocalFileIo): { result: FileRead; locale?: Locale } {
-    const result = files.read(languagePreferencePath);
+    const result = files.read(LANGUAGE_PREFERENCE_PATH);
     if (result.status !== FileReadStatus.Read) return { result };
     const locale = decodeLanguagePreference(result.data);
     return locale === undefined
@@ -21,5 +21,5 @@ export function readLanguagePreference(files: LocalFileIo): { result: FileRead; 
         : { result, locale };
 }
 export function writeLanguagePreference(files: LocalFileIo, locale: Locale): FileWrite {
-    return files.write(languagePreferencePath, encodeLanguagePreference(locale));
+    return files.write(LANGUAGE_PREFERENCE_PATH, encodeLanguagePreference(locale));
 }

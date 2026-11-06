@@ -1,4 +1,4 @@
-import { maxFileDataLength } from "../../file-io/codec";
+import { MAX_FILE_DATA_LENGTH } from "../../file-io/codec";
 
 export type Fields = Record<string, string | number | boolean>;
 
@@ -51,9 +51,10 @@ export function resultPages(records: readonly string[]): string[] {
     const pages: string[] = [];
     let current = "";
     for (const record of records) {
-        if (record.length > maxFileDataLength - 80) throw new Error("單筆基準結果超過檔案上限。");
+        if (record.length > MAX_FILE_DATA_LENGTH - 80)
+            throw new Error("單筆基準結果超過檔案上限。");
         const next = current === "" ? record : `${current};${record}`;
-        if (next.length > maxFileDataLength - 80) {
+        if (next.length > MAX_FILE_DATA_LENGTH - 80) {
             pages.push(current);
             current = record;
         } else current = next;

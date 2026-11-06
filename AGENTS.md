@@ -25,7 +25,7 @@ export type TowerState = (typeof TowerState)[keyof typeof TowerState];
 - 模組層級的常數使用大寫蛇形命名法（`UPPER_SNAKE_CASE`）（2026-11-05）。
     - 適用：純量常數（數字、字串、布林）與固定的資料表（陣列、對照表）。例如：`KNOWLEDGE_EXP_MAX`、`KNOWLEDGE_CATALOG`、`KNOWLEDGE_NODE_TYPE_ORDER`。
     - 不適用：帶同名 `type` 的常數物件（如上例的 `TowerState`），維持 PascalCase。函式內的區域常數、函式與類別，維持原本的命名。
-    - 既有程式的名稱另外安排一次改名，在此之前不受此規則限制。
+    - `tests/naming/constant-naming.spec.ts` 檢查 `src/` 的此規則（2026-11-06）。可變的狀態、實例、原生函式介面的實作與單一筆資料定義不改名，寫在它的允許清單中。新增這類常數時，把它加入允許清單。
 
 ```ts
 export const KNOWLEDGE_EXP_UNIT = 10;

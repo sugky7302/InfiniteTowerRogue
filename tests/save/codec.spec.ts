@@ -6,12 +6,12 @@ import {
     compactCode,
     decodeBase32,
     encodeBase32,
-    maxSaveCodeLength,
+    MAX_SAVE_CODE_LENGTH,
     normalizePlayerName,
-    saveAlphabet,
+    SAVE_ALPHABET,
     SaveRegistry,
     SaveData,
-    maxPackedBytes,
+    MAX_PACKED_BYTES,
     createDemoRegistry,
     createDemoCodec,
     initialDemoData,
@@ -50,7 +50,7 @@ test("每一個有效字元的所有不同 Base32 字元均使存檔無效", () 
     const codec = createDemoCodec();
     const code = compactCode(codec.encode(initialDemoData(), "Alice")!);
     for (let index = 0; index < code.length; index++)
-        for (const char of saveAlphabet) {
+        for (const char of SAVE_ALPHABET) {
             if (char !== code[index])
                 assert.equal(
                     codec.decode(code.slice(0, index) + char + code.slice(index + 1), "Alice"),
@@ -74,7 +74,7 @@ test("位元組竄改、截斷、附加、其他玩家及標籤不符均無效",
         "U",
         "?",
         "中",
-        "0".repeat(maxSaveCodeLength + 1),
+        "0".repeat(MAX_SAVE_CODE_LENGTH + 1),
     ])
         assert.equal(codec.decode(bad, "Alice#1234"), undefined);
     for (const name of ["Bob#1234", "Alice#1235", "A".repeat(257)])
@@ -232,9 +232,9 @@ test("存檔碼及最長打包結果符合 file-io 字元與長度限制", () =>
     const data = {
         s: { a: Array(256).fill(255), b: Array(255).fill(255), c: Array(256).fill(255) },
     };
-    assert.equal(registry.pack(data, 1)!.length, maxPackedBytes);
+    assert.equal(registry.pack(data, 1)!.length, MAX_PACKED_BYTES);
     const code = new SaveCodec(registry, 1).encode(data, "Alice")!;
-    assert(code.length <= maxSaveCodeLength);
+    assert(code.length <= MAX_SAVE_CODE_LENGTH);
     assert(encodeFileData(code));
     assert.deepEqual(new SaveCodec(registry, 1).decode(code, "Alice"), data);
 });
@@ -255,7 +255,7 @@ test("實際雜湊算術與編碼邊界符合 int32 及 float32", () => {
     }
     audit(16777215);
     audit(4095);
-    audit(maxPackedBytes * 8);
+    audit(MAX_PACKED_BYTES * 8);
     assert(checks > 10000);
 });
 

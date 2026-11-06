@@ -8,9 +8,9 @@ export interface ClassDefinition {
     readonly tier: number;
     readonly growth: Readonly<Partial<PrimaryAttributeSet>>;
 }
-export const classDefinitions: readonly ClassDefinition[] = [
+export const CLASS_DEFINITIONS: readonly ClassDefinition[] = [
     { id: ClassId.RuneApprentice, name: "符文學徒", tier: 1, growth: { intelligence: 1 } },
 ];
 export function getClassDefinition(id: string): ClassDefinition | undefined {
-    return classDefinitions.find((entry) => entry.id === id);
+    return CLASS_DEFINITIONS.find((entry) => entry.id === id);
 }

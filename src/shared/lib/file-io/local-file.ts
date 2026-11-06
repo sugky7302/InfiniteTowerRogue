@@ -4,10 +4,10 @@ import { decodeFileData, encodeFileData } from "./codec";
 import {
     escapeFileData,
     unescapeFileData,
-    fileAbility,
-    filePreloadLimit,
-    filePreloadStart,
-    filePreloadEnd,
+    FILE_ABILITY,
+    FILE_PRELOAD_LIMIT,
+    FILE_PRELOAD_START,
+    FILE_PRELOAD_END,
 } from "./preload";
 
 export const FileReadStatus = {
@@ -58,7 +58,7 @@ export function createLocalFileIo(natives: FileNatives) {
             if (!safePath(path)) return { status: FileReadStatus.InvalidPath };
             let saved: string | undefined;
             try {
-                saved = natives.getIcon(fileAbility);
+                saved = natives.getIcon(FILE_ABILITY);
             } catch (error) {
                 logger.error(error);
                 return { status: FileReadStatus.Failed };
@@ -67,15 +67,15 @@ export function createLocalFileIo(natives: FileNatives) {
             let raw: string | undefined;
             let failed = false;
             try {
-                natives.setIcon("ITF-MISSING", fileAbility);
+                natives.setIcon("ITF-MISSING", FILE_ABILITY);
                 natives.load(path);
-                raw = natives.getIcon(fileAbility);
+                raw = natives.getIcon(FILE_ABILITY);
             } catch (error) {
                 logger.error(error);
                 failed = true;
             }
             try {
-                natives.setIcon(saved, fileAbility);
+                natives.setIcon(saved, FILE_ABILITY);
             } catch (error) {
                 logger.error(error);
                 return { status: FileReadStatus.Failed };
@@ -101,11 +101,11 @@ export function createLocalFileIo(natives: FileNatives) {
             try {
                 natives.clear();
                 natives.start();
-                natives.emit(filePreloadStart);
+                natives.emit(FILE_PRELOAD_START);
                 const escaped = escapeFileData(encoded);
-                for (let index = 0; index < escaped.length; index += filePreloadLimit)
-                    natives.emit(escaped.slice(index, index + filePreloadLimit));
-                natives.emit(filePreloadEnd);
+                for (let index = 0; index < escaped.length; index += FILE_PRELOAD_LIMIT)
+                    natives.emit(escaped.slice(index, index + FILE_PRELOAD_LIMIT));
+                natives.emit(FILE_PRELOAD_END);
                 natives.finish(path);
                 result = { status: FileWriteStatus.Issued };
             } catch (error) {

@@ -1,5 +1,5 @@
 import { ItemInstance } from "@entities/item";
-import { nativeItemTypes } from "@features/equipment";
+import { NATIVE_ITEM_TYPES } from "@features/equipment";
 import { ItemCarrierNatives } from "@shared/lib/wc3-def";
 import { logger } from "@shared/lib/logger";
 
@@ -43,7 +43,7 @@ export class NativeItemRegistry {
             this.entries.has(data.id)
         )
             throw new Error("物品編號無效或重複。");
-        const code = (nativeItemTypes as Readonly<Record<string, string>>)[data.baseId];
+        const code = (NATIVE_ITEM_TYPES as Readonly<Record<string, string>>)[data.baseId];
         if (code === undefined) throw new Error("物品基底沒有原生類型。");
         const handle = this.natives.createItem(
             code,

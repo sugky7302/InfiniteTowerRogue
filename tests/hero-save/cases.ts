@@ -7,7 +7,7 @@ import {
     ItemTier,
     getAffixRange,
     getItemBase,
-    tierAffixCounts,
+    TIER_AFFIX_COUNTS,
 } from "@entities/item";
 import { emptyEquipment, equip } from "@features/equipment";
 import {
@@ -20,7 +20,7 @@ import {
 } from "@features/save";
 import { loadCommands } from "@features/save";
 import { decodeFileData } from "@shared/lib/file-io";
-import { saveFilePath } from "@features/save";
+import { SAVE_FILE_PATH } from "@features/save";
 import {
     createHeroSaveParticipantsV3 as createHeroSaveParticipants,
     decodeHeroSaveV3 as decodeHeroSave,
@@ -130,7 +130,7 @@ for (const tier of [ItemTier.Fine, ItemTier.Masterwork, ItemTier.Legendary]) {
                 ...item,
                 tier: selected,
                 affixes: getItemBase(item.baseId)
-                    .affixPool.slice(0, tierAffixCounts[selected])
+                    .affixPool.slice(0, TIER_AFFIX_COUNTS[selected])
                     .map((entry) => ({
                         affixId: entry.affixId,
                         value: getAffixRange(entry.affixId, selected)[1],
@@ -526,7 +526,7 @@ heroSaveCases.push(
             const s = heroChat();
             try {
                 s.command("-save");
-                const code = decodeFileData(s.files[0].getData(saveFilePath)!)!;
+                const code = decodeFileData(s.files[0].getData(SAVE_FILE_PATH)!)!;
                 const commands = loadCommands(code);
                 check(commands.length === 3 && commands.every((command) => command.length <= 92));
                 for (const demo of s.examples) demo.command("-hero-up");
@@ -578,7 +578,7 @@ heroSaveCases.push(
             const s = heroChat();
             try {
                 s.command("-save");
-                const code = decodeFileData(s.files[0].getData(saveFilePath)!)!;
+                const code = decodeFileData(s.files[0].getData(SAVE_FILE_PATH)!)!;
                 for (const demo of s.examples) demo.command("-hero-up");
                 s.command(`-load ${code}`);
                 check(s.examples.every((demo) => demo.hero.classes[0].level === 1));
@@ -656,7 +656,7 @@ heroSaveCases.push(
             try {
                 s.command("-save-demo gold 22");
                 s.command("-save");
-                const code = decodeFileData(s.files[0].getData(saveFilePath)!)!;
+                const code = decodeFileData(s.files[0].getData(SAVE_FILE_PATH)!)!;
                 s.command("-save-demo gold 1");
                 s.command(`-load ${code}`);
                 check(events.join(",") === "0:first:驗證,0:last:驗證,1:first:驗證,1:last:驗證");

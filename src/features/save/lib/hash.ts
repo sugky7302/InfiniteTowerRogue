@@ -1,8 +1,8 @@
 type Word = readonly [number, number];
 export type NumberAudit = (this: void, value: number) => void;
 
-const initial = "6a09e667 bb67ae85 3c6ef372 a54ff53a 510e527f 9b05688c 1f83d9ab 5be0cd19";
-const constants = (
+const INITIAL = "6a09e667 bb67ae85 3c6ef372 a54ff53a 510e527f 9b05688c 1f83d9ab 5be0cd19";
+const CONSTANTS = (
     "428a2f98 71374491 b5c0fbcf e9b5dba5 3956c25b 59f111f1 923f82a4 ab1c5ed5 " +
     "d807aa98 12835b01 243185be 550c7dc3 72be5d74 80deb1fe 9bdc06a7 c19bf174 " +
     "e49b69c1 efbe4786 0fc19dc6 240ca1cc 2de92c6f 4a7484aa 5cb0a9dc 76f988da " +
@@ -60,7 +60,7 @@ export function sha256(input: readonly number[], audit?: NumberAudit): number[] 
     while (bytes.length % 64 !== 56) bytes.push(0);
     const bits = input.length * 8;
     bytes.push(0, 0, 0, 0, 0, Math.floor(bits / 65536), Math.floor(bits / 256) % 256, bits % 256);
-    const state = initial.split(" ").map((word) => parseWord(word));
+    const state = INITIAL.split(" ").map((word) => parseWord(word));
     for (let offset = 0; offset < bytes.length; offset += 64) {
         const words: Word[] = [];
         for (let index = 0; index < 16; index++) {
@@ -98,7 +98,7 @@ export function sha256(input: readonly number[], audit?: NumberAudit): number[] 
                 h,
                 xor(rotate(e, 6), rotate(e, 11), rotate(e, 25)),
                 choice,
-                constants[index],
+                CONSTANTS[index],
                 words[index],
             );
             const second = add(audit, xor(rotate(a, 2), rotate(a, 13), rotate(a, 22)), majority);

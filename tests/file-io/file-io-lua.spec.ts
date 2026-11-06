@@ -4,7 +4,7 @@ import {
     encodeFileData,
     escapeFileData,
     unescapeFileData,
-    fileAbility,
+    FILE_ABILITY,
     FileReadStatus,
     FileWriteStatus,
 } from "../../src/shared/lib/file-io";
@@ -12,7 +12,7 @@ import { createI18n } from "../../src/shared/lib/i18n/translation";
 import {
     decodeLanguagePreference,
     encodeLanguagePreference,
-    languagePreferencePath,
+    LANGUAGE_PREFERENCE_PATH,
 } from "../../src/shared/lib/i18n/preference";
 import { fakeFileIo, framedFile, loadedIcon } from "./fake-file-io";
 export { wc3FileNatives as natives } from "@shared/lib/wc3-def";
@@ -46,14 +46,14 @@ export function verifyFileIo(): number {
             reopened.t("example.ready") === "The language example is ready.",
         "重開沒有套用偏好。",
     );
-    fake.setData(languagePreferencePath, "損壞");
+    fake.setData(LANGUAGE_PREFERENCE_PATH, "損壞");
     const damaged = createI18n({ getLocale: () => "enUS" }, files);
     check(
         damaged.language() === "en-US" &&
             damaged.preference?.result.status === FileReadStatus.InvalidData,
         "錯誤偏好後備失敗。",
     );
-    const invalid = files.read(languagePreferencePath);
+    const invalid = files.read(LANGUAGE_PREFERENCE_PATH);
     check(
         invalid.status === FileReadStatus.InvalidData && invalid.rawLength === "損壞".length,
         "損壞內容長度錯誤。",
@@ -71,27 +71,27 @@ export function verifyFileIo(): number {
         fake.outputs.get("full.pld")!.every((line) => line.length <= 259),
         "單次 emit 超過 259 字元。",
     );
-    check(fileAbility === 1097690227 && fileAbility <= 2147483647, "載體整數錯誤。");
+    check(FILE_ABILITY === 1097690227 && FILE_ABILITY <= 2147483647, "載體整數錯誤。");
     const esc = String.fromCharCode(27);
     const special = esc + 'q"' + esc + esc + '"' + "A".repeat(258) + esc + "q";
     check(unescapeFileData(escapeFileData(special)) === special, "ESC 與雙引號往返錯誤。");
     check(escapeFileData(esc + '"') === esc + esc + esc + "q", "跳脫格式與 w3ts 不同。");
-    fake.natives.setIcon("", fileAbility);
+    fake.natives.setIcon("", FILE_ABILITY);
     check(
         files.read("missing.pld").status === FileReadStatus.Missing && fake.getIcon() === "",
         "遺失檔案或空圖示還原錯誤。",
     );
     fake.files.set("old.pld", "call BlzSetAbilityTooltip('A0IO',\"ITF1|3|ABC|1\",0)");
     check(files.read("old.pld").status === FileReadStatus.Missing, "舊格式未安全拒絕。");
-    fake.natives.setIcon("原始圖示", fileAbility);
+    fake.natives.setIcon("原始圖示", FILE_ABILITY);
     fake.failRead(true);
     check(
-        files.read(languagePreferencePath).status === FileReadStatus.Failed &&
+        files.read(LANGUAGE_PREFERENCE_PATH).status === FileReadStatus.Failed &&
             fake.getIcon() === "原始圖示",
         "讀取例外未還原圖示。",
     );
     fake.natives.load = () => {
-        fake.natives.setIcon("部分資料", fileAbility);
+        fake.natives.setIcon("部分資料", FILE_ABILITY);
         throw new Error("測試載入中斷。");
     };
     check(
@@ -111,7 +111,7 @@ export function verifyFileIo(): number {
         "沒有圖示時未回報遺失。",
     );
     const emptyIcon = fakeFileIo();
-    emptyIcon.natives.load = () => emptyIcon.natives.setIcon("", fileAbility);
+    emptyIcon.natives.load = () => emptyIcon.natives.setIcon("", FILE_ABILITY);
     const empty = createLocalFileIo(emptyIcon.natives).read("slot.pld");
     check(
         empty.status === FileReadStatus.InvalidData &&

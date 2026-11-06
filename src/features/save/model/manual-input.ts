@@ -1,16 +1,16 @@
 import { Clock, fragmentNumber, FragmentReceiver } from "@shared/lib/rxwc3";
-import { compactCode, maxSaveCodeLength } from "./codec";
+import { compactCode, MAX_SAVE_CODE_LENGTH } from "./codec";
 
-export const manualFragmentLength = 80;
+export const MANUAL_FRAGMENT_LENGTH = 80;
 
 export function loadCommands(code: string): string[] {
     const compact = compactCode(code);
-    const count = Math.ceil(compact.length / manualFragmentLength);
+    const count = Math.ceil(compact.length / MANUAL_FRAGMENT_LENGTH);
     const commands: string[] = [];
     if (code.length + 6 <= 126) commands.push(`-load ${code}`);
     for (let index = 0; index < count; index++)
         commands.push(
-            `-load ${index + 1}/${count} ${compact.slice(index * manualFragmentLength, (index + 1) * manualFragmentLength)}`,
+            `-load ${index + 1}/${count} ${compact.slice(index * MANUAL_FRAGMENT_LENGTH, (index + 1) * MANUAL_FRAGMENT_LENGTH)}`,
         );
     return commands;
 }
@@ -41,10 +41,10 @@ export class ManualSaveInput {
         if (
             index === undefined ||
             count === undefined ||
-            count > Math.ceil(maxSaveCodeLength / manualFragmentLength) ||
+            count > Math.ceil(MAX_SAVE_CODE_LENGTH / MANUAL_FRAGMENT_LENGTH) ||
             index > count ||
             data.length < 1 ||
-            data.length > manualFragmentLength
+            data.length > MANUAL_FRAGMENT_LENGTH
         ) {
             this.reset();
             this.failed();

@@ -2,7 +2,7 @@ import { strict as assert } from "node:assert";
 import { readFileSync } from "node:fs";
 import War3Map from "mdx-m3-viewer-th/dist/cjs/parsers/w3x/map";
 import W3u from "mdx-m3-viewer-th/dist/cjs/parsers/w3x/w3u/file";
-import { nativeItemTypes } from "@features/equipment";
+import { NATIVE_ITEM_TYPES } from "@features/equipment";
 
 const map = new War3Map();
 map.load(new Uint8Array(readFileSync("dist/bin/map.w3x")).buffer);
@@ -34,13 +34,15 @@ assert.deepEqual(
 for (const field of ["items", "slot", "base", "tier"])
     assert.ok(script.includes(`name = "${field}"`));
 assert.ok(script.includes('kind = "records"') && script.includes("maxLength = 94"));
-assert.ok(script.includes("maxPackedBytes = 768") && script.includes("maxSaveCodeLength = 1600"));
+assert.ok(
+    script.includes("MAX_PACKED_BYTES = 768") && script.includes("MAX_SAVE_CODE_LENGTH = 1600"),
+);
 for (const command of ["-drop", "-bag-swap"]) assert.ok(script.includes(`"${command}"`));
 assert.ok(script.includes("UnitRemoveItem(owner, target)"));
 assert.ok(script.includes("SetItemVisible(target, visible)"));
 const items = new W3u();
 items.load(map.archive.get("war3map.w3t")!.bytes());
-for (const code of Object.values(nativeItemTypes)) {
+for (const code of Object.values(NATIVE_ITEM_TYPES)) {
     const object = items.customTable.objects.find((entry) => entry.newId === code)!;
     assert.ok(object);
     assert.equal(object.oldId, "ratf");

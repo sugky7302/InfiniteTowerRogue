@@ -38,24 +38,24 @@ function ranges(
         [ItemTier.Legendary]: legendary,
     };
 }
-const attackRanges = ranges([2, 4], [4, 7], [6, 10], [9, 14]);
-const defenseRanges = ranges([4, 8], [7, 13], [11, 19], [17, 28]);
+const ATTACK_RANGES = ranges([2, 4], [4, 7], [6, 10], [9, 14]);
+const DEFENSE_RANGES = ranges([4, 8], [7, 13], [11, 19], [17, 28]);
 /** 來源為 docs/dnd/規則/詞綴.md 的全部四階共用數值表。 */
-export const affixTables: Readonly<Record<AffixTable, TierRanges>> = {
+export const AFFIX_TABLES: Readonly<Record<AffixTable, TierRanges>> = {
     [AffixTable.Minor]: ranges([1, 2], [2, 4], [3, 6], [5, 8]),
     [AffixTable.Standard]: ranges([2, 5], [4, 8], [7, 12], [10, 15]),
     [AffixTable.Strong]: ranges([4, 8], [7, 12], [14, 20], [18, 25]),
     [AffixTable.MaxLife]: ranges([8, 15], [14, 24], [22, 36], [32, 50]),
-    [AffixTable.MeleeAttack]: attackRanges,
-    [AffixTable.RangedAttack]: attackRanges,
-    [AffixTable.SpellPower]: attackRanges,
+    [AffixTable.MeleeAttack]: ATTACK_RANGES,
+    [AffixTable.RangedAttack]: ATTACK_RANGES,
+    [AffixTable.SpellPower]: ATTACK_RANGES,
     [AffixTable.Evasion]: ranges([1, 1], [1, 2], [2, 3], [3, 4]),
-    [AffixTable.Armor]: defenseRanges,
-    [AffixTable.Protection]: defenseRanges,
-    [AffixTable.ArmorPenetration]: attackRanges,
-    [AffixTable.SpellPenetration]: attackRanges,
+    [AffixTable.Armor]: DEFENSE_RANGES,
+    [AffixTable.Protection]: DEFENSE_RANGES,
+    [AffixTable.ArmorPenetration]: ATTACK_RANGES,
+    [AffixTable.SpellPenetration]: ATTACK_RANGES,
 };
-export const tierAffixCounts: Readonly<Record<ItemTier, number>> = {
+export const TIER_AFFIX_COUNTS: Readonly<Record<ItemTier, number>> = {
     [ItemTier.Common]: 1,
     [ItemTier.Fine]: 2,
     [ItemTier.Masterwork]: 3,
@@ -91,8 +91,8 @@ export interface AffixDefinition {
     readonly compatibleTags: readonly ItemTag[];
     readonly stackingGroup: string;
 }
-const offense = [ItemTag.Weapon, ItemTag.CastingFocus, ItemTag.Accessory];
-const survival = [ItemTag.Armor, ItemTag.Shield, ItemTag.Accessory];
+const OFFENSE = [ItemTag.Weapon, ItemTag.CastingFocus, ItemTag.Accessory];
+const SURVIVAL = [ItemTag.Armor, ItemTag.Shield, ItemTag.Accessory];
 function affix(
     id: AffixId,
     name: string,
@@ -104,14 +104,14 @@ function affix(
 ): AffixDefinition {
     return { id, name, valueType, table, stat, compatibleTags, stackingGroup };
 }
-export const affixes: readonly AffixDefinition[] = [
+export const AFFIXES: readonly AffixDefinition[] = [
     affix(
         AffixId.PhysicalDamage,
         "物理傷害",
         AffixValueType.Percent,
         AffixTable.Standard,
         ItemBonusStat.PhysicalDamage,
-        offense,
+        OFFENSE,
         "damage-increase",
     ),
     affix(
@@ -120,7 +120,7 @@ export const affixes: readonly AffixDefinition[] = [
         AffixValueType.Percent,
         AffixTable.Standard,
         ItemBonusStat.FireDamage,
-        offense,
+        OFFENSE,
         "damage-increase",
     ),
     affix(
@@ -129,7 +129,7 @@ export const affixes: readonly AffixDefinition[] = [
         AffixValueType.Percent,
         AffixTable.Standard,
         ItemBonusStat.FrostDamage,
-        offense,
+        OFFENSE,
         "damage-increase",
     ),
     affix(
@@ -162,7 +162,7 @@ export const affixes: readonly AffixDefinition[] = [
         AffixValueType.PercentagePoint,
         AffixTable.Standard,
         ItemBonusStat.FireResistance,
-        survival,
+        SURVIVAL,
     ),
     affix(
         AffixId.FrostResistance,
@@ -170,7 +170,7 @@ export const affixes: readonly AffixDefinition[] = [
         AffixValueType.PercentagePoint,
         AffixTable.Standard,
         ItemBonusStat.FrostResistance,
-        survival,
+        SURVIVAL,
     ),
     affix(
         AffixId.DirectReduction,
@@ -178,7 +178,7 @@ export const affixes: readonly AffixDefinition[] = [
         AffixValueType.Percent,
         AffixTable.Minor,
         ItemBonusStat.DirectReduction,
-        survival,
+        SURVIVAL,
     ),
     affix(
         AffixId.MaxLifePercent,
@@ -234,7 +234,7 @@ export const affixes: readonly AffixDefinition[] = [
         AffixValueType.Fixed,
         AffixTable.Protection,
         ItemBonusStat.Protection,
-        survival,
+        SURVIVAL,
     ),
     affix(
         AffixId.ArmorPenetration,
@@ -254,10 +254,10 @@ export const affixes: readonly AffixDefinition[] = [
     ),
 ];
 export function getAffix(id: string): AffixDefinition {
-    const result = affixes.find((entry) => entry.id === id);
+    const result = AFFIXES.find((entry) => entry.id === id);
     if (!result) throw new Error("詞綴識別碼未登錄。");
     return result;
 }
 export function getAffixRange(id: string, tier: ItemTier): AffixRange {
-    return affixTables[getAffix(id).table][tier];
+    return AFFIX_TABLES[getAffix(id).table][tier];
 }

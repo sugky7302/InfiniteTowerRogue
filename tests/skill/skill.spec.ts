@@ -14,7 +14,7 @@ import {
     MovementSlows,
     periodicTicks,
 } from "@entities/combat";
-import { castSeconds, fireball, frostbolt, rangeYards, skills, yardsToWc3 } from "@features/skill";
+import { castSeconds, fireball, frostbolt, rangeYards, SKILLS, yardsToWc3 } from "@features/skill";
 import { scholar } from "@entities/character";
 import { installPauseBridge } from "@features/combat";
 import { FakeEventNatives } from "../rxwc3/fake-event-natives";
@@ -572,7 +572,7 @@ test("S2 多個投射物共用同一個幀來源，停止後清理全部資源",
 });
 test("S1 技能成本、冷卻及持續效果都集中在定義", () => {
     assert.deepEqual(
-        skills.map((skill) => [skill.mana, skill.cooldown]),
+        SKILLS.map((skill) => [skill.mana, skill.cooldown]),
         [
             [15, 4],
             [10, 0],

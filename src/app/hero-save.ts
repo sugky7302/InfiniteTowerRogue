@@ -1,12 +1,12 @@
 import { ClassId, HeroState, getClassDefinition, levelUp, runeScholar } from "@entities/character";
 import {
-    affixes,
+    AFFIXES,
     EquipSlot,
     getItemBonuses,
     ItemBaseId,
     ItemInstance,
     ItemTier,
-    tierAffixCounts,
+    TIER_AFFIX_COUNTS,
 } from "@entities/item";
 import { KNOWLEDGE_CATALOG } from "@entities/knowledge";
 import { emptyEquipment, equip, EquipmentState } from "@features/equipment";
@@ -20,10 +20,10 @@ import {
 } from "@features/save";
 
 /** 已發布的索引只能在尾端增加。預建英雄的索引 0 代表符文學者。 */
-export const heroPresets: readonly HeroState[] = [runeScholar];
-export const heroClasses: readonly string[] = ["", ClassId.RuneApprentice];
-export const heroKnowledge: readonly string[] = KNOWLEDGE_CATALOG.map((e) => e.name);
-export const heroBases: readonly string[] = [
+export const HERO_PRESETS: readonly HeroState[] = [runeScholar];
+export const HERO_CLASSES: readonly string[] = ["", ClassId.RuneApprentice];
+export const HERO_KNOWLEDGE: readonly string[] = KNOWLEDGE_CATALOG.map((e) => e.name);
+export const HERO_BASES: readonly string[] = [
     "",
     ItemBaseId.RuneStaff,
     ItemBaseId.TrainingSword,
@@ -31,14 +31,14 @@ export const heroBases: readonly string[] = [
     ItemBaseId.SpellManual,
     ItemBaseId.ApprenticeRobe,
 ];
-export const heroTiers: readonly ItemTier[] = [
+export const HERO_TIERS: readonly ItemTier[] = [
     ItemTier.Common,
     ItemTier.Fine,
     ItemTier.Masterwork,
     ItemTier.Legendary,
 ];
-export const heroAffixes: readonly string[] = ["", ...affixes.map((entry) => entry.id)];
-export const heroSlots: readonly EquipSlot[] = [
+export const HERO_AFFIXES: readonly string[] = ["", ...AFFIXES.map((entry) => entry.id)];
+export const HERO_SLOTS: readonly EquipSlot[] = [
     EquipSlot.MainHand,
     EquipSlot.OffHand,
     EquipSlot.Armor,
@@ -118,12 +118,12 @@ function validValues(section: SaveSection, values: Values): boolean {
 /** 純函式。從預建英雄重算成長，保存的知識取代預建知識。 */
 export function decodeHeroSection(values: Values): DecodedHero | undefined {
     if (!validValues(heroSection, values)) return undefined;
-    const preset = heroPresets[values.preset as number];
+    const preset = HERO_PRESETS[values.preset as number];
     if (preset === undefined) return undefined;
     const ids = values.classIds as number[],
         levels = values.classLevels as number[];
     const flags = values.knowledge as number[];
-    for (let index = heroKnowledge.length; index < flags.length; index++) {
+    for (let index = HERO_KNOWLEDGE.length; index < flags.length; index++) {
         if (flags[index] !== 0) return undefined;
     }
     if (values.present === false) {
@@ -135,7 +135,7 @@ export function decodeHeroSection(values: Values): DecodedHero | undefined {
     const seen: string[] = [];
     const classes: HeroState["classes"][number][] = [];
     for (let index = 0; index < ids.length; index++) {
-        const id = heroClasses[ids[index]];
+        const id = HERO_CLASSES[ids[index]];
         const level = levels[index];
         if (id === undefined) return undefined;
         if (ids[index] === 0) {
@@ -166,7 +166,7 @@ export function decodeHeroSection(values: Values): DecodedHero | undefined {
         hero: {
             ...hero,
             classes,
-            knowledge: heroKnowledge.filter((_, index) => flags[index] === 1),
+            knowledge: HERO_KNOWLEDGE.filter((_, index) => flags[index] === 1),
         },
     };
 }
@@ -190,31 +190,31 @@ export function decodeEquipmentSectionV3(
     let nextId = 1;
     for (let position = 0; position < 16; position++) {
         const base = bases[position],
-            tier = heroTiers[tiers[position]];
-        if (heroBases[base] === undefined || tier === undefined) return undefined;
+            tier = HERO_TIERS[tiers[position]];
+        if (HERO_BASES[base] === undefined || tier === undefined) return undefined;
         const entries: ItemInstance["affixes"][number][] = [];
         let ended = false;
         for (let index = 0; index < 4; index++) {
             const offset = position * 4 + index;
             const id = ids[offset],
                 value = amounts[offset];
-            if (heroAffixes[id] === undefined) return undefined;
+            if (HERO_AFFIXES[id] === undefined) return undefined;
             if (id === 0) {
                 ended = true;
                 if (value !== 0) return undefined;
             } else {
                 if (ended || base === 0) return undefined;
-                entries.push({ affixId: heroAffixes[id], value });
+                entries.push({ affixId: HERO_AFFIXES[id], value });
             }
         }
         if (base === 0) {
             if (tiers[position] !== 0) return undefined;
             continue;
         }
-        if (entries.length !== tierAffixCounts[tier]) return undefined;
+        if (entries.length !== TIER_AFFIX_COUNTS[tier]) return undefined;
         const item: ItemInstance = {
             id: nextId++,
-            baseId: heroBases[base],
+            baseId: HERO_BASES[base],
             tier,
             affixes: entries,
         };
@@ -225,7 +225,7 @@ export function decodeEquipmentSectionV3(
             return undefined;
         }
         if (position < 4) {
-            const result = equip(decoded.hero, worn, item, heroSlots[position]);
+            const result = equip(decoded.hero, worn, item, HERO_SLOTS[position]);
             if (!result.ok) return undefined;
             worn = result.state;
         } else held.push(item);
@@ -253,29 +253,29 @@ export function encodeHeroSaveV3(snapshot?: HeroSnapshot): SaveData | undefined 
     hero.present = true;
     for (let index = 0; index < source.classes.length; index++) {
         const entry = source.classes[index];
-        const id = heroClasses.indexOf(entry.classId);
+        const id = HERO_CLASSES.indexOf(entry.classId);
         if (id <= 0) return undefined;
         (hero.classIds as number[])[index] = id;
         (hero.classLevels as number[])[index] = entry.level;
     }
     for (const entry of source.knowledge) {
-        const index = heroKnowledge.indexOf(entry);
+        const index = HERO_KNOWLEDGE.indexOf(entry);
         if (index < 0) return undefined;
         (hero.knowledge as number[])[index] = 1;
     }
     // Lua 陣列尾端的 nil 不計入長度。明確依位置讀取，避免持有物移入空的工具格。
     for (let position = 0; position < 16; position++) {
         const item =
-            position < 4 ? snapshot.worn[heroSlots[position]] : snapshot.held[position - 4];
+            position < 4 ? snapshot.worn[HERO_SLOTS[position]] : snapshot.held[position - 4];
         if (item === undefined || item === false) continue;
-        const base = heroBases.indexOf(item.baseId),
-            tier = heroTiers.indexOf(item.tier);
+        const base = HERO_BASES.indexOf(item.baseId),
+            tier = HERO_TIERS.indexOf(item.tier);
         if (base <= 0 || tier < 0 || item.affixes.length > 4) return undefined;
         (equipment.bases as number[])[position] = base;
         (equipment.tiers as number[])[position] = tier;
         for (let index = 0; index < item.affixes.length; index++) {
             const entry = item.affixes[index];
-            const id = heroAffixes.indexOf(entry.affixId);
+            const id = HERO_AFFIXES.indexOf(entry.affixId);
             if (id <= 0) return undefined;
             (equipment.affixIds as number[])[position * 4 + index] = id;
             (equipment.affixValues as number[])[position * 4 + index] = entry.value;
@@ -388,8 +388,8 @@ export function migrateEquipmentV3(values: Values): Values {
         amounts = values.affixValues as number[];
     if (!validValues(equipmentSectionV3, values)) throw new Error("存檔碼無效。");
     for (let slot = 0; slot < 16; slot++) {
-        const tier = heroTiers[tiers[slot]];
-        const count = tierAffixCounts[tier];
+        const tier = HERO_TIERS[tiers[slot]];
+        const count = TIER_AFFIX_COUNTS[tier];
         const affixIds = ids.slice(slot * 4, slot * 4 + count);
         const affixValues = amounts.slice(slot * 4, slot * 4 + count);
         for (let index = 0; index < 4; index++) {
@@ -417,15 +417,15 @@ export function decodeEquipmentSection(
     const positions = new Map<number, ItemInstance>();
     for (const record of records) {
         const slot = record.slot as number,
-            base = heroBases[record.base as number],
-            tier = heroTiers[record.tier as number];
+            base = HERO_BASES[record.base as number],
+            tier = HERO_TIERS[record.tier as number];
         if (positions.has(slot) || base === undefined || base.length === 0 || tier === undefined)
             return undefined;
         const ids = record.affixIds as number[],
             amounts = record.affixValues as number[];
         const entries: ItemInstance["affixes"][number][] = [];
         for (let index = 0; index < ids.length; index++) {
-            const affixId = heroAffixes[ids[index]];
+            const affixId = HERO_AFFIXES[ids[index]];
             if (affixId === undefined || affixId.length === 0) return undefined;
             entries.push({ affixId, value: amounts[index] });
         }
@@ -448,7 +448,7 @@ export function decodeEquipmentSection(
             continue;
         }
         if (item === undefined) continue;
-        const result = equip(decoded.hero, worn, item, heroSlots[slot]);
+        const result = equip(decoded.hero, worn, item, HERO_SLOTS[slot]);
         if (!result.ok) return undefined;
         worn = result.state;
     }
@@ -466,13 +466,13 @@ export function encodeHeroSave(snapshot?: HeroSnapshot): SaveData | undefined {
     if (legacy === undefined || snapshot.held.length > 90) return undefined;
     const records: SaveRecord[] = [];
     for (let slot = 0; slot < 94; slot++) {
-        const item = slot < 4 ? snapshot.worn[heroSlots[slot]] : snapshot.held[slot - 4];
+        const item = slot < 4 ? snapshot.worn[HERO_SLOTS[slot]] : snapshot.held[slot - 4];
         if (item === undefined || item === false) continue;
-        const base = heroBases.indexOf(item.baseId),
-            tier = heroTiers.indexOf(item.tier);
-        if (base <= 0 || tier < 0 || item.affixes.length !== tierAffixCounts[item.tier])
+        const base = HERO_BASES.indexOf(item.baseId),
+            tier = HERO_TIERS.indexOf(item.tier);
+        if (base <= 0 || tier < 0 || item.affixes.length !== TIER_AFFIX_COUNTS[item.tier])
             return undefined;
-        const affixIds = item.affixes.map((entry) => heroAffixes.indexOf(entry.affixId));
+        const affixIds = item.affixes.map((entry) => HERO_AFFIXES.indexOf(entry.affixId));
         if (affixIds.some((id) => id <= 0)) return undefined;
         records.push({
             slot,

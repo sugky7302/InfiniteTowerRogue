@@ -4,8 +4,8 @@ import {
     SaveCodec,
     compactCode,
     createDemoRegistry,
-    maxPackedBytes,
-    maxSaveCodeLength,
+    MAX_PACKED_BYTES,
+    MAX_SAVE_CODE_LENGTH,
 } from "@features/save";
 import { createHeroSaveParticipants } from "../../src/app/hero-save";
 import { inventoryCases, inventoryData, worstInventoryData } from "./cases";
@@ -28,7 +28,7 @@ test("版本四94筆最壞資料經 NumberAudit 檢查 int32 與 float32", () =>
     assert.equal(registry.pack(data, 4)!.length, 710);
     assert.equal(code.length, 1397);
     assert.equal(compactCode(code).length, 1165);
-    assert.ok(code.length <= maxSaveCodeLength && 710 <= maxPackedBytes && count > 10000);
+    assert.ok(code.length <= MAX_SAVE_CODE_LENGTH && 710 <= MAX_PACKED_BYTES && count > 10000);
 });
 test("版本四碼長計算固定", () => {
     const codec = new SaveCodec(createDemoRegistry(createHeroSaveParticipants({} as player)), 4);

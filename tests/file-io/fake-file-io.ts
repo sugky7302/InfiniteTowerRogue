@@ -1,10 +1,10 @@
 import { FileNatives } from "@shared/lib/wc3-def";
 import {
     escapeFileData,
-    fileAbility,
-    filePreloadEnd,
-    filePreloadLimit,
-    filePreloadStart,
+    FILE_ABILITY,
+    FILE_PRELOAD_END,
+    FILE_PRELOAD_LIMIT,
+    FILE_PRELOAD_START,
     unescapeFileData,
 } from "../../src/shared/lib/file-io";
 
@@ -20,10 +20,10 @@ export function preloadFile(lines: readonly string[]): string {
 /** 測試資料也使用新檔案格式。傳入未跳脫的框架，可包含損壞內容。 */
 export function framedFile(raw: string): string {
     const escaped = escapeFileData(raw);
-    const lines = [filePreloadStart];
-    for (let index = 0; index < escaped.length; index += filePreloadLimit)
-        lines.push(escaped.slice(index, index + filePreloadLimit));
-    lines.push(filePreloadEnd);
+    const lines = [FILE_PRELOAD_START];
+    for (let index = 0; index < escaped.length; index += FILE_PRELOAD_LIMIT)
+        lines.push(escaped.slice(index, index + FILE_PRELOAD_LIMIT));
+    lines.push(FILE_PRELOAD_END);
     return preloadFile(lines);
 }
 
@@ -38,7 +38,7 @@ export function loadedIcon(source: string): string | undefined {
         else if (line === "//!endusercode") userCode = false;
         else if (userCode && line === "local o=''") output = "";
         else if (userCode && line === "Preload=function(s)o=o..s end") accumulating = true;
-        else if (userCode && line === `BlzSetAbilityIcon(${fileAbility},o)` && accumulating)
+        else if (userCode && line === `BlzSetAbilityIcon(${FILE_ABILITY},o)` && accumulating)
             return output;
         else if (!userCode && accumulating) {
             const head = 'call Preload( "';
@@ -82,7 +82,7 @@ export function fakeFileIo() {
             const source = files.get(path);
             if (source === undefined) return;
             const value = loadedIcon(source);
-            if (value !== undefined) icons.set(fileAbility, value);
+            if (value !== undefined) icons.set(FILE_ABILITY, value);
         },
     };
     return {
@@ -98,7 +98,7 @@ export function fakeFileIo() {
             const value = source === undefined ? undefined : loadedIcon(source);
             return value === undefined ? undefined : unescapeFileData(value);
         },
-        getIcon: () => natives.getIcon(fileAbility),
+        getIcon: () => natives.getIcon(FILE_ABILITY),
         writes: () => writes,
         failRead: (value: boolean) => {
             failRead = value;

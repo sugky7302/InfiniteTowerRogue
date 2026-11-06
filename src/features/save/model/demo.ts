@@ -3,8 +3,8 @@ import { SaveCodec } from "./codec";
 import { SaveParticipant } from "./participant";
 
 /** 目錄索引固定，已發行的索引不得改指向其他物品。0 表示空格。 */
-export const demoItemCatalog = ["", "ratf", "rst1", "rde1"] as const;
-export const demoSaveVersion = 2;
+export const DEMO_ITEM_CATALOG = ["", "ratf", "rst1", "rde1"] as const;
+export const DEMO_SAVE_VERSION = 2;
 
 export function createDemoRegistry(participants: readonly SaveParticipant[] = []): SaveRegistry {
     const registry = new SaveRegistry();
@@ -34,14 +34,14 @@ export function createDemoRegistry(participants: readonly SaveParticipant[] = []
                     name: "items",
                     kind: "list" as const,
                     min: 0,
-                    max: demoItemCatalog.length - 1,
+                    max: DEMO_ITEM_CATALOG.length - 1,
                     length: 6,
                 },
             ],
         },
     ];
     registry.register({
-        version: demoSaveVersion,
+        version: DEMO_SAVE_VERSION,
         sections: [
             {
                 name: "demo",
@@ -52,7 +52,7 @@ export function createDemoRegistry(participants: readonly SaveParticipant[] = []
                         name: "items",
                         kind: "list",
                         min: 0,
-                        max: demoItemCatalog.length - 1,
+                        max: DEMO_ITEM_CATALOG.length - 1,
                         length: 6,
                     },
                 ],
@@ -116,7 +116,7 @@ export function createDemoCodec(participants: readonly SaveParticipant[] = []): 
             ? 4
             : participants.length > 0
               ? 3
-              : demoSaveVersion,
+              : DEMO_SAVE_VERSION,
     );
 }
 
@@ -135,7 +135,7 @@ export function changeDemo(data: SaveData, arguments_: readonly string[]): boole
         demo.gold = value;
     else if (arguments_.length === 3 && arguments_[0] === "item" && value >= 1 && value <= 6) {
         const item = Number(arguments_[2]);
-        if (!Number.isInteger(item) || item < 0 || item >= demoItemCatalog.length) return false;
+        if (!Number.isInteger(item) || item < 0 || item >= DEMO_ITEM_CATALOG.length) return false;
         (demo.items as number[])[value - 1] = item;
     } else return false;
     return true;

@@ -5,7 +5,7 @@ import War3Map from "mdx-m3-viewer-th/dist/cjs/parsers/w3x/map";
 import W3a from "mdx-m3-viewer-th/dist/cjs/parsers/w3x/w3d/file";
 import W3u from "mdx-m3-viewer-th/dist/cjs/parsers/w3x/w3u/file";
 import { ObjectData } from "war3-objectdata-th/dist/cjs";
-import { castSeconds, skills, yardsToWc3, rangeYards } from "@features/skill";
+import { castSeconds, SKILLS, yardsToWc3, rangeYards } from "@features/skill";
 
 /** 直接讀取最終 MPQ，確認技能欄位與 Lua 都已封裝。 */
 export function verifySkillArtifact(): number {
@@ -23,7 +23,7 @@ export function verifySkillArtifact(): number {
     unitSkin.load(map.archive.get("war3mapSkin.w3u")!.bytes());
     const data = new ObjectData();
     data.load({ w3a: ability, w3aSkin: abilitySkin, w3u: units, w3uSkin: unitSkin });
-    for (const skill of skills) {
+    for (const skill of SKILLS) {
         const value = data.abilities.get(skill.code)!;
         assert.equal(value.oldId, "ANcl");
         const channel = value as unknown as {

@@ -1,11 +1,11 @@
-const alphabet =
+const ALPHABET =
     " !#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~";
-export const maxFileDataLength = 4096;
+export const MAX_FILE_DATA_LENGTH = 4096;
 /** 限制為可直接放入 JASS 字串的 ASCII。中文等資料須先由呼叫者編碼。 */
 function safeData(value: string): boolean {
-    if (value.length > maxFileDataLength) return false;
+    if (value.length > MAX_FILE_DATA_LENGTH) return false;
     for (let index = 0; index < value.length; index++)
-        if (alphabet.indexOf(value.charAt(index)) < 0) return false;
+        if (ALPHABET.indexOf(value.charAt(index)) < 0) return false;
     return true;
 }
 
@@ -23,7 +23,7 @@ export function encodeFileData(value: string): string | undefined {
 }
 
 export function decodeFileData(value: string): string | undefined {
-    if (value.length > maxFileDataLength + 32 || value.slice(0, 5) !== "ITF1|") return undefined;
+    if (value.length > MAX_FILE_DATA_LENGTH + 32 || value.slice(0, 5) !== "ITF1|") return undefined;
     const lengthEnd = value.indexOf("|", 5);
     let checkStart = value.length - 1;
     while (checkStart >= 0 && value.charAt(checkStart) !== "|") checkStart--;

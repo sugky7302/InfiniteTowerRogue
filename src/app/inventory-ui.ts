@@ -5,12 +5,12 @@ import {
     InventorySelection,
     bagPosition,
     equipmentPosition,
-    equipmentSlotNames,
-    inventorySlots,
+    EQUIPMENT_SLOT_NAMES,
+    INVENTORY_SLOTS,
     inventoryDescription,
     inventorySlotView,
     inventoryView,
-    previewModelPath,
+    PREVIEW_MODEL_PATH,
 } from "@features/equipment";
 import { logger } from "@shared/lib/logger";
 import { FrameNatives, wc3FrameNatives } from "@shared/lib/wc3-def";
@@ -124,7 +124,7 @@ export function runInventoryUi(
             0.1 / 0.001,
             0.195 / 0.001,
         );
-        frames.setModel(model, previewModelPath, 0);
+        frames.setModel(model, PREVIEW_MODEL_PATH, 0);
         frames.setSpriteAnimate(model, 2, 0);
     };
     const render = (): void => {
@@ -190,7 +190,7 @@ export function runInventoryUi(
                 const id = index;
                 const cell: InventoryCell =
                     id < 4
-                        ? { kind: "equipment", slot: inventorySlots[id] }
+                        ? { kind: "equipment", slot: INVENTORY_SLOTS[id] }
                         : { kind: "bag", index: id - 4 };
                 const position = id < 4 ? equipmentPosition(id) : bagPosition(id - 4);
                 const handle = create("ItrSlotButton", root, id);
@@ -205,7 +205,7 @@ export function runInventoryUi(
                         200 + id,
                         position.x,
                         position.y + 0.016,
-                        equipmentSlotNames[cell.slot],
+                        EQUIPMENT_SLOT_NAMES[cell.slot],
                     );
                 button(handle, () => send({ kind: "click", cell }));
                 const hover = listen(() => {

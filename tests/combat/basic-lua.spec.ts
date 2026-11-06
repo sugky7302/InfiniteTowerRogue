@@ -10,7 +10,7 @@ import {
     DamageModifier,
     settleDamage,
     createDamageState,
-    damageSteps,
+    DAMAGE_STEPS,
     deriveCombatStats,
     generalCheckValue,
     checkValue,
@@ -97,7 +97,7 @@ for (let index = 0; index < 26; index++) {
             near(sum(snapshot, "fire"), flameSteps[stepIndex][1]);
             const previous =
                 stepIndex === 0 ? createDamageState(input) : result.trace[stepIndex - 1].state;
-            const independent = damageSteps[stepIndex](previous);
+            const independent = DAMAGE_STEPS[stepIndex](previous);
             near(sum(independent), sum(snapshot));
             near(independent.targetLife, snapshot.targetLife);
             if (stepIndex >= 12) {

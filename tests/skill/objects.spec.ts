@@ -11,7 +11,7 @@ test("S2 Channel 物件使用整數目標與選項，寫入引導時間、法力
     const data = new ObjectData();
     createSkillObjects(data, definitions);
     const saved = data.save();
-    for (const [index, skill] of definitions.skills.entries()) {
+    for (const [index, skill] of definitions.SKILLS.entries()) {
         const object = saved.w3a!.customTable.objects.find((value) => value.newId === skill.code)!;
         assert.equal(object.oldId, "ANcl");
         const field = (id: string) => object.modifications.find((value) => value.id === id);

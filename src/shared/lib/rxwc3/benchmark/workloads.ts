@@ -14,7 +14,7 @@ export interface Case {
     width: number;
 }
 
-export const cases: Case[] = [
+export const CASES: Case[] = [
     { id: "B1-subject-1", kind: "subject", width: 1 },
     { id: "B1-subject-20", kind: "subject", width: 20 },
     { id: "B1-subject-100", kind: "subject", width: 100 },
