@@ -1,8 +1,6 @@
 # 開發規則
 
-- 每次開發請先撰寫設計稿，先在 `docs/` 底下建立該設計的資料夾，然後新建 `PLAN.md` 於該資料夾。
-    - `PLAN.md` 必須含有建立日期，以及是否完成兩個屬性。
-    - 完成的 `PLAN.md`，請精煉為 skill，放到 `.github/skills` 裡面。若是已經存在，請根據內容，自主判斷要更新還是不變動。
+- 設計稿、決策與 skill 的規則，見「開發流程」的「設計稿」。
 - 撰寫時請遵守 ASD-STE100 原則，並使用正體中文書寫。
 - TypeScript 檔名使用 Angular v20 命名法。
     - 使用 kebab-case，不加類型後綴。例如：`behavior-subject.ts`、`switch-map.ts`、`wc3-clock-driver.ts`。
@@ -35,11 +33,115 @@ export const KNOWLEDGE_CATALOG: readonly KnowledgeDefinition[] = [ /* … */ ];
 
 ## 開發流程
 
-1. 由我與 Claude 討論，擬定出設計稿，由 Codex 和 Antigravity 審核以及修正，最後將討論結果放置在 `docs/<開發項目>/PLAN.md` 裡。
-2. Claude 根據 `PLAN.md`，切割出一個個任務，由 Antigravity 審核每項任務是否定義清楚，最後將結果放到 `docs/<開發項目>/TASK.md`。
-3. Claude 會調用 Codex 以 TDD 原則，設計出測試項目。Antigravity 會檢驗 Codex 提出的測試項目，並新增、更新、修改、刪除不適宜的測試項目。
-4. 由我本人實作程式碼，**AI Agents** 只能提供建議，不得直接修改。除非是 MDX 或者工具的使用，這部份需要先尋求我的同意。Claude 會要求我回覆是否完成，若是我回答完成，Claude 調用 Codex 以及 Antigravity 進行分開驗證、檢查，確認符合測試。
-5. 檢查後，若是符合，則進行下一個任務，循環往復。若是不符合測試，則重複執行 4.。
+### 設計稿
+
+1. 開始開發前，必須先寫設計稿。
+2. 設計稿必須放在 `docs/<feature-name>/PLAN.md`。
+3. `PLAN.md` 必須在開頭寫入兩個屬性：`created`（建立日期）與 `done`（是否完成）。
+4. `done` 的初始值是 `false`。skill 通過審核後（「步驟」的「全部任務完成後」第 2 步），Claude 把 `done` 改為 `true`。
+5. `PLAN.md` 完成後，必須將內容精煉為 skill，放入 `.github/skills/<skill-name>/`。
+6. 同名 skill 已存在時，AI 助理依內容判斷是否更新。
+7. 本節的 `research/` 與 `decisions/` 規則從 2026-11-09 開始生效，只適用於之後開始的開發項目。進行中的開發項目（例如 `knowledge-panel`）不補寫 `research/` 與 `decisions/`，但「步驟」與「助理的規則」立即生效。
+
+決策的位置：
+
+1. 寫 `PLAN.md` 時，決策必須寫入該開發項目的 `decisions/`。
+2. 決策影響其他開發項目時，必須精煉到 skill 的 `references/`。開發項目的 `decisions/` 保留原文。
+3. 決策必須在所有工作中生效時，必須在本文件加一行規則。這行規則必須連結到 skill 與決策原文。
+4. `PLAN.md` 開頭必須列出「依據的決策」。開發項目沒有 `PLAN.md` 時，列在 `README.md` 開頭。
+5. AI 助理執行任務時，必須讀取本文件、相關 skill 與「依據的決策」。
+6. AI 助理必須追查這些決策的取代關係與相依決策。
+7. `PLAN.md` 精煉為 skill 時，必須把「依據的決策」一起寫入 skill。
+
+權威順序：
+
+1. 決策原文是權威來源。skill 與本文件只寫摘要，並且必須連結到原文。
+2. 摘要與原文衝突時，以原文為準。發現衝突時，必須修正摘要。
+3. 較新、狀態為 `accepted`、且明確取代舊決策的決策優先。
+4. 狀態為 `superseded` 的決策只供追溯，不可作為操作依據。
+5. 研究文件（`research/`）只提供決策的輸入，不取代決策本身。
+
+決策檔的格式：
+
+1. 每個決策檔在開頭寫入下列屬性：
+
+```yaml
+---
+status: proposed | accepted | superseded | rejected
+date: 2026-11-09            # 最後一次改變 status 的日期
+supersedes: []              # 本決策取代的決策（開發項目路徑與完整檔名）
+superseded-by: []           # 取代本決策的決策（status 為 superseded 時必填）
+depends-on: []              # 本決策依據的其他決策
+---
+```
+
+2. `proposed`：還沒有得到 Arvin 同意。不可作為操作依據。
+3. `accepted`：Arvin 已同意。可以作為操作依據。
+4. `superseded`：已被其他決策取代。必須填寫 `superseded-by`。
+5. `rejected`：Arvin 不同意。只供追溯。
+6. 新決策取代舊決策時，必須同時更新兩個檔案：新決策的 `supersedes` 與舊決策的 `status`、`superseded-by`。
+7. AI 助理追查取代關係與相依決策時，依 `supersedes`、`superseded-by` 與 `depends-on` 追查。
+
+決策檔名：
+
+1. 遷入的決策保留原完整檔名。
+2. 引用決策時，必須寫出開發項目路徑與完整檔名，不可只寫編號。
+3. 空的 `decisions/` 從 `0001` 開始編號。已有決策的 `decisions/`，新決策從該資料夾的最大編號加 1 開始。
+
+### 步驟
+
+Claude 負責串聯。Claude 依下列步驟調用下一個助理。
+
+開發項目開始時：
+
+1. Arvin 與 Claude 討論設計方向。
+2. Claude 將討論紀錄寫入 `docs/<feature-name>/research/`。
+3. Claude 調用 Codex。Codex 依討論紀錄撰寫 `PLAN.md` 與 `decisions/`。
+4. Claude 調用 Antigravity 審核 `PLAN.md`。Antigravity 提出問題時，Claude 調用 Codex 修正。
+5. Claude 調用 DeepSeek。DeepSeek 依 `PLAN.md` 切分任務，並寫入 `TASK.md`。
+6. Claude 調用 Antigravity 審核 `TASK.md`。Antigravity 提出問題時，Claude 調用 DeepSeek 修正。
+
+每個任務：
+
+1. Claude 調用 DeepSeek。DeepSeek 定義介面與 Stub。
+2. Claude 調用 Codex。Codex 依 TDD 原則撰寫測試程式碼。
+3. Claude 調用 Antigravity 審核介面、Stub 與測試。Antigravity 對介面或 Stub 提出問題時，Claude 調用 DeepSeek 修正。對測試提出問題時，Claude 調用 Codex 修正。
+4. Arvin 實作程式碼。Codex 只可以在 IDE 中提供補全建議。
+5. Claude 詢問 Arvin 是否完成實作。Arvin 回答完成後，Claude 執行測試。
+6. 測試通過時，Claude 調用 Antigravity，檢查實作是否符合 `TASK.md` 的完成條件。
+7. 檢查通過，而且任務含有會在 WC3 中執行的程式時，Arvin 在測試地圖（`pnpm run test`）中驗證。驗證失敗時，Claude 依第 8 步判定原因。
+8. 測試失敗、第 6 步檢查不通過或第 7 步驗證失敗時，Claude 調用 DeepSeek 判定原因：
+    - 程式碼錯誤：回到第 4 步。
+    - 測試錯誤：回到第 2 步。
+    - 介面或 Stub 錯誤：回到第 1 步。
+    - `PLAN.md` 或 `TASK.md` 錯誤：Claude 告訴 Arvin。Arvin 同意後，回到「開發項目開始時」的第 3 步（`PLAN.md`）或第 5 步（`TASK.md`），然後從本清單第 1 步重新開始。
+9. 同一個失敗嘗試 2 次仍未解決時，Claude 讀取錯誤 log，並進行根本原因分析（RCA）。
+10. 第 6 步與第 7 步都通過後，進行下一個任務。
+
+全部任務完成後：
+
+1. Claude 調用 DeepSeek，依「設計稿」一節將 `PLAN.md` 精煉為 skill。
+2. Claude 調用 Antigravity 審核 skill。審核通過後，Claude 把 `PLAN.md` 的 `done` 改為 `true`。
+
+### 調用方式
+
+Claude 以下列方式調用其他助理。Claude 傳遞檔案路徑與要做的工作，不轉貼檔案內容。
+
+| 助理 | 調用方式 |
+|---|---|
+| Antigravity | `agy.exe -p "<工作說明與檔案路徑>" --mode plan --print-timeout 900s`。只讀的審核與檢查使用 `--mode plan`；需要寫入檔案時使用 `--mode accept-edits`。提示必須寫「不得執行任何終端指令」 |
+| Codex | `codex.exe exec -C <儲存庫路徑> -s <沙箱> --color never -o <輸出檔.md> -`，提示由 stdin 傳入。`codex.exe` 在 `*Codex*` Appx 套件的 `app\resources\` 中。只讀的工作使用 `-s read-only`，提示必須允許只讀的終端指令 |
+| DeepSeek | `pwsh -File scripts/deepseek.ps1 -Mode <edit\|read> -Prompt "<工作說明與檔案路徑>" [-OutFile <輸出檔.md>]`。以 Claude Code CLI 連到 DeepSeek 的 Anthropic 相容 API，模型 `deepseek-flash`（API 接受的名稱）。`edit` 可以讀寫檔案，`read` 只讀，兩者都不能執行終端指令。API 金鑰只放在使用者環境變數 `DEEPSEEK_API_KEY`，不得寫入儲存庫 |
+
+### 助理的規則
+
+1. 撰寫者與審核者必須是不同的助理。
+2. Claude 調用其他助理時，必須傳遞檔案路徑，不可轉貼檔案內容。
+3. 除了測試檔與 Stub，AI 助理不可修改程式碼。
+4. 測試通過 Antigravity 審核（「每個任務」第 3 步）之後，AI 助理修改測試的斷言前，必須先取得 Arvin 同意。第 3 步審核期間的修改不需要同意。
+5. 「步驟」指定的檔案（研究紀錄、`PLAN.md`、`decisions/`、`TASK.md`、skill、測試檔、Stub），由負責的助理直接寫入。
+6. AI 助理修改其他文件或工具設定前，必須先取得 Arvin 同意。
+7. Claude 負責更新 `TASK.md` 的進度與「任務追蹤」一節的 Issue 標籤。
 
 ## 任務追蹤（GitHub Issue）
 
@@ -48,7 +150,7 @@ export const KNOWLEDGE_CATALOG: readonly KnowledgeDefinition[] = [ /* … */ ];
 - 標題：`<開發項目名稱> <任務編號>：<TASK.md 的任務標題>`。例如：`知識面板 K2：知識狀態、存檔第 5 版、HeroExample 同步`。
 - 內文：`PLAN.md` 與 `TASK.md` 的連結、`TASK.md` 中該任務的段落（包含完成條件）與進度。任務完成時，加上提交編號。
 - milestone：每個開發項目一個，名稱與開發項目名稱相同。全部任務完成後，關閉 milestone。
-- 儲存庫是公開的。建立 issue 前，必須先得到我的同意。
+- 儲存庫是公開的。建立 issue 前，必須先得到 Arvin 同意。
 
 ### 標籤
 
@@ -61,10 +163,10 @@ export const KNOWLEDGE_CATALOG: readonly KnowledgeDefinition[] = [ /* … */ ];
 | | `type: bugfix` | 紅 | 修正錯誤 |
 | | `type: docs` | 灰 | 只改文件、skill 或工具 |
 | `task:` | `task: <開發項目資料夾名稱>` | 黑 | 屬於哪一個開發項目。例如：`task: knowledge-panel`。新增開發項目時，新增此標籤 |
-| `stage:` | `stage: test` | 黃 | 開發流程 3.：Codex 寫測試，Antigravity 檢查 |
-| | `stage: implement` | 黃 | 開發流程 4.：我實作 |
-| | `stage: verify` | 黃 | 開發流程 4.：Codex 與 Antigravity 驗證 |
-| | `stage: in-game` | 黃 | 我在測試地圖中驗證 |
+| `stage:` | `stage: test` | 黃 | 「每個任務」第 1～3 步：DeepSeek 寫介面與 Stub，Codex 寫測試，Antigravity 審核 |
+| | `stage: implement` | 黃 | 「每個任務」第 4～5 步：Arvin 實作 |
+| | `stage: verify` | 黃 | 「每個任務」第 5～6 步：Claude 執行測試，Antigravity 檢查完成條件 |
+| | `stage: in-game` | 黃 | 「每個任務」第 7 步：Arvin 在測試地圖中驗證 |
 | `status:` | `status: paused` | 桃紅 | 暫停 |
 | | `status: blocked` | 橘 | 等待其他任務或決定 |
 
